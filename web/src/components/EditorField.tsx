@@ -1,8 +1,16 @@
 'use client';
 
+import {
+    BoldPlugin,
+    ItalicPlugin,
+    UnderlinePlugin,
+} from '@platejs/basic-nodes/react';
 import { MarkdownPlugin } from '@platejs/markdown';
 import { Plate, PlateContent, usePlateEditor } from 'platejs/react';
 import * as React from 'react';
+
+import { FloatingToolbar } from '@/components/ui/floating-toolbar';
+import { MarkToolbarButton } from '@/components/ui/mark-toolbar-button';
 
 /**
  * A reusable editor component that works like a standard <Textarea>,
@@ -52,17 +60,19 @@ export function EditorField({
     placeholder = 'Type here...',
     ...props
 }: EditorFieldProps) {
-    // Create editor with markdown plugin
+    // Create editor with markdown plugin and formatting plugins
     const editor = usePlateEditor({
-        plugins: [
-            MarkdownPlugin,
-        ],
-        value: value ? (editor) => {
-            // Deserialize markdown string to Plate value
-            return editor.getApi(MarkdownPlugin).markdown.deserialize(value);
-        } : [
-            { type: 'p', children: [{ text: '' }] }, // Default empty paragraph
-        ],
+        plugins: [MarkdownPlugin, BoldPlugin, ItalicPlugin, UnderlinePlugin],
+        value: value
+            ? (editor) => {
+                  // Deserialize markdown string to Plate value
+                  return editor
+                      .getApi(MarkdownPlugin)
+                      .markdown.deserialize(value);
+              }
+            : [
+                  { type: 'p', children: [{ text: '' }] }, // Default empty paragraph
+              ],
     });
 
     return (
@@ -70,11 +80,24 @@ export function EditorField({
             editor={editor}
             onChange={({ value }) => {
                 // Serialize Plate value back to markdown string
-                const markdown = editor.getApi(MarkdownPlugin).markdown.serialize({ value });
+                const markdown = editor
+                    .getApi(MarkdownPlugin)
+                    .markdown.serialize({ value });
                 onChange?.(markdown);
             }}
             {...props}
         >
+            <FloatingToolbar>
+                <MarkToolbarButton nodeType="bold" tooltip="Bold">
+                    B
+                </MarkToolbarButton>
+                <MarkToolbarButton nodeType="italic" tooltip="Italic">
+                    I
+                </MarkToolbarButton>
+                <MarkToolbarButton nodeType="underline" tooltip="Underline">
+                    U
+                </MarkToolbarButton>
+            </FloatingToolbar>
             <PlateContent placeholder={placeholder} />
         </Plate>
     );
