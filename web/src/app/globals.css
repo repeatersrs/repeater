@@ -47,6 +47,7 @@
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
+    --color-brand: var(--brand);
 }
 
 :root {
@@ -88,6 +89,7 @@
     --heatmap-3: oklch(0.73 0.15 143);
     --heatmap-4: oklch(0.65 0.2 143);
     --kbd: oklch(0.97 0 0);
+    --brand: oklch(0.623 0.214 259.815);
 }
 
 .dark {
@@ -128,6 +130,7 @@
     --heatmap-3: oklch(0.569 0.15 143);
     --heatmap-4: oklch(0.65 0.2 143);
     --kbd: oklch(0.25 0 0);
+    --brand: oklch(0.707 0.165 254.624);
 }
 
 @layer base {

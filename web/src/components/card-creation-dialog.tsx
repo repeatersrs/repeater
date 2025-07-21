@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { EditorField } from '@/components/EditorField';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -31,7 +32,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { createCardCardsPost, CardCreate, getDecksDecksGet } from '@/gen';
 
 interface CardCreationDialogProps {
@@ -148,12 +148,9 @@ export default function CardCreationDialog({
                                         Content
                                     </FormLabel>
                                     <FormControl>
-                                        <Textarea
-                                            className="h-32"
-                                            placeholder={`How are you?
----
-Ça va?`}
+                                        <EditorField
                                             {...field}
+                                            placeholder="How are you? \n --- \n Ça va?"
                                         />
                                     </FormControl>
                                     <FormMessage />
