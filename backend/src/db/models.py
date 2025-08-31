@@ -80,7 +80,6 @@ class User(Base, BaseMixin):
 
     decks = relationship("Deck", back_populates="user")
     reviews = relationship("Review", back_populates="user")
-    categories = relationship("Category", back_populates="user")
 
     def set_password(self, password: str):
         pw_bytes = password.encode("utf-8")
@@ -115,20 +114,34 @@ class User(Base, BaseMixin):
 class Deck(Base, BaseMixin):
     __tablename__ = "decks"
 
-    user_id = mapped_column(
-        (UUID(as_uuid=True)), ForeignKey("users.id"), nullable=False
-    )
-    category_id = mapped_column(
-        (UUID(as_uuid=True)), ForeignKey("categories.id"), nullable=True
-    )
+    user_id = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    parent_id = mapped_column(UUID(as_uuid=True), ForeignKey("decks.id"), nullable=True)
     name = mapped_column(String, nullable=False)
     description = mapped_column(String)
     is_paused = mapped_column(Boolean, default=False, nullable=False)
     is_archived = mapped_column(Boolean, default=False, nullable=False)
 
     user = relationship("User", back_populates="decks")
-    category = relationship("Category", back_populates="decks")
+    parent = relationship(
+        "Deck", remote_side=lambda: [Deck.id], back_populates="children"
+    )
+    children = relationship("Deck", back_populates="parent")
     cards = relationship("Card", back_populates="deck", cascade="all, delete-orphan")
+
+    @property
+    def is_root(self):
+        return self.parent_id is None
+
+    @property
+    def path(self):
+        if self.is_root:
+            return [self.name]
+        path_parts = []
+        current = self
+        while current is not None:
+            path_parts.append(current.name)
+            current = current.parent
+        return list(reversed(path_parts))
 
 
 class Card(Base, BaseMixin):
@@ -178,41 +191,3 @@ class Review(Base, BaseMixin):
     @property
     def failed(self):
         return self.feedback in {ReviewFeedback.FORGOT}
-
-
-class Category(Base, BaseMixin):
-    __tablename__ = "categories"
-
-    user_id = mapped_column(
-        (UUID(as_uuid=True)), ForeignKey("users.id"), nullable=False
-    )
-    name = mapped_column(String, nullable=False)
-    description = mapped_column(String)
-    parent_id = mapped_column(
-        (UUID(as_uuid=True)), ForeignKey("categories.id"), nullable=True
-    )
-
-    user = relationship("User", back_populates="categories")
-    parent = relationship(
-        "Category", remote_side=lambda: [Category.id], back_populates="children"
-    )
-    children = relationship("Category", back_populates="parent")
-    decks = relationship("Deck", back_populates="category")
-
-    @property
-    def is_root(self):
-        return self.parent_id is None
-
-    @property
-    def path(self):
-        if self.is_root:
-            return [self.name]
-
-        path_parts = []
-        current = self
-
-        while current is not None:
-            path_parts.append(current.name)
-            current = current.parent
-
-        return list(reversed(path_parts))

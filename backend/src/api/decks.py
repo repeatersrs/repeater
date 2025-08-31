@@ -16,10 +16,86 @@ from src.import_export import (
     store_imported_deck,
 )
 from src.import_export.custom import CustomImporter
-from src.schemas.deck import DeckCreate, DeckOut, DeckUpdate
-from src.util import get_user_category, get_user_deck
+from src.schemas.deck import DeckCreate, DeckNode, DeckOut, DeckTree, DeckUpdate
+from src.util import get_depth_to_root, get_user_deck, would_create_cycle
 
 router = APIRouter(prefix="/decks", tags=["decks"])
+
+
+@router.post("", response_model=DeckOut, status_code=201)
+def create_deck(
+    deck_req: DeckCreate,
+    user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_db),
+):
+    if deck_req.parent_id:
+        try:
+            get_user_deck(deck_req.parent_id, user.id, db_session)
+        except ValueError as err:
+            raise HTTPException(status_code=404, detail=str(err))
+
+    deck = Deck(
+        user_id=user.id,
+        parent_id=deck_req.parent_id,
+        name=deck_req.name,
+        description=deck_req.description,
+    )
+    deck.save(db_session)
+    return deck
+
+
+@router.get("", response_model=List[DeckOut])
+def get_decks(
+    parent_id: UUID = None,
+    user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_db),
+):
+    query = db_session.query(Deck).filter(Deck.user_id == user.id).order_by(Deck.name)
+
+    if parent_id:
+        query = query.filter(Deck.parent_id == parent_id)
+
+    return query.all()
+
+
+@router.get("/tree", response_model=DeckTree)
+def get_decks_tree(
+    user: User = Depends(get_current_user), db_session: Session = Depends(get_db)
+):
+    decks = Deck.filter_by(db_session, user_id=user.id).order_by(Deck.name).all()
+
+    deck_map = {deck.id: deck for deck in decks}
+    root_decks = []
+    tree_depth = 0
+
+    def build_node(deck: Deck) -> DeckNode:
+        node_depth = get_depth_to_root(deck) + 1
+        nonlocal tree_depth
+        tree_depth = max(tree_depth, node_depth)
+
+        children = [
+            build_node(deck_map[child.id])
+            for child in decks
+            if child.parent_id == deck.id
+        ]
+
+        return DeckNode(
+            id=deck.id,
+            name=deck.name,
+            children=sorted(children, key=lambda d: d.name),
+            card_count=len(deck.cards) if hasattr(deck, "cards") else 0,
+            depth=node_depth,
+        )
+
+    for deck in decks:
+        if deck.parent_id is None:
+            root_decks.append(build_node(deck))
+
+    return DeckTree(
+        decks=sorted(root_decks, key=lambda d: d.name),
+        total_decks=len(decks),
+        tree_depth=tree_depth,
+    )
 
 
 @router.get("/{deck_id}", response_model=DeckOut)
@@ -36,42 +112,6 @@ def get_deck(
     return deck
 
 
-@router.post("", response_model=DeckOut, status_code=201)
-def create_deck(
-    deck_req: DeckCreate,
-    user: User = Depends(get_current_user),
-    db_session: Session = Depends(get_db),
-):
-    if deck_req.category_id:
-        try:
-            get_user_category(deck_req.category_id, user.id, db_session)
-        except ValueError as err:
-            raise HTTPException(status_code=404, detail=str(err))
-
-    deck = Deck(
-        user_id=user.id,
-        category_id=deck_req.category_id,
-        name=deck_req.name,
-        description=deck_req.description,
-    )
-    deck.save(db_session)
-    return deck
-
-
-@router.get("", response_model=List[DeckOut])
-def get_decks(
-    category_id: UUID = None,
-    user: User = Depends(get_current_user),
-    db_session: Session = Depends(get_db),
-):
-    query = db_session.query(Deck).filter(Deck.user_id == user.id).order_by(Deck.name)
-
-    if category_id:
-        query = query.filter(Deck.category_id == category_id)
-
-    return query.all()
-
-
 @router.patch("/{deck_id}", response_model=DeckOut)
 def update_deck(
     deck_id: UUID,
@@ -84,11 +124,21 @@ def update_deck(
     except ValueError as err:
         raise HTTPException(status_code=404, detail=str(err))
 
-    if deck_req.category_id:
+    if deck_req.parent_id == deck_id:
+        raise HTTPException(
+            status_code=400, detail="Can't set deck to be its own parent"
+        )
+
+    if deck_req.parent_id:
         try:
-            get_user_category(deck_req.category_id, user.id, db_session)
+            parent_deck = get_user_deck(deck_req.parent_id, user.id, db_session)
         except ValueError as err:
             raise HTTPException(status_code=404, detail=str(err))
+
+        if would_create_cycle(deck.id, parent_deck):
+            raise HTTPException(
+                status_code=400, detail="Would create circular reference"
+            )
 
     updates = deck_req.model_dump(exclude_unset=True)
     for field, value in updates.items():
@@ -108,8 +158,19 @@ def delete_deck(
     except ValueError as err:
         raise HTTPException(status_code=404, detail=str(err))
 
-    deck.delete(db_session)
-    return {"id": deck.id}
+    try:
+        # Move child decks to the parent of the deleted deck
+        for child in deck.children:
+            child.parent_id = deck.parent_id
+            db_session.add(child)
+
+        db_session.commit()
+
+        deck.delete(db_session)
+        return {"id": deck.id}
+    except Exception:
+        db_session.rollback()
+        raise
 
 
 @router.post("/import", status_code=201)

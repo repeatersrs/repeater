@@ -13,7 +13,6 @@ from src.api import (
     admin,
     auth,
     cards,
-    categories,
     decks,
     healthcheck,
     me,
@@ -93,6 +92,5 @@ app.include_router(oauth.router)
 app.include_router(me.router)
 app.include_router(reviews.router)
 app.include_router(statistics.router)
-app.include_router(categories.router)
 app.include_router(healthcheck.router)
 app.include_router(admin.router)
