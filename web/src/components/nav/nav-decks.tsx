@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, RotateCcw } from 'lucide-react';
-import Link from 'next/link';
 
 import DeckCreationDialog from '@/components/deck-creation-dialog';
+import DeckTreeNode from '@/components/deck-tree-node';
 import {
     SidebarMenu,
     SidebarMenuItem,
@@ -12,23 +12,24 @@ import {
     SidebarGroupAction,
 } from '@/components/ui/sidebar';
 import { SidebarMenuSkeleton } from '@/components/ui/sidebar';
-import { getDecksDecksGet } from '@/gen';
+import { getDecksTreeDecksTreeGet } from '@/gen';
 
 export function NavDecks() {
     const queryClient = useQueryClient();
     const {
-        data: decks,
+        data: deckTree,
         isLoading,
         isError,
         refetch,
     } = useQuery({
-        queryKey: ['decks'],
-        queryFn: () => getDecksDecksGet(),
+        queryKey: ['decks', 'tree'],
+        queryFn: () => getDecksTreeDecksTreeGet(),
     });
 
     return (
         <SidebarGroup>
             <SidebarGroupLabel>Decks</SidebarGroupLabel>
+
             <DeckCreationDialog
                 onSuccess={() =>
                     queryClient.invalidateQueries({
@@ -54,6 +55,7 @@ export function NavDecks() {
                         <SidebarMenuSkeleton />
                     </>
                 )}
+
                 {isError && !isLoading && (
                     <SidebarMenuItem>
                         <SidebarMenuButton
@@ -73,7 +75,8 @@ export function NavDecks() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 )}
-                {decks && decks?.data?.length === 0 && (
+
+                {deckTree && deckTree.data?.decks.length === 0 && (
                     <SidebarMenuItem>
                         <SidebarMenuButton
                             disabled
@@ -83,15 +86,10 @@ export function NavDecks() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 )}
-                {decks &&
-                    decks?.data?.map((deck) => (
-                        <SidebarMenuItem key={deck.id}>
-                            <SidebarMenuButton asChild>
-                                <Link href={`/decks/${deck.id}`}>
-                                    {deck.name}
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
+
+                {deckTree &&
+                    deckTree.data?.decks.map((deck) => (
+                        <DeckTreeNode key={deck.id} deck={deck} />
                     ))}
             </SidebarMenu>
         </SidebarGroup>

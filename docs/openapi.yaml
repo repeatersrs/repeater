@@ -67,6 +67,105 @@ paths:
       responses:
         '204':
           description: Successful Response
+  /decks:
+    post:
+      tags:
+      - decks
+      summary: Create Deck
+      operationId: create_deck_decks_post
+      parameters:
+      - name: access_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Access Token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeckCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - decks
+      summary: Get Decks
+      operationId: get_decks_decks_get
+      parameters:
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+          title: Parent Id
+      - name: access_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Access Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeckOut'
+                title: Response Get Decks Decks Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /decks/tree:
+    get:
+      tags:
+      - decks
+      summary: Get Decks Tree
+      operationId: get_decks_tree_decks_tree_get
+      parameters:
+      - name: access_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Access Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckTree'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /decks/{deck_id}:
     get:
       tags:
@@ -169,105 +268,6 @@ paths:
           content:
             application/json:
               schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /decks:
-    post:
-      tags:
-      - decks
-      summary: Create Deck
-      operationId: create_deck_decks_post
-      parameters:
-      - name: access_token
-        in: cookie
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Access Token
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeckCreate'
-      responses:
-        '201':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeckOut'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-    get:
-      tags:
-      - decks
-      summary: Get Decks
-      operationId: get_decks_decks_get
-      parameters:
-      - name: parent_id
-        in: query
-        required: false
-        schema:
-          type: string
-          format: uuid
-          title: Parent Id
-      - name: access_token
-        in: cookie
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Access Token
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeckOut'
-                title: Response Get Decks Decks Get
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /decks/tree:
-    get:
-      tags:
-      - decks
-      summary: Get Decks Tree
-      operationId: get_decks_tree_decks_tree_get
-      parameters:
-      - name: access_token
-        in: cookie
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Access Token
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeckTree'
         '422':
           description: Validation Error
           content:
@@ -891,19 +891,19 @@ components:
             $ref: '#/components/schemas/DeckNode'
           type: array
           title: Children
-          default: []
         card_count:
           type: integer
           title: Card Count
-          default: 0
         depth:
           type: integer
           title: Depth
-          default: 0
       type: object
       required:
       - id
       - name
+      - children
+      - card_count
+      - depth
       title: DeckNode
     DeckOut:
       properties:
@@ -1000,16 +1000,17 @@ components:
             $ref: '#/components/schemas/DeckNode'
           type: array
           title: Decks
-          default: []
         total_decks:
           type: integer
           title: Total Decks
-          default: 0
         tree_depth:
           type: integer
           title: Tree Depth
-          default: 0
       type: object
+      required:
+      - decks
+      - total_decks
+      - tree_depth
       title: DeckTree
     DeckUpdate:
       properties:

@@ -41,12 +41,12 @@ class DeckSummary(BaseModel):
 class DeckNode(BaseModel):
     id: UUID
     name: str
-    children: List["DeckNode"] = []
-    card_count: int = 0
-    depth: int = 0
+    children: List["DeckNode"]
+    card_count: int
+    depth: int
 
 
 class DeckTree(BaseModel):
-    decks: List[DeckNode] = []
-    total_decks: int = 0
-    tree_depth: int = 0
+    decks: List[DeckNode]
+    total_decks: int
+    tree_depth: int

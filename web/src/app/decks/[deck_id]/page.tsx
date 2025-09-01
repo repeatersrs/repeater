@@ -42,15 +42,6 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -58,10 +49,8 @@ import {
     DeckUpdate,
     getDeckDecksDeckIdGet,
     getCardsCardsGet,
-    getCategoryCategoriesCategoryIdGet,
     getUserDeckStatisticsStatsDeckIdGet,
     getReviewHistoryReviewsCardIdGet,
-    getCategoriesCategoriesGet,
     updateDeckDecksDeckIdPatch,
     deleteDeckDecksDeckIdDelete,
 } from '@/gen';
@@ -101,24 +90,10 @@ export default function DeckPage({
             }),
     });
 
-    const { data: category, isLoading: isCategoryLoading } = useQuery({
-        queryKey: ['categories', deck?.data?.category_id],
-        queryFn: () =>
-            getCategoryCategoriesCategoryIdGet({
-                path: { category_id: deck?.data?.category_id || '' },
-            }),
-        enabled: !!deck?.data?.category_id,
-    });
-
     const { data: stats, isLoading: isStatsLoading } = useQuery({
         queryKey: ['stats', deck_id],
         queryFn: () =>
             getUserDeckStatisticsStatsDeckIdGet({ path: { deck_id: deck_id } }),
-    });
-
-    const { data: categories } = useQuery({
-        queryKey: ['categories'],
-        queryFn: () => getCategoriesCategoriesGet(),
     });
 
     function prefetchCardHistory(cardId: string) {
@@ -230,7 +205,7 @@ export default function DeckPage({
     const deckUpdateSchema = z.object({
         name: z.string().min(1, 'Deck must have a name'),
         description: z.string().optional(),
-        category_id: z.string().optional(),
+        parent_id: z.string().optional(),
     }) satisfies z.ZodType<DeckUpdate>;
 
     const deckForm = useForm<z.infer<typeof deckUpdateSchema>>({
@@ -238,7 +213,7 @@ export default function DeckPage({
         defaultValues: {
             name: deck?.data?.name,
             description: deck?.data?.description || '',
-            category_id: deck?.data?.category_id || undefined,
+            parent_id: deck?.data?.parent_id || undefined,
         },
     });
 
@@ -247,7 +222,7 @@ export default function DeckPage({
             deckForm.reset({
                 name: deck.data.name,
                 description: deck.data.description || '',
-                category_id: deck.data.category_id || undefined,
+                parent_id: deck.data.parent_id || undefined,
             });
         }
     }, [deck?.data, deckForm]);
@@ -432,62 +407,6 @@ export default function DeckPage({
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </div>
-
-                                {isCategoryLoading ? (
-                                    <Skeleton className="h-4 w-40" />
-                                ) : isEditing ? (
-                                    <FormField
-                                        control={deckForm.control}
-                                        name="category_id"
-                                        render={({ field }) => (
-                                            <FormItem className="max-w-xs flex-1">
-                                                <FormControl>
-                                                    <Select
-                                                        value={field.value}
-                                                        onValueChange={
-                                                            field.onChange
-                                                        }
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select a category" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectGroup>
-                                                                <SelectLabel>
-                                                                    Category
-                                                                </SelectLabel>
-                                                            </SelectGroup>
-                                                            {categories?.data?.map(
-                                                                (category) => (
-                                                                    <SelectItem
-                                                                        value={
-                                                                            category.id
-                                                                        }
-                                                                        key={
-                                                                            category.id
-                                                                        }
-                                                                    >
-                                                                        {category.path.join(
-                                                                            ' / '
-                                                                        )}
-                                                                    </SelectItem>
-                                                                )
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                ) : (
-                                    category?.data?.name && (
-                                        <p className="text-muted-foreground text-sm">
-                                            Category:{' '}
-                                            {category.data.path.join(' / ')}
-                                        </p>
-                                    )
-                                )}
                             </div>
                         )
                     )}
