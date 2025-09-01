@@ -407,6 +407,12 @@ export default function DeckPage({
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </div>
+
+                                <div>
+                                    <p className="text-muted-foreground text-sm">
+                                        {deck.data.path.join(' / ')}
+                                    </p>
+                                </div>
                             </div>
                         )
                     )}
