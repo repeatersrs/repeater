@@ -30,7 +30,6 @@ import {
 import { getCardsCardsGet, createReviewReviewsPost } from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
 import { createActions, getShortcut } from '@/lib/shortcuts';
-import { formatDateForDisplay } from '@/lib/utils';
 
 export default function Review() {
     usePageShortcuts('review');
@@ -99,6 +98,12 @@ export default function Review() {
         }
     }, [activeCardSides.length, sidesVisible]);
 
+    function daysSince(date: Date): number {
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    }
+
     useEffect(() => {
         const actions = createActions({
             'card-forgot': () => reviewCard.mutate('forgot'),
@@ -165,15 +170,7 @@ export default function Review() {
                                 </Button>
                             </div>
                         </CardHeader>
-                        <CardContent>
-                            {activeCard.overdue && (
-                                <p className="text-sm text-red-500">
-                                    Overdue. Review date:
-                                    {formatDateForDisplay(
-                                        activeCard.next_review_date
-                                    )}
-                                </p>
-                            )}
+                        <CardContent className="flex-1">
                             {activeCardSides?.map(
                                 (content, index) =>
                                     index < sidesVisible && (
@@ -186,7 +183,13 @@ export default function Review() {
                                     )
                             )}
                         </CardContent>
-                        <CardFooter className="flex flex-row justify-center gap-4"></CardFooter>
+                        <CardFooter className="flex flex-row justify-center gap-4">
+                            {activeCard.overdue && (
+                                <p className="text-destructive text-sm">
+                                    {`Due ${daysSince(new Date(activeCard.next_review_date))} days ago`}
+                                </p>
+                            )}
+                        </CardFooter>
                     </Card>
                     <div className="flex flex-col items-center gap-4">
                         {sidesVisible < activeCardSides.length && (
