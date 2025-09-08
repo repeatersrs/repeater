@@ -1,12 +1,13 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CircleCheck } from 'lucide-react';
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
 import Kbd from '@/components/kbd';
 import { useShortcutActions } from '@/components/shortcut-provider';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import {
     Breadcrumb,
     BreadcrumbList,
@@ -126,6 +127,15 @@ export default function Review() {
         <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center justify-between gap-4 py-4">
             {isPending && !isError && <p>loading</p>}
             {!isPending && isError && <p>error!</p>}
+            {dueCards?.data?.length === 0 && (
+                <Alert className="bg-muted max-w-md">
+                    <CircleCheck className="h-4 w-4" />
+                    <AlertTitle>All done!</AlertTitle>
+                    <AlertDescription className="text-muted-foreground">
+                        No due cards to review.
+                    </AlertDescription>
+                </Alert>
+            )}
             {activeCard && (
                 <>
                     <Card className="flex aspect-[3/4] w-4/6 max-w-sm flex-col">
