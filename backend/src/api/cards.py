@@ -9,7 +9,7 @@ from src.auth.jwt import get_current_user
 from src.db import get_db
 from src.db.models import Card, Deck, User
 from src.schemas.card import CardCreate, CardOut, CardUpdate
-from src.util import get_user_card, get_user_deck
+from src.util import get_user_card
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
@@ -20,13 +20,8 @@ def create_card(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    try:
-        deck = get_user_deck(card_req.deck_id, user.id, db_session)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
-
+    deck = Deck.filter_by(db_session, id=card_req.deck_id, user_id=user.id).one()
     card = Card(deck_id=deck.id, content=card_req.content)
-    card.deck = deck
     card.save(db_session)
     return CardOut.from_card(card)
 
@@ -74,11 +69,7 @@ def update_card(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    try:
-        card = get_user_card(card_id, user.id, db_session)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
-
+    card = get_user_card(card_id, user.id, db_session)
     updates = card_req.model_dump(exclude_unset=True)
     for field, value in updates.items():
         setattr(card, field, value)
@@ -92,10 +83,6 @@ def delete_card(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    try:
-        card = get_user_card(card_id, user.id, db_session)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
-
+    card = get_user_card(card_id, user.id, db_session)
     card.delete(db_session)
     return {"id": card.id}

@@ -58,7 +58,7 @@ async def test_create_card_wrong_user_returns_404(user, admin_client, user_clien
         },
     )
     assert res.status_code == 404
-    assert res.json()["detail"] == "Deck not found or access denied"
+    assert res.json()["detail"] == "Resource not found or access denied"
 
 
 async def test_create_card_deck_doesnt_exist_returns_404(user, user_client):
@@ -70,7 +70,7 @@ async def test_create_card_deck_doesnt_exist_returns_404(user, user_client):
         },
     )
     assert res.status_code == 404
-    assert res.json()["detail"] == "Deck not found or access denied"
+    assert res.json()["detail"] == "Resource not found or access denied"
 
 
 async def test_get_cards(user, user_client):

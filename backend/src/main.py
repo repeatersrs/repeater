@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import NoResultFound
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.api import (
@@ -70,6 +71,14 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         status_code=422,
         content={"detail": error_msg},
+    )
+
+
+@app.exception_handler(NoResultFound)
+async def no_result_found_exception_handler(request: Request, exc: NoResultFound):
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Resource not found or access denied"},
     )
 
 
