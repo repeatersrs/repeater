@@ -1,7 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -21,6 +22,8 @@ import { registerAuthRegisterPost, UserCreate } from '@/gen';
 export default function Register() {
     const apiURL = process.env.NEXT_PUBLIC_API_URL ?? '';
     const googleOAuthURI = '/oauth/login';
+    const queryClient = useQueryClient();
+    const router = useRouter();
 
     const registerFormSchema = z.object({
         email: z.string().email(),
@@ -41,7 +44,10 @@ export default function Register() {
                 body: values,
             }),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['me'] });
+            queryClient.invalidateQueries({ queryKey: ['decks'] });
             registerForm.reset();
+            router.push('/decks');
         },
     });
 

@@ -45,6 +45,7 @@ export default function Login() {
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['me'] });
+            queryClient.invalidateQueries({ queryKey: ['decks'] });
             loginForm.reset();
             router.push('/review');
         },
