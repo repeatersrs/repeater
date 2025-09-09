@@ -11,7 +11,7 @@ from src.const import (
     SCHEDULE_DEFAULT_REPETITIONS,
 )
 from src.db import get_db
-from src.db.models import Card, Review, User
+from src.db.models import Review, User
 from src.schedulers import Scheduler
 from src.schedulers.basic import BasicScheduler
 from src.schemas.review import ReviewCreate, ReviewOut
@@ -31,11 +31,7 @@ def create_review(
     db_session: Session = Depends(get_db),
     scheduler: Scheduler = Depends(get_scheduler),
 ):
-    try:
-        card = get_user_card(review_req.card_id, user.id, db_session)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
-
+    card = get_user_card(review_req.card_id, user.id, db_session)
     last_review = (
         Review.filter_by(db_session, card_id=card.id)
         .order_by(Review.reviewed_at.desc())
@@ -79,11 +75,7 @@ def get_review_history(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    try:
-        card = get_user_card(card_id, user.id, db_session)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
-
+    card = get_user_card(card_id, user.id, db_session)
     return (
         Review.filter_by(db_session, card_id=card.id)
         .order_by(Review.reviewed_at.desc())

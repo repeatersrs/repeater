@@ -17,7 +17,7 @@ from src.import_export import (
 )
 from src.import_export.custom import CustomImporter
 from src.schemas.deck import DeckCreate, DeckNode, DeckOut, DeckTree, DeckUpdate
-from src.util import get_depth_to_root, get_user_deck, would_create_cycle
+from src.util import get_depth_to_root, would_create_cycle
 
 router = APIRouter(prefix="/decks", tags=["decks"])
 
@@ -29,10 +29,7 @@ def create_deck(
     db_session: Session = Depends(get_db),
 ):
     if deck_req.parent_id:
-        try:
-            get_user_deck(deck_req.parent_id, user.id, db_session)
-        except ValueError as err:
-            raise HTTPException(status_code=404, detail=str(err))
+        Deck.filter_by(db_session, id=deck_req.parent_id, user_id=user.id).one()
 
     deck = Deck(
         user_id=user.id,
@@ -104,11 +101,7 @@ def get_deck(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    try:
-        deck = get_user_deck(deck_id, user.id, db_session)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
-
+    deck = Deck.filter_by(db_session, id=deck_id, user_id=user.id).one()
     return deck
 
 
@@ -119,10 +112,7 @@ def update_deck(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    try:
-        deck = get_user_deck(deck_id, user.id, db_session)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
+    deck = Deck.filter_by(db_session, id=deck_id, user_id=user.id).one()
 
     if deck_req.parent_id == deck_id:
         raise HTTPException(
@@ -130,10 +120,9 @@ def update_deck(
         )
 
     if deck_req.parent_id:
-        try:
-            parent_deck = get_user_deck(deck_req.parent_id, user.id, db_session)
-        except ValueError as err:
-            raise HTTPException(status_code=404, detail=str(err))
+        parent_deck = Deck.filter_by(
+            db_session, id=deck_req.parent_id, user_id=user.id
+        ).one()
 
         if would_create_cycle(deck.id, parent_deck):
             raise HTTPException(
@@ -153,10 +142,7 @@ def delete_deck(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    try:
-        deck = get_user_deck(deck_id, user.id, db_session)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
+    deck = Deck.filter_by(db_session, id=deck_id, user_id=user.id).one()
 
     try:
         # Move child decks to the parent of the deleted deck
@@ -217,10 +203,7 @@ def export_deck(
     if user.is_guest:
         raise HTTPException(status_code=403)
 
-    try:
-        deck = get_user_deck(deck_id, user.id, db_session)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
+    deck = Deck.filter_by(db_session, id=deck_id, user_id=user.id).one()
 
     safe_filename = "".join(
         c for c in deck.name if c.isalnum() or c in (" ", "-", "_")

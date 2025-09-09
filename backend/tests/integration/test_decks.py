@@ -124,7 +124,7 @@ async def test_update_deck_doesnt_exist_returns_404(user_client):
         f"/decks/{uuid.uuid4()}", json={"name": "test", "description": "test"}
     )
     assert res.status_code == 404
-    assert res.json()["detail"] == "Deck not found or access denied"
+    assert res.json()["detail"] == "Resource not found or access denied"
 
 
 async def test_update_deck_wrong_user_returns_404(admin_client, user_client):
@@ -136,7 +136,7 @@ async def test_update_deck_wrong_user_returns_404(admin_client, user_client):
         f"/decks/{deck_id}", json={"name": "test", "description": "test"}
     )
     assert res.status_code == 404
-    assert res.json()["detail"] == "Deck not found or access denied"
+    assert res.json()["detail"] == "Resource not found or access denied"
 
 
 async def test_delete_deck(db_session, user_client):
@@ -158,7 +158,7 @@ async def test_delete_deck_doesnt_exist_returns_404(db_session, user_client):
 
     res = await user_client.delete(f"/decks/{uuid.uuid4()}")
     assert res.status_code == 404
-    assert res.json()["detail"] == "Deck not found or access denied"
+    assert res.json()["detail"] == "Resource not found or access denied"
 
     deck = Deck.filter_by(db_session, name="deck").first()
     assert deck is not None

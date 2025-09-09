@@ -14,24 +14,14 @@ def add_user(email: str, password: str, role: UserRole, db_session: Session) -> 
     return user
 
 
-def get_user_deck(deck_id: UUID, user_id: UUID, db_session: Session) -> Deck:
-    deck = Deck.filter_by(db_session, id=deck_id, user_id=user_id).first()
-    if not deck:
-        raise ValueError("Deck not found or access denied")
-    return deck
-
-
 def get_user_card(card_id: UUID, user_id: UUID, db_session: Session) -> Card:
-    card = (
+    return (
         db_session.query(Card)
         .join(Deck)
         .filter(Card.id == card_id, Deck.user_id == user_id)
         .options(contains_eager(Card.deck))
-        .first()
+        .one()
     )
-    if not card or card.deck.user_id != user_id:
-        raise ValueError("Card not found or access denied")
-    return card
 
 
 def get_user_from_token(request: Request, db_session: Session) -> User | None:
