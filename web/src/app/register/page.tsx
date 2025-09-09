@@ -47,7 +47,7 @@ export default function Register() {
             queryClient.invalidateQueries({ queryKey: ['me'] });
             queryClient.invalidateQueries({ queryKey: ['decks'] });
             registerForm.reset();
-            router.push('/decks');
+            router.push('/review');
         },
     });
 
