@@ -20,7 +20,7 @@ import { getDecksTreeDecksTreeGet, updateDeckDecksDeckIdPatch } from '@/gen';
 
 type MoveDeckArgs = {
     deck_id: string;
-    new_parent_id: string;
+    new_parent_id: string | null;
 };
 
 export function NavDecks() {
@@ -95,7 +95,7 @@ export function NavDecks() {
     function handleDocumentDrag(source: TreeDataItem, target: TreeDataItem) {
         moveDeckMutation.mutate({
             deck_id: source.id,
-            new_parent_id: target.id,
+            new_parent_id: target.id === '' ? null : target.id,
         });
     }
 
@@ -159,14 +159,16 @@ export function NavDecks() {
             )}
 
             {deckTree && deckTree.data?.decks.length === 0 && (
-                <SidebarMenuItem>
-                    <SidebarMenuButton
-                        disabled
-                        className="text-muted-foreground"
-                    >
-                        No decks created
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            disabled
+                            className="text-muted-foreground"
+                        >
+                            No decks created
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
             )}
 
             {deckTree && deckTree.data && (
