@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
@@ -145,7 +145,11 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
                 <div
                     className="h-[48px] w-full"
                     onDrop={(e) => {
+                        e.preventDefault();
                         handleDrop({ id: '', name: 'parent_div' });
+                    }}
+                    onDragOver={(e) => {
+                        e.preventDefault();
                     }}
                 ></div>
             </div>
