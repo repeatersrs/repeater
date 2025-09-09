@@ -32,6 +32,7 @@ export function NavProfile() {
         mutationFn: () => logoutAuthLogoutPost(),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['me'] });
+            queryClient.invalidateQueries({ queryKey: ['decks'] });
             router.push('/login');
         },
         onError: () => {
