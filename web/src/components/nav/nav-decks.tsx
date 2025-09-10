@@ -78,6 +78,7 @@ export function NavDecks() {
                         onClick={() => {
                             handleClickAddDeck(item.id);
                         }}
+                        asChild
                     >
                         <Plus />
                     </Button>
@@ -85,7 +86,7 @@ export function NavDecks() {
                         href={`/decks/${item.id}`}
                         className="flex items-center"
                     >
-                        <Button variant="ghost" className="h-3 w-3">
+                        <Button variant="ghost" className="h-3 w-3" asChild>
                             <ArrowRight />
                         </Button>
                     </Link>
