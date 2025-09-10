@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Plus, RotateCcw, Folder, FolderOpen, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import DeckCreationDialog from '@/components/deck-creation-dialog';
 import { TreeView, TreeDataItem } from '@/components/tree-view';
@@ -81,7 +81,10 @@ export function NavDecks() {
                     >
                         <Plus />
                     </Button>
-                    <Link href={`/decks/${item.id}`} className='flex items-center'>
+                    <Link
+                        href={`/decks/${item.id}`}
+                        className="flex items-center"
+                    >
                         <Button variant="ghost" className="h-3 w-3">
                             <ArrowRight />
                         </Button>
