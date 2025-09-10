@@ -4,12 +4,12 @@ from dataclasses import asdict, dataclass
 from typing import List
 from uuid import UUID
 
+from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from src.db.models import Card, Deck
 
 REPEATER_JSON_VERSION_LATEST = "repeater-v1"
-
 
 @dataclass
 class CardData:
@@ -67,5 +67,5 @@ def export(deck: DeckData) -> bytes:
 
 class BaseImporter(ABC):
     @abstractmethod
-    def parse(self, file: bytes) -> DeckData:
+    async def parse(self, file: UploadFile) -> DeckData:
         pass

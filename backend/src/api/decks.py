@@ -195,8 +195,7 @@ async def import_deck(
     if format == "repeater":
         importer: BaseImporter = CustomImporter()
         try:
-            content = await file.read()
-            deck_data = importer.parse(content)
+            deck_data = await importer.parse(file)
         except Exception as err:
             raise HTTPException(status_code=400, detail=err)
         store_imported_deck(deck_data, user.id, db_session)
