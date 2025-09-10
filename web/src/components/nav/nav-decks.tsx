@@ -72,23 +72,19 @@ export function NavDecks() {
 
             actions: (
                 <div className="flex items-center gap-1">
-                    <Button
-                        variant="ghost"
-                        className="h-3 w-3"
+                    <div
+                        className="hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
                         onClick={() => {
                             handleClickAddDeck(item.id);
                         }}
-                        asChild
                     >
-                        <Plus />
-                    </Button>
+                        <Plus className='h-4 w-4' />
+                    </div>
                     <Link
                         href={`/decks/${item.id}`}
-                        className="flex items-center"
+                        className="hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
                     >
-                        <Button variant="ghost" className="h-3 w-3" asChild>
-                            <ArrowRight />
-                        </Button>
+                        <ArrowRight className='h-4 w-4' />
                     </Link>
                 </div>
             ),
