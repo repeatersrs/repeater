@@ -5,7 +5,6 @@ import { useState } from 'react';
 
 import DeckCreationDialog from '@/components/deck-creation-dialog';
 import { TreeView, TreeDataItem } from '@/components/tree-view';
-import { Button } from '@/components/ui/button';
 import {
     SidebarMenu,
     SidebarMenuItem,
@@ -78,13 +77,13 @@ export function NavDecks() {
                             handleClickAddDeck(item.id);
                         }}
                     >
-                        <Plus className='h-4 w-4' />
+                        <Plus className="h-4 w-4" />
                     </div>
                     <Link
                         href={`/decks/${item.id}`}
                         className="hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
                     >
-                        <ArrowRight className='h-4 w-4' />
+                        <ArrowRight className="h-4 w-4" />
                     </Link>
                 </div>
             ),
