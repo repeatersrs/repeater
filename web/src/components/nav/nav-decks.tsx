@@ -58,13 +58,17 @@ export function NavDecks() {
         return items.map((item) => ({
             id: item.id,
             name: item.name,
-            children: item.children ? mapToTreeData(item.children) : undefined,
+            children:
+                item.children && item.children.length > 0
+                    ? mapToTreeData(item.children)
+                    : undefined,
 
             draggable: true,
             droppable: true,
             disabled: false,
-            icon: Folder,
-            selectedIcon: FolderOpen,
+            icon:
+                item.children && item.children.length > 0 ? Folder : FolderOpen,
+            openIcon: FolderOpen,
 
             actions: (
                 <div className="flex items-center gap-1">
@@ -77,7 +81,7 @@ export function NavDecks() {
                     >
                         <Plus />
                     </Button>
-                    <Link href={`/decks/${item.id}`}>
+                    <Link href={`/decks/${item.id}`} className='flex items-center'>
                         <Button variant="ghost" className="h-3 w-3">
                             <ArrowRight />
                         </Button>

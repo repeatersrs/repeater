@@ -9,15 +9,33 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 const treeVariants = cva(
-    'group hover:before:opacity-100 before:absolute before:rounded-lg before:left-0 px-2 before:w-full before:opacity-0 before:bg-accent/70 before:h-[2rem] before:-z-10'
+    'group hover:before:opacity-100 before:absolute before:rounded-lg before:left-0 px-2 before:w-full before:opacity-0 before:bg-accent/70 before:h-[2rem] before:-z-10 relative'
 );
 
 const selectedTreeVariants = cva(
-    'before:opacity-100 before:bg-accent/70 text-accent-foreground'
+    'before:opacity-100 before:bg-primary/15 text-primary font-medium border-l-2 border-primary shadow-sm before:shadow-sm'
 );
 
 const dragOverVariants = cva(
-    'before:opacity-100 before:bg-primary/20 text-primary-foreground'
+    'before:opacity-100 before:bg-primary/25 text-primary border-l-2 border-primary/60 shadow-md scale-[1.01] before:shadow-md'
+);
+
+const dropZoneVariants = cva(
+    'transition-all duration-200 ease-in-out border-2 border-dashed rounded-lg flex items-center justify-center text-sm font-medium',
+    {
+        variants: {
+            state: {
+                idle: 'border-transparent bg-transparent text-transparent',
+                dragging:
+                    'border-muted-foreground/30 bg-muted/20 text-muted-foreground',
+                dragOver:
+                    'border-primary bg-primary/10 text-primary scale-[1.02]',
+            },
+        },
+        defaultVariants: {
+            state: 'idle',
+        },
+    }
 );
 
 interface TreeDataItem {
@@ -69,6 +87,10 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
         const [draggedItem, setDraggedItem] =
             React.useState<TreeDataItem | null>(null);
 
+        const [dropZoneState, setDropZoneState] = React.useState<
+            'idle' | 'dragging' | 'dragOver'
+        >('idle');
+
         const handleSelectChange = React.useCallback(
             (item: TreeDataItem | undefined) => {
                 setSelectedItemId(item?.id);
@@ -81,6 +103,7 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
 
         const handleDragStart = React.useCallback((item: TreeDataItem) => {
             setDraggedItem(item);
+            setDropZoneState('dragging');
         }, []);
 
         const handleDrop = React.useCallback(
@@ -93,9 +116,45 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
                     onDocumentDrag(draggedItem, targetItem);
                 }
                 setDraggedItem(null);
+                setDropZoneState('idle');
             },
             [draggedItem, onDocumentDrag]
         );
+
+        const handleDropZoneDragOver = (e: React.DragEvent) => {
+            e.preventDefault();
+            if (draggedItem) {
+                setDropZoneState('dragOver');
+            }
+        };
+
+        const handleDropZoneDragLeave = (e: React.DragEvent) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const { clientX, clientY } = e;
+
+            if (
+                clientX < rect.left ||
+                clientX > rect.right ||
+                clientY < rect.top ||
+                clientY > rect.bottom
+            ) {
+                setDropZoneState(draggedItem ? 'dragging' : 'idle');
+            }
+        };
+
+        const handleDropZoneDrop = (e: React.DragEvent) => {
+            e.preventDefault();
+            handleDrop({ id: '', name: 'root' });
+        };
+
+        React.useEffect(() => {
+            const handleDragEnd = () => {
+                setDropZoneState('idle');
+            };
+
+            document.addEventListener('dragend', handleDragEnd);
+            return () => document.removeEventListener('dragend', handleDragEnd);
+        }, []);
 
         const expandedItemIds = React.useMemo(() => {
             if (!initialSelectedItemId) {
@@ -128,7 +187,7 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
         }, [data, expandAll, initialSelectedItemId]);
 
         return (
-            <div className={cn('relative overflow-hidden p-2', className)}>
+            <div className={cn('relative overflow-hidden', className)}>
                 <TreeItem
                     data={data}
                     ref={ref}
@@ -142,16 +201,25 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
                     draggedItem={draggedItem}
                     {...props}
                 />
+
                 <div
-                    className="h-[48px] w-full"
-                    onDrop={(e) => {
-                        e.preventDefault();
-                        handleDrop({ id: '', name: 'parent_div' });
-                    }}
-                    onDragOver={(e) => {
-                        e.preventDefault();
-                    }}
-                ></div>
+                    className={cn(
+                        dropZoneVariants({ state: dropZoneState }),
+                        'mx-1 mt-2 h-12 w-full'
+                    )}
+                    onDrop={handleDropZoneDrop}
+                    onDragOver={handleDropZoneDragOver}
+                    onDragLeave={handleDropZoneDragLeave}
+                >
+                    {dropZoneState === 'dragging' && (
+                        <span>Drop here to move to root level</span>
+                    )}
+                    {dropZoneState === 'dragOver' && (
+                        <span className="font-semibold">
+                            Release to move to root
+                        </span>
+                    )}
+                </div>
             </div>
         );
     }
