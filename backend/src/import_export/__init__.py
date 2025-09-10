@@ -23,6 +23,7 @@ class DeckData:
     name: str
     description: str | None
     cards: List[CardData]
+    # sub_decks: List[DeckData] | None
 
 
 def deck_to_deck_data(deck: Deck) -> DeckData:

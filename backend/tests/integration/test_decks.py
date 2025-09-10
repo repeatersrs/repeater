@@ -162,6 +162,15 @@ async def test_import_deck_custom_importer(db_session, user_client):
     assert deck_json["name"] == deck.name
     assert len(deck_json["cards"]) == len(Card.all(db_session))
 
+async def test_import_deck_mochi_markdown_importer_md(db_session, user_client):
+    # TODO: implement
+    with open("tests/data/mochi_markdown_test.md", "rb") as _:
+        pass
+
+async def test_import_deck_mochi_markdown_importer_zip(db_session, user_client):
+    # TODO: implement
+    with open("tests/data/mochi_markdown_test.zip", "rb") as _:
+        pass
 
 async def test_export_deck(db_session, user_client):
     res = await create_deck(user_client)
