@@ -1,7 +1,7 @@
+import { useState } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Plus, RotateCcw, Folder, FolderOpen, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
 
 import DeckCreationDialog from '@/components/deck-creation-dialog';
 import { TreeView, TreeDataItem } from '@/components/tree-view';
@@ -76,7 +76,7 @@ export function NavDecks() {
                         variant="ghost"
                         className="h-3 w-3"
                         onClick={() => {
-                            handleClick(item.id);
+                            handleClickAddDeck(item.id);
                         }}
                     >
                         <Plus />
@@ -91,7 +91,7 @@ export function NavDecks() {
         }));
     }
 
-    function handleClick(deck_id: string) {
+    function handleClickAddDeck(deck_id: string) {
         setDefaultParentId(deck_id);
         setIsDialogOpen(true);
     }
