@@ -100,9 +100,15 @@ export default function Review() {
     }, [activeCardSides.length, sidesVisible]);
 
     function daysSince(date: Date): number {
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const today = new Date();
+
+        today.setHours(0, 0, 0, 0);
+        date.setHours(0, 0, 0, 0);
+
+        const diffTime = today.getTime() - date.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        return diffDays;
     }
 
     useEffect(() => {
@@ -196,7 +202,7 @@ export default function Review() {
                         <CardFooter className="flex flex-row justify-center gap-4">
                             {activeCard.overdue && (
                                 <p className="text-destructive text-sm">
-                                    {`Due ${daysSince(new Date(activeCard.next_review_date))} days ago`}
+                                    {`Due ${daysSince(new Date(activeCard.next_review_date))} day(s) ago`}
                                 </p>
                             )}
                         </CardFooter>
