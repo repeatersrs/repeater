@@ -11,6 +11,7 @@ from src.db.models import Card, Deck
 
 REPEATER_JSON_VERSION_LATEST = "repeater-v1"
 
+
 @dataclass
 class CardData:
     content: str
@@ -67,5 +68,9 @@ def export(deck: DeckData) -> bytes:
 
 class BaseImporter(ABC):
     @abstractmethod
-    async def parse(self, file: UploadFile) -> DeckData:
+    async def parse_file(self, file: UploadFile) -> DeckData:
+        pass
+
+    @abstractmethod
+    def parse_bytes(self, content: bytes) -> DeckData:
         pass

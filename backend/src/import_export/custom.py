@@ -8,9 +8,12 @@ from src.import_export import REPEATER_JSON_VERSION_LATEST, BaseImporter, DeckDa
 
 
 class CustomImporter(BaseImporter):
-    async def parse(self, file: UploadFile) -> DeckData:
+    async def parse_file(self, file: UploadFile) -> DeckData:
+        content = await file.read()
+        return self.parse_bytes(content)
+
+    def parse_bytes(self, content: bytes) -> DeckData:
         try:
-            content = await file.read()
             json_obj = json.loads(content.decode("utf-8"))
             version = json_obj.get("version")
             if version == REPEATER_JSON_VERSION_LATEST:
