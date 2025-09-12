@@ -970,6 +970,11 @@ components:
         deck_name:
           type: string
           title: Deck Name
+        deck_path:
+          items:
+            type: string
+          type: array
+          title: Deck Path
         retention_rate:
           type: number
           title: Retention Rate
@@ -989,6 +994,7 @@ components:
       required:
       - deck_id
       - deck_name
+      - deck_path
       - retention_rate
       - total_reviews
       - difficulty_ranking

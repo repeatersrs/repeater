@@ -57,6 +57,7 @@ async def test_get_statistics(ignore_jwt_expiration, user, user_client):
             {
                 "deck_id": deck_id,
                 "deck_name": "deck",
+                "deck_path": ["deck"],
                 "retention_rate": 0,
                 "total_reviews": 2,
                 "last_studied": datetime(2025, 7, 2).isoformat(timespec="seconds")
@@ -131,6 +132,7 @@ async def test_get_statistics_different_decks(ignore_jwt_expiration, user, user_
             {
                 "deck_id": deck_1_id,
                 "deck_name": "deck",
+                "deck_path": ["deck"],
                 "retention_rate": 0,
                 "total_reviews": 1,
                 "last_studied": datetime(2025, 7, 2).isoformat(timespec="seconds")
@@ -140,6 +142,7 @@ async def test_get_statistics_different_decks(ignore_jwt_expiration, user, user_
             {
                 "deck_id": deck_2_id,
                 "deck_name": "deck",
+                "deck_path": ["deck"],
                 "retention_rate": 0,
                 "total_reviews": 1,
                 "last_studied": datetime(2025, 7, 2).isoformat(timespec="seconds")
@@ -191,6 +194,7 @@ async def test_get_statistics_deleted_card(ignore_jwt_expiration, user_client):
             {
                 "deck_id": deck_id,
                 "deck_name": "deck",
+                "deck_path": ["deck"],
                 "retention_rate": 0,
                 "total_reviews": 1,
                 "last_studied": datetime(2025, 7, 1).isoformat(timespec="seconds")
@@ -250,6 +254,7 @@ async def test_get_statistics_deleted_deck(ignore_jwt_expiration, user_client):
             {
                 "deck_id": deck_id,
                 "deck_name": "deck",
+                "deck_path": ["deck"],
                 "retention_rate": 0,
                 "total_reviews": 1,
                 "last_studied": datetime(2025, 7, 1).isoformat(timespec="seconds")

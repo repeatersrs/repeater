@@ -92,6 +92,7 @@ def get_deck_statistics(deck: Deck, user_reviews: List[Review]) -> DeckStatistic
         return DeckStatistics(
             deck_id=str(deck.id),
             deck_name=deck.name,
+            deck_path=deck.path,
             retention_rate="{:.2f}".format(0.0),
             total_reviews=0,
             last_studied=None,
@@ -106,6 +107,7 @@ def get_deck_statistics(deck: Deck, user_reviews: List[Review]) -> DeckStatistic
     return DeckStatistics(
         deck_id=str(deck.id),
         deck_name=deck.name,
+        deck_path=deck.path,
         retention_rate="{:.2f}".format(retention_rate),
         total_reviews=total_reviews,
         last_studied=last_studied,
