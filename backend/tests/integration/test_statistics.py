@@ -329,6 +329,7 @@ async def test_get_deck_statistics(ignore_jwt_expiration, user_client):
         assert res.json() == {
             "deck_id": deck_1_id,
             "deck_name": "deck",
+            "deck_path": ["deck"],
             "retention_rate": 0,
             "total_reviews": 1,
             "last_studied": datetime(2025, 7, 2).isoformat(timespec="seconds") + "Z",
@@ -341,6 +342,7 @@ async def test_get_deck_statistics(ignore_jwt_expiration, user_client):
         assert res.json() == {
             "deck_id": deck_2_id,
             "deck_name": "deck",
+            "deck_path": ["deck"],
             "retention_rate": 0,
             "total_reviews": 0,
             "last_studied": None,
