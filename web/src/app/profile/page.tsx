@@ -136,7 +136,7 @@ export default function Profile() {
                                             href={`/decks/${deckStat.deck_id}`}
                                             className="underline"
                                         >
-                                            {deckStat.deck_name}
+                                            {`${deckStat.deck_path.join(' / ')}`}
                                         </Link>
                                     }
                                     description="Some explanation"
