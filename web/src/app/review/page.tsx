@@ -28,9 +28,10 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getCardsCardsGet, createReviewReviewsPost } from '@/gen';
+import { getCardsCardsGet, createReviewReviewsPost, CardOut } from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
 import { createActions, getShortcut } from '@/lib/shortcuts';
+import { daysSince } from '@/lib/utils';
 
 export default function Review() {
     usePageShortcuts('review');
@@ -99,16 +100,13 @@ export default function Review() {
         }
     }, [activeCardSides.length, sidesVisible]);
 
-    function daysSince(date: Date): number {
-        const today = new Date();
-
-        today.setHours(0, 0, 0, 0);
-        date.setHours(0, 0, 0, 0);
-
-        const diffTime = today.getTime() - date.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        return diffDays;
+    function getDaysSinceText(card: CardOut): string {
+        const nrOverdueDays = daysSince(new Date(card.next_review_date));
+        if (nrOverdueDays == 1) {
+            return `Due 1 day ago`;
+        } else {
+            return `Due ${nrOverdueDays} days ago`;
+        }
     }
 
     useEffect(() => {
@@ -202,7 +200,7 @@ export default function Review() {
                         <CardFooter className="flex flex-row justify-center gap-4">
                             {activeCard.overdue && (
                                 <p className="text-destructive text-sm">
-                                    {`Due ${daysSince(new Date(activeCard.next_review_date))} day(s) ago`}
+                                    {getDaysSinceText(activeCard)}
                                 </p>
                             )}
                         </CardFooter>
