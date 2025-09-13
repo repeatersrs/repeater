@@ -22,8 +22,10 @@ import { loginAuthLoginPost, UserLogin } from '@/gen';
 export default function Login() {
     const queryClient = useQueryClient();
     const router = useRouter();
-    const apiURL = process.env.NEXT_PUBLIC_API_URL ?? '';
-    const googleOAuthURI = '/oauth/login';
+    const googleOAuthURL = new URL(
+        '/oauth/login',
+        process.env.NEXT_PUBLIC_API_URL!
+    ).toString();
 
     const loginFormSchema = z.object({
         email: z.string().email(),
@@ -126,7 +128,7 @@ export default function Login() {
                     Register
                 </a>
                 <div className="h-5 w-px bg-gray-300" />
-                <GoogleLogin href={apiURL.concat(googleOAuthURI)} />
+                <GoogleLogin href={googleOAuthURL} />
             </div>
         </div>
     );
