@@ -44,6 +44,7 @@ class DeckNode(BaseModel):
     children: List["DeckNode"]
     card_count: int
     depth: int
+    is_paused: bool
 
 
 class DeckTree(BaseModel):

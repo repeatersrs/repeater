@@ -56,7 +56,8 @@ export function NavDecks() {
     function mapToTreeData(items: DeckNode[]): TreeDataItem[] {
         return items.map((item) => ({
             id: item.id,
-            name: item.name,
+            name: !item.is_paused ? item.name : `${item.name} (Paused)`,
+            className: !item.is_paused ? '' : 'text-muted-foreground',
             children:
                 item.children && item.children.length > 0
                     ? mapToTreeData(item.children)
@@ -68,6 +69,7 @@ export function NavDecks() {
             icon:
                 item.children && item.children.length > 0 ? Folder : FolderOpen,
             openIcon: FolderOpen,
+            data: item,
 
             actions: (
                 <div className="flex items-center gap-1">

@@ -5,25 +5,14 @@ from freezegun import freeze_time
 
 from src.db.models import Card
 from tests.asserts import is_utc_isoformat_string, is_uuid_string
+from tests.util import create_card, create_deck
 
 
 async def test_create_card_returns_card(db_session, user, user_client):
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
     deck_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_id,
-            "content": "Test card",
-        },
-    )
+    res = await create_card(user_client, deck_id)
     assert res.status_code == 201
     assert res.json() == {
         "id": is_uuid_string(),
@@ -41,56 +30,26 @@ async def test_create_card_returns_card(db_session, user, user_client):
 
 
 async def test_create_card_wrong_user_returns_404(user, admin_client, user_client):
-    res = await admin_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(admin_client)
     deck_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_id,
-            "content": "Test card",
-        },
-    )
+    res = await create_card(user_client, deck_id)
     assert res.status_code == 404
     assert res.json()["detail"] == "Resource not found or access denied"
 
 
 async def test_create_card_deck_doesnt_exist_returns_404(user, user_client):
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": str(uuid.uuid4()),
-            "content": "Test card",
-        },
-    )
+    res = await create_card(user_client, str(uuid.uuid4()))
     assert res.status_code == 404
     assert res.json()["detail"] == "Resource not found or access denied"
 
 
 async def test_get_cards(user, user_client):
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
     deck_id = res.json()["id"]
 
     for i in range(5):
-        await user_client.post(
-            "/cards",
-            json={
-                "deck_id": deck_id,
-                "content": f"Test card {i + 1}",
-            },
-        )
+        await create_card(user_client, deck_id, f"Test card {i + 1}")
 
     res = await user_client.get("/cards")
     assert res.status_code == 200
@@ -149,40 +108,16 @@ async def test_get_cards(user, user_client):
 
 
 async def test_get_cards_by_deck(db_session, user, user_client):
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
     deck_1_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_1_id,
-            "content": "Test card",
-        },
-    )
+    res = await create_card(user_client, deck_1_id)
     card_1_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
     deck_2_id = res.json()["id"]
 
-    await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_2_id,
-            "content": "Test card",
-        },
-    )
+    await create_card(user_client, deck_2_id)
 
     res = await user_client.get("/cards", params={"deck_id": deck_1_id})
     assert res.json() == [
@@ -200,40 +135,16 @@ async def test_get_cards_by_deck(db_session, user, user_client):
 
 
 async def test_get_due_cards(db_session, user, user_client):
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
     deck_1_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_1_id,
-            "content": "Test card 1",
-        },
-    )
+    res = await create_card(user_client, deck_1_id, "Test card 1")
     card_1_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
     deck_2_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_2_id,
-            "content": "Test card 2",
-        },
-    )
+    res = await create_card(user_client, deck_2_id, "Test card 2")
     card_2_id = res.json()["id"]
 
     # Cards should be scheduled for review as soon as they're created
@@ -291,22 +202,10 @@ async def test_get_due_cards(db_session, user, user_client):
 
 @freeze_time("2025-07-12 12:00:00")
 async def test_get_overdue_cards(ignore_jwt_expiration, db_session, user, user_client):
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
     deck_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_id,
-            "content": "Test card",
-        },
-    )
+    res = await create_card(user_client, deck_id)
     card_id = res.json()["id"]
 
     # Card should be due but not overdue when just created
@@ -342,22 +241,10 @@ async def test_get_overdue_cards(ignore_jwt_expiration, db_session, user, user_c
 
 
 async def test_update_card(user, user_client):
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
 
     deck_id = res.json()["id"]
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_id,
-            "content": "Test card",
-        },
-    )
+    res = await create_card(user_client, deck_id)
     card_id = res.json()["id"]
     res = await user_client.patch(
         f"/cards/{card_id}",
@@ -378,22 +265,10 @@ async def test_update_card(user, user_client):
 
 
 async def test_delete_card(db_session, user, user_client):
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
 
     deck_id = res.json()["id"]
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_id,
-            "content": "Test card",
-        },
-    )
+    res = await create_card(user_client, deck_id)
     card_id = res.json()["id"]
     res = await user_client.delete(
         f"/cards/{card_id}",
@@ -405,22 +280,10 @@ async def test_delete_card(db_session, user, user_client):
 
 
 async def test_delete_deck_deletes_all_cards_in_deck(db_session, user, user_client):
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
 
     deck_id = res.json()["id"]
-    await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_id,
-            "content": "Test card",
-        },
-    )
+    await create_card(user_client, deck_id)
     res = await user_client.delete(f"/decks/{deck_id}")
     assert res.status_code == 200
 
@@ -429,39 +292,15 @@ async def test_delete_deck_deletes_all_cards_in_deck(db_session, user, user_clie
 
 
 async def test_get_due_cards_exclude_archived_decks(db_session, user, user_client):
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck 1",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
     deck_1_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_1_id,
-            "content": "Test card 1",
-        },
-    )
+    res = await create_card(user_client, deck_1_id, "Test card 1")
 
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck 2",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client, name="deck 2")
     deck_2_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_2_id,
-            "content": "Test card 2",
-        },
-    )
+    res = await create_card(user_client, deck_2_id, "Test card 2")
     card_2_id = res.json()["id"]
 
     res = await user_client.patch(f"/decks/{deck_1_id}", json={"is_archived": True})
@@ -483,39 +322,15 @@ async def test_get_due_cards_exclude_archived_decks(db_session, user, user_clien
 
 
 async def test_get_due_cards_exclude_paused_decks(db_session, user, user_client):
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck 1",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client)
     deck_1_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_1_id,
-            "content": "Test card 1",
-        },
-    )
+    res = await create_card(user_client, deck_1_id, "Test card 1")
 
-    res = await user_client.post(
-        "/decks",
-        json={
-            "name": "deck 2",
-            "description": "my deck",
-        },
-    )
+    res = await create_deck(user_client, name="deck 2")
     deck_2_id = res.json()["id"]
 
-    res = await user_client.post(
-        "/cards",
-        json={
-            "deck_id": deck_2_id,
-            "content": "Test card 2",
-        },
-    )
+    res = await create_card(user_client, deck_2_id, "Test card 2")
     card_2_id = res.json()["id"]
 
     res = await user_client.patch(f"/decks/{deck_1_id}", json={"is_paused": True})
@@ -534,3 +349,37 @@ async def test_get_due_cards_exclude_paused_decks(db_session, user, user_client)
             "updated_at": is_utc_isoformat_string(),
         }
     ]
+
+
+async def test_get_cards_exclude_paused_parent(user, user_client):
+    deck_to_pause = await create_deck(user_client)
+    deck_to_pause_id = deck_to_pause.json()["id"]
+    child_deck = await create_deck(user_client, parent_id=deck_to_pause_id)
+    child_deck_id = child_deck.json()["id"]
+
+    res = await create_card(user_client, child_deck_id)
+
+    res = await user_client.patch(
+        f"/decks/{deck_to_pause_id}", json={"is_paused": True}
+    )
+
+    res = await user_client.get("/cards?exclude_paused=true")
+    assert res.status_code == 200
+    assert res.json() == []
+
+
+async def test_get_cards_exclude_archived_parent(user, user_client):
+    deck_to_archive = await create_deck(user_client)
+    deck_to_archive_id = deck_to_archive.json()["id"]
+    child_deck = await create_deck(user_client, parent_id=deck_to_archive_id)
+    child_deck_id = child_deck.json()["id"]
+
+    res = await create_card(user_client, child_deck_id)
+
+    res = await user_client.patch(
+        f"/decks/{deck_to_archive_id}", json={"is_archived": True}
+    )
+
+    res = await user_client.get("/cards?exclude_archived=true")
+    assert res.status_code == 200
+    assert res.json() == []

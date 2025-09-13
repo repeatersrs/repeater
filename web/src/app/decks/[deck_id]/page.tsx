@@ -129,6 +129,7 @@ export default function DeckPage({
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decks', deck_id] });
+            queryClient.invalidateQueries({ queryKey: ['decks', 'tree'] });
             setIsEditing(false);
             // TODO: Add toast notification
         },
@@ -146,6 +147,7 @@ export default function DeckPage({
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decks', deck_id] });
+            queryClient.invalidateQueries({ queryKey: ['decks', 'tree'] });
         },
     });
 
@@ -190,6 +192,7 @@ export default function DeckPage({
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decks', deck_id] });
+            queryClient.invalidateQueries({ queryKey: ['decks', 'tree'] });
         },
     });
 

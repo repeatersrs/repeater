@@ -6,6 +6,7 @@ import { cva } from 'class-variance-authority';
 import { ChevronRight } from 'lucide-react';
 import React from 'react';
 
+import { DeckNode } from '@/gen';
 import { cn } from '@/lib/utils';
 
 const treeVariants = cva(
@@ -50,6 +51,8 @@ interface TreeDataItem {
     draggable?: boolean;
     droppable?: boolean;
     disabled?: boolean;
+    className?: string;
+    data?: DeckNode;
 }
 
 type TreeProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -361,7 +364,8 @@ const TreeNode = ({
                     className={cn(
                         treeVariants(),
                         selectedItemId === item.id && selectedTreeVariants(),
-                        isDragOver && dragOverVariants()
+                        isDragOver && dragOverVariants(),
+                        item.className
                     )}
                     onClick={() => {
                         handleSelectChange(item);
@@ -472,7 +476,8 @@ const TreeLeaf = React.forwardRef<
                     selectedItemId === item.id && selectedTreeVariants(),
                     isDragOver && dragOverVariants(),
                     item.disabled &&
-                        'pointer-events-none cursor-not-allowed opacity-50'
+                        'pointer-events-none cursor-not-allowed opacity-50',
+                    item.className
                 )}
                 onClick={() => {
                     if (item.disabled) return;

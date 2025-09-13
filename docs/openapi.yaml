@@ -114,6 +114,20 @@ paths:
           type: string
           format: uuid
           title: Parent Id
+      - name: exclude_paused
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Exclude Paused
+      - name: exclude_archived
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Exclude Archived
       - name: access_token
         in: cookie
         required: false
@@ -897,6 +911,9 @@ components:
         depth:
           type: integer
           title: Depth
+        is_paused:
+          type: boolean
+          title: Is Paused
       type: object
       required:
       - id
@@ -904,6 +921,7 @@ components:
       - children
       - card_count
       - depth
+      - is_paused
       title: DeckNode
     DeckOut:
       properties:
