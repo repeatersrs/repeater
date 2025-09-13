@@ -69,3 +69,23 @@ def get_depth_below(deck: Deck) -> int:
 
     traverse(deck, 0)
     return depth
+
+
+def set_children_paused(deck: Deck, db_session: Session):
+    def traverse_and_pause(deck: Deck):
+        deck.is_paused = True
+        deck.save(db_session)
+        for child in deck.children:
+            traverse_and_pause(child)
+
+    traverse_and_pause(deck)
+
+
+def set_children_archived(deck: Deck, db_session: Session):
+    def traverse_and_archive(deck: Deck):
+        deck.is_archived = True
+        deck.save(db_session)
+        for child in deck.children:
+            traverse_and_archive(child)
+
+    traverse_and_archive(deck)

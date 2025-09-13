@@ -17,7 +17,12 @@ from src.import_export import (
 )
 from src.import_export.custom import CustomImporter
 from src.schemas.deck import DeckCreate, DeckNode, DeckOut, DeckTree, DeckUpdate
-from src.util import get_depth_to_root, would_create_cycle
+from src.util import (
+    get_depth_to_root,
+    set_children_archived,
+    set_children_paused,
+    would_create_cycle,
+)
 
 router = APIRouter(prefix="/decks", tags=["decks"])
 
@@ -44,6 +49,8 @@ def create_deck(
 @router.get("", response_model=List[DeckOut])
 def get_decks(
     parent_id: UUID = None,
+    exclude_paused: bool = False,
+    exclude_archived: bool = False,
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
@@ -51,6 +58,12 @@ def get_decks(
 
     if parent_id:
         query = query.filter(Deck.parent_id == parent_id)
+
+    if exclude_paused:
+        query = query.filter(Deck.is_paused == False)
+
+    if exclude_archived:
+        query = query.filter(Deck.is_archived == False)
 
     return query.all()
 
@@ -64,16 +77,19 @@ def get_decks_tree(
     deck_map = {deck.id: deck for deck in decks}
     root_decks = []
     tree_depth = 0
+    tree_decks = 0
 
     def build_node(deck: Deck) -> DeckNode:
         node_depth = get_depth_to_root(deck) + 1
         nonlocal tree_depth
+        nonlocal tree_decks
         tree_depth = max(tree_depth, node_depth)
+        tree_decks += 1
 
         children = [
             build_node(deck_map[child.id])
             for child in decks
-            if child.parent_id == deck.id
+            if child.parent_id == deck.id and not child.is_archived
         ]
 
         return DeckNode(
@@ -82,15 +98,16 @@ def get_decks_tree(
             children=sorted(children, key=lambda d: d.name),
             card_count=len(deck.cards) if hasattr(deck, "cards") else 0,
             depth=node_depth,
+            is_paused=deck.is_paused,
         )
 
     for deck in decks:
-        if deck.parent_id is None:
+        if deck.parent_id is None and not deck.is_archived:
             root_decks.append(build_node(deck))
 
     return DeckTree(
         decks=sorted(root_decks, key=lambda d: d.name),
-        total_decks=len(decks),
+        total_decks=tree_decks,
         tree_depth=tree_depth,
     )
 
@@ -128,6 +145,12 @@ def update_deck(
             raise HTTPException(
                 status_code=400, detail="Would create circular reference"
             )
+
+    if deck_req.is_paused:
+        set_children_paused(deck, db_session)
+
+    if deck_req.is_archived:
+        set_children_archived(deck, db_session)
 
     updates = deck_req.model_dump(exclude_unset=True)
     for field, value in updates.items():

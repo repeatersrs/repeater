@@ -1,27 +1,9 @@
 import json
 import uuid
 
-from httpx import AsyncClient
-
 from src.db.models import Card, Deck
 from tests.asserts import is_utc_isoformat_string, is_uuid_string
-
-# --- Util ---
-
-
-async def create_deck(
-    client: AsyncClient,
-    name: str = "deck",
-    description: str = "",
-    parent_id: str = None,
-):
-    return await client.post(
-        "/decks",
-        json={"name": name, "description": description, "parent_id": parent_id},
-    )
-
-
-# --- Test decks ---
+from tests.util import create_deck
 
 
 async def test_create_deck(db_session, user, user_client):
@@ -345,14 +327,17 @@ async def test_get_deck_tree(user_client):
                                 "children": [],
                                 "card_count": 0,
                                 "depth": 3,
+                                "is_paused": False,
                             }
                         ],
                         "card_count": 0,
                         "depth": 2,
+                        "is_paused": False,
                     }
                 ],
                 "card_count": 0,
                 "depth": 1,
+                "is_paused": False,
             }
         ],
         "total_decks": 3,
@@ -572,6 +557,7 @@ async def test_get_deck_tree_complex(user_client):
                                 "children": [],
                                 "card_count": 0,
                                 "depth": 3,
+                                "is_paused": False,
                             },
                             {
                                 "id": child2_id,
@@ -579,14 +565,17 @@ async def test_get_deck_tree_complex(user_client):
                                 "children": [],
                                 "card_count": 0,
                                 "depth": 3,
+                                "is_paused": False,
                             },
                         ],
                         "card_count": 0,
                         "depth": 2,
+                        "is_paused": False,
                     }
                 ],
                 "card_count": 0,
                 "depth": 1,
+                "is_paused": False,
             },
             {
                 "id": standalone_id,
@@ -594,6 +583,7 @@ async def test_get_deck_tree_complex(user_client):
                 "children": [],
                 "card_count": 0,
                 "depth": 1,
+                "is_paused": False,
             },
         ],
         "total_decks": 5,
@@ -653,6 +643,7 @@ async def test_get_deck_tree_shallow(user_client):
                 "children": [],
                 "card_count": 0,
                 "depth": 1,
+                "is_paused": False,
             }
         ],
         "total_decks": 1,
@@ -829,3 +820,108 @@ async def test_get_decks_by_parent(user, user_client):
             "updated_at": is_utc_isoformat_string(),
         }
     ]
+
+
+async def test_get_decks_exclude_paused(user, user_client):
+    deck_to_pause = await create_deck(user_client)
+    active_deck = await create_deck(user_client)
+
+    deck_to_pause_id = deck_to_pause.json()["id"]
+    active_deck_id = active_deck.json()["id"]
+
+    res = await user_client.patch(
+        f"/decks/{deck_to_pause_id}", json={"is_paused": True}
+    )
+
+    res = await user_client.get("/decks?exclude_paused=true")
+    assert res.status_code == 200
+    assert res.json() == [
+        {
+            "id": active_deck_id,
+            "user_id": str(user.id),
+            "parent_id": None,
+            "name": "deck",
+            "description": "",
+            "is_paused": False,
+            "is_archived": False,
+            "is_root": True,
+            "path": ["deck"],
+            "created_at": is_utc_isoformat_string(),
+            "updated_at": is_utc_isoformat_string(),
+        }
+    ]
+
+
+async def test_get_decks_exclude_archived(user, user_client):
+    deck_to_archive = await create_deck(user_client)
+    active_deck = await create_deck(user_client)
+
+    deck_to_archive_id = deck_to_archive.json()["id"]
+    active_deck_id = active_deck.json()["id"]
+
+    res = await user_client.patch(
+        f"/decks/{deck_to_archive_id}", json={"is_archived": True}
+    )
+
+    res = await user_client.get("/decks?exclude_archived=true")
+    assert res.status_code == 200
+    assert res.json() == [
+        {
+            "id": active_deck_id,
+            "user_id": str(user.id),
+            "parent_id": None,
+            "name": "deck",
+            "description": "",
+            "is_paused": False,
+            "is_archived": False,
+            "is_root": True,
+            "path": ["deck"],
+            "created_at": is_utc_isoformat_string(),
+            "updated_at": is_utc_isoformat_string(),
+        }
+    ]
+
+
+async def test_get_decks_exclude_paused_parent(user, user_client):
+    deck_to_pause = await create_deck(user_client)
+    deck_to_pause_id = deck_to_pause.json()["id"]
+    await create_deck(user_client, parent_id=deck_to_pause_id)
+
+    res = await user_client.patch(
+        f"/decks/{deck_to_pause_id}", json={"is_paused": True}
+    )
+
+    res = await user_client.get("/decks?exclude_paused=true")
+    assert res.status_code == 200
+    assert res.json() == []
+
+
+async def test_get_decks_exclude_archived_parent(user, user_client):
+    deck_to_archive = await create_deck(user_client)
+    deck_to_archive_id = deck_to_archive.json()["id"]
+    await create_deck(user_client, parent_id=deck_to_archive_id)
+
+    res = await user_client.patch(
+        f"/decks/{deck_to_archive_id}", json={"is_archived": True}
+    )
+
+    res = await user_client.get("/decks?exclude_archived=true")
+    assert res.status_code == 200
+    assert res.json() == []
+
+
+async def test_get_deck_tree_does_not_show_archived_decks(user_client):
+    deck_to_archive = await create_deck(user_client)
+    deck_to_archive_id = deck_to_archive.json()["id"]
+    await create_deck(user_client, parent_id=deck_to_archive_id)
+
+    res = await user_client.patch(
+        f"/decks/{deck_to_archive_id}", json={"is_archived": True}
+    )
+
+    res = await user_client.get("/decks/tree")
+    assert res.json() == {
+        "decks": [],
+        "total_decks": 0,
+        "tree_depth": 0,
+    }
