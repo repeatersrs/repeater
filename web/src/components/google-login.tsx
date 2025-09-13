@@ -9,6 +9,8 @@ export default function GoogleLogin({ href, children }: Props) {
     return (
         <a
             href={href}
+            target="_self"
+            rel="noopener noreferrer"
             className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium shadow-sm"
         >
             <svg
