@@ -1,14 +1,22 @@
+import { env } from 'next-runtime-env';
 import React from 'react';
 
+import { Skeleton } from '@/components/ui/skeleton';
+
 type Props = {
-    href: string;
     children?: React.ReactNode;
 };
 
-export default function GoogleLogin({ href, children }: Props) {
+export default function GoogleLogin({ children }: Props) {
+    const apiURL = env('NEXT_PUBLIC_API_URL');
+
+    if (!apiURL) return <Skeleton className="h-8 w-36 rounded-md" />;
+
+    const googleOAuthURL = new URL('/oauth/login', apiURL).toString();
+
     return (
         <a
-            href={href}
+            href={googleOAuthURL}
             target="_self"
             rel="noopener noreferrer"
             className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium shadow-sm"

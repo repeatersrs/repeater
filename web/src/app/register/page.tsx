@@ -20,10 +20,6 @@ import { Input } from '@/components/ui/input';
 import { registerAuthRegisterPost, UserCreate } from '@/gen';
 
 export default function Register() {
-    const googleOAuthURL = new URL(
-        '/oauth/login',
-        process.env.NEXT_PUBLIC_API_URL!
-    ).toString();
     const queryClient = useQueryClient();
     const router = useRouter();
 
@@ -128,7 +124,7 @@ export default function Register() {
                     Log In
                 </a>
                 <div className="h-5 w-px bg-gray-300" />
-                <GoogleLogin href={googleOAuthURL} />
+                <GoogleLogin />
             </div>
         </div>
     );
