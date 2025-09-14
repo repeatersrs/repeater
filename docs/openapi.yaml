@@ -342,6 +342,13 @@ paths:
           type: string
           format: uuid
           title: Deck Id
+      - name: include_sub_decks
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Include Sub Decks
       - name: access_token
         in: cookie
         required: false
