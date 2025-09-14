@@ -299,9 +299,8 @@ paths:
         in: query
         required: false
         schema:
-          type: string
+          $ref: '#/components/schemas/ImportFormat'
           default: repeater
-          title: Format
       - name: access_token
         in: cookie
         required: false
@@ -1083,6 +1082,12 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
+    ImportFormat:
+      type: string
+      enum:
+      - repeater
+      - mochi_markdown
+      title: ImportFormat
     PaginatedResponse_UserOut_:
       properties:
         items:
