@@ -5,7 +5,7 @@ async def create_deck(
     client: AsyncClient,
     name: str = "deck",
     description: str = "",
-    parent_id: str = None,
+    parent_id: str | None = None,
 ):
     return await client.post(
         "/decks",

@@ -237,8 +237,78 @@ async def test_export_deck(db_session, user_client):
 
 
 async def test_export_deck_with_sub_decks(db_session, user_client):
-    # TODO: implement
-    pass
+    res = await create_deck(
+        user_client, name="Parent Deck", description="Parent description"
+    )
+    parent_id = res.json()["id"]
+    res = await user_client.post(
+        "/cards",
+        json={
+            "deck_id": parent_id,
+            "content": "Parent card",
+        },
+    )
+
+    res = await create_deck(
+        user_client,
+        name="Child Deck",
+        description="Child description",
+        parent_id=parent_id,
+    )
+    child_id = res.json()["id"]
+    res = await user_client.post(
+        "/cards",
+        json={
+            "deck_id": child_id,
+            "content": "Child card",
+        },
+    )
+
+    res = await create_deck(
+        user_client,
+        name="Grandchild Deck",
+        description="Grandchild description",
+        parent_id=child_id,
+    )
+    grandchild_id = res.json()["id"]
+    res = await user_client.post(
+        "/cards",
+        json={
+            "deck_id": grandchild_id,
+            "content": "Grandchild card",
+        },
+    )
+
+    res = await user_client.get(f"/decks/{parent_id}/export")
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/json"
+
+    json_str = res.content.decode("utf-8")
+    json_obj = json.loads(json_str)
+    assert json_obj == {
+        "version": "repeater-v1",
+        "name": "Parent Deck",
+        "description": "Parent description",
+        "cards": [{"content": "Parent card"}],
+        "sub_decks": [
+            {
+                "version": "repeater-v1",
+                "name": "Child Deck",
+                "description": "Child description",
+                "cards": [{"content": "Child card"}],
+                "sub_decks": [
+                    {
+                        "version": "repeater-v1",
+                        "name": "Grandchild Deck",
+                        "description": "Grandchild description",
+                        "cards": [{"content": "Grandchild card"}],
+                        "sub_decks": [],
+                    }
+                ],
+            }
+        ],
+    }
+
 
 
 async def test_guest_user_import_deck_returns_403(client):
