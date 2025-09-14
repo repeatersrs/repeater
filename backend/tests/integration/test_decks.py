@@ -179,7 +179,7 @@ async def test_import_deck_mochi_markdown_importer_md(db_session, user_client):
 
     cards = Card.filter_by(db_session, deck_id=decks[0].id).all()
     assert len(cards) == 1
-    assert cards[0].content == "this card is a **test**\n---\ncette carte est un **test**"
+    assert cards[0].content == "this card is a **test**\n---\ncette carte est un **test**\n"
 
 
 async def test_import_deck_mochi_markdown_importer_zip(db_session, user_client):
