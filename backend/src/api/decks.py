@@ -16,6 +16,7 @@ from src.import_export import (
     store_imported_deck,
 )
 from src.import_export.custom import CustomImporter
+from src.import_export.mochi_markdown import MochiMarkdownImporter
 from src.schemas.deck import DeckCreate, DeckNode, DeckOut, DeckTree, DeckUpdate
 from src.util import (
     get_depth_to_root,
@@ -194,13 +195,16 @@ async def import_deck(
 
     if format == "repeater":
         importer: BaseImporter = CustomImporter()
-        try:
-            deck_data = await importer.parse_file(file)
-        except Exception as err:
-            raise HTTPException(status_code=400, detail=err)
-        store_imported_deck(deck_data, user.id, db_session)
+    elif format == "mochi_markdown":
+        importer: BaseImporter = MochiMarkdownImporter()
     else:
         raise HTTPException(status_code=400, detail="Unknown format")
+
+    try:
+        deck_data = await importer.parse_file(file)
+    except Exception as err:
+        raise HTTPException(status_code=400, detail=err)
+    store_imported_deck(deck_data, user.id, db_session)
 
 
 @router.get(
