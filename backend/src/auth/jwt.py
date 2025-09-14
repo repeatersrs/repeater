@@ -18,7 +18,7 @@ GUEST_REFRESH_TOKEN_EXPIRE_SECONDS = 60 * 60 * 24 * 30  # 30 days
 
 # TODO change the secure flag to True in production
 def get_access_token_cookie_kwargs(
-    access_token: str, exp_delta_seconds: int = REFRESH_TOKEN_EXPIRE_SECONDS
+    access_token: str, exp_delta_seconds: int = ACCESS_TOKEN_EXPIRE_SECONDS
 ) -> dict:
     return dict(
         key="access_token",
@@ -95,16 +95,15 @@ def create_guest_user(db_session: Session) -> User:
 def get_current_user(
     response: Response,
     access_token: str | None = Cookie(default=None),
+    refresh_token: str | None = Cookie(default=None),
     db_session: Session = Depends(get_db),
 ) -> User:
-    if access_token is None:
+    if access_token is None and refresh_token is None:
         guest_user = create_guest_user(db_session)
-
         access_token = create_access_token(guest_user)
         refresh_token = create_refresh_token(
             guest_user, GUEST_REFRESH_TOKEN_EXPIRE_SECONDS
         )
-
         response.set_cookie(**get_access_token_cookie_kwargs(access_token))
         response.set_cookie(
             **get_refresh_token_cookie_kwargs(
@@ -113,15 +112,15 @@ def get_current_user(
         )
         return guest_user
 
-    try:
-        payload = decode_jwt(access_token)
-        user_id = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
+    if access_token:
+        try:
+            payload = decode_jwt(access_token)
+            user_id = payload.get("sub")
+            if user_id:
+                user = User.get(db_session, user_id)
+                if user:
+                    return user
+        except jwt.InvalidTokenError:
+            pass
 
-        user = User.get(db_session, user_id)
-        if user:
-            return user
-        raise HTTPException(status_code=401, detail="Invalid token")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    raise HTTPException(status_code=401, detail="Invalid or expired access token")
