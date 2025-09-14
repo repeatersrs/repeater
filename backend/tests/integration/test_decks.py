@@ -229,7 +229,7 @@ async def test_export_deck(db_session, user_client):
         "name": "deck",
         "description": "",
         "cards": [{"content": "Test card"}],
-        "sub_decks": None
+        "sub_decks": []
     }
 
 async def test_export_deck_with_sub_decks(db_session, user_client):

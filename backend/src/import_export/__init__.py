@@ -54,7 +54,7 @@ def store_imported_deck(
         db_session.add(deck)
         db_session.flush()
 
-        if hasattr(deck_data, 'sub_decks') and deck_data.sub_decks:
+        if deck_data.sub_decks:
             for sub_deck in deck_data.sub_decks:
                 store_imported_deck(sub_deck, user_id, db_session, parent_id=deck.id)
 

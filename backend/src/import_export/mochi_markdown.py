@@ -27,7 +27,7 @@ Note: support for specific card and/or content types are all TBD
 class MochiMarkdownImporter(BaseImporter):
     async def parse_file(self, file: UploadFile) -> DeckData:
         filename = file.filename
-        if filename == None:
+        if filename is None:
             raise ValueError("No filename provided")
 
         content = await file.read()
