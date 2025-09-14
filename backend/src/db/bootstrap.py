@@ -24,7 +24,7 @@ def bootstrap():
             with open(deck_path, "rb") as file:
                 content = file.read()
                 importer: BaseImporter = CustomImporter()
-                deck_data = importer.parse(content)
+                deck_data = importer.parse_bytes(content)
                 store_imported_deck(deck_data, user.id, db_session, languages_deck.id)
 
 

@@ -68,7 +68,7 @@ generate-web-client: export-openapi
 
 .PHONY: test
 test:
-	$(BACKEND_EXEC) uv run pytest -s --tb=short "${t}"
+	$(BACKEND_EXEC) uv run pytest -s --tb=short $(t)
 
 
 .PHONY: format

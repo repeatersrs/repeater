@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import json
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from typing import List
 from uuid import UUID
 
+from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from src.db.models import Card, Deck
@@ -22,6 +25,7 @@ class DeckData:
     name: str
     description: str | None
     cards: List[CardData]
+    sub_decks: List[DeckData]
 
 
 def deck_to_deck_data(deck: Deck) -> DeckData:
@@ -33,11 +37,15 @@ def deck_to_deck_data(deck: Deck) -> DeckData:
         name=deck.name,
         description=deck.description,
         cards=cards,
+        sub_decks=[],  # TODO: query and add sub-decks
     )
 
 
 def store_imported_deck(
-    deck_data: DeckData, user_id: UUID, db_session: Session, parent_id: UUID = None
+    deck_data: DeckData,
+    user_id: UUID,
+    db_session: Session,
+    parent_id: UUID | None = None,
 ):
     try:
         deck = Deck(
@@ -48,6 +56,10 @@ def store_imported_deck(
         )
         db_session.add(deck)
         db_session.flush()
+
+        if deck_data.sub_decks:
+            for sub_deck in deck_data.sub_decks:
+                store_imported_deck(sub_deck, user_id, db_session, parent_id=deck.id)
 
         for card_data in deck_data.cards:
             card = Card(deck_id=deck.id, content=card_data.content)
@@ -67,5 +79,9 @@ def export(deck: DeckData) -> bytes:
 
 class BaseImporter(ABC):
     @abstractmethod
-    def parse(self, file: bytes) -> DeckData:
+    async def parse_file(self, file: UploadFile) -> DeckData:
+        pass
+
+    @abstractmethod
+    def parse_bytes(self, content: bytes) -> DeckData:
         pass

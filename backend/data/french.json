@@ -1,18 +1,18 @@
 {
-    "version": "repeater-v1",
-    "name": "French",
-    "description": "Simple French phrases",
-    "cards": [
-      {"content": "Hello\n---\nBonjour"},
-      {"content": "Goodbye\n---\nAu revoir"},
-      {"content": "Please\n---\nS'il vous plaît"},
-      {"content": "Thank you\n---\nMerci"},
-      {"content": "Yes\n---\nOui"},
-      {"content": "No\n---\nNon"},
-      {"content": "How are you?\n---\nComment ça va?"},
-      {"content": "I'm fine\n---\nÇa va bien"},
-      {"content": "Excuse me\n---\nExcusez-moi"},
-      {"content": "I don't understand\n---\nJe ne comprends pas"}
-    ]
-
+  "version": "repeater-v1",
+  "name": "French",
+  "description": "Simple French phrases",
+  "cards": [
+    { "content": "Hello\n---\nBonjour" },
+    { "content": "Goodbye\n---\nAu revoir" },
+    { "content": "Please\n---\nS'il vous plaît" },
+    { "content": "Thank you\n---\nMerci" },
+    { "content": "Yes\n---\nOui" },
+    { "content": "No\n---\nNon" },
+    { "content": "How are you?\n---\nComment ça va?" },
+    { "content": "I'm fine\n---\nÇa va bien" },
+    { "content": "Excuse me\n---\nExcusez-moi" },
+    { "content": "I don't understand\n---\nJe ne comprends pas" }
+  ],
+  "sub_decks": []
 }
