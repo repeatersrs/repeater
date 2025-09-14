@@ -15,12 +15,17 @@ client.interceptors.response.use(
     async (response: Response, request: Request) => {
         if (response.status === 401 && !isRefreshing) {
             isRefreshing = true;
-
             try {
-                await refreshTokenAuthRefreshPost();
+                const refreshResponse = await refreshTokenAuthRefreshPost();
+
+                if (refreshResponse.response && !refreshResponse.response.ok) {
+                    window.location.replace('/login');
+                    throw new Error('Refresh error');
+                }
+
                 return await fetch(request.clone());
             } catch (refreshError) {
-                window.location.href = '/login';
+                window.location.replace('/login');
                 throw refreshError;
             } finally {
                 isRefreshing = false;
