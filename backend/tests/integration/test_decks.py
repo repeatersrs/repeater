@@ -162,15 +162,50 @@ async def test_import_deck_custom_importer(db_session, user_client):
     assert deck_json["name"] == deck.name
     assert len(deck_json["cards"]) == len(Card.all(db_session))
 
+
 async def test_import_deck_mochi_markdown_importer_md(db_session, user_client):
-    # TODO: implement
-    with open("tests/data/mochi_markdown_test.md", "rb") as _:
-        pass
+    with open("tests/data/mochi_markdown_test.md", "rb") as file:
+        file_bytes = file.read()
+
+    files = {"file": ("mochi_markdown_test.md", file_bytes, "text/markdown")}
+    res = await user_client.post(
+        "decks/import", params={"format": "mochi_markdown"}, files=files
+    )
+    assert res.status_code == 201
+
+    decks = Deck.all(db_session)
+    assert len(decks) == 1
+    assert decks[0].name == "mochi_markdown_test"
+
+    cards = Card.filter_by(db_session, deck_id=decks[0].id).all()
+    assert len(cards) == 1
+    assert cards[0].content == "this card is a **test**\n---\ncette carte est un **test**"
+
 
 async def test_import_deck_mochi_markdown_importer_zip(db_session, user_client):
-    # TODO: implement
-    with open("tests/data/mochi_markdown_test.zip", "rb") as _:
-        pass
+    with open("tests/data/mochi_markdown_test.zip", "rb") as file:
+        file_bytes = file.read()
+
+    files = {"file": ("mochi_markdown_test.zip", file_bytes, "application/zip")}
+    res = await user_client.post(
+        "decks/import", params={"format": "mochi_markdown"}, files=files
+    )
+    assert res.status_code == 201
+
+    decks = Deck.filter_by(db_session, parent_id=None).all()
+    assert len(decks) == 1
+    assert decks[0].name == "mochi_markdown_test"
+
+    cards = Card.filter_by(db_session, deck_id=decks[0].id).all()
+    assert len(cards) == 5
+
+    sub_decks = Deck.filter_by(db_session, parent_id=decks[0].id).all()
+    assert len(sub_decks) == 1
+    assert "child deck" in sub_decks[0].name or "5Dvv6yxB" in sub_decks[0].name
+
+    sub_cards = Card.filter_by(db_session, deck_id=sub_decks[0].id).all()
+    assert len(sub_cards) == 2
+
 
 async def test_export_deck(db_session, user_client):
     res = await create_deck(user_client)
@@ -194,8 +229,12 @@ async def test_export_deck(db_session, user_client):
         "name": "deck",
         "description": "",
         "cards": [{"content": "Test card"}],
+        "sub_decks": None
     }
 
+async def test_export_deck_with_sub_decks(db_session, user_client):
+    # TODO: implement
+    pass
 
 async def test_guest_user_import_deck_returns_403(client):
     with open("data/french.json", "rb") as file:
