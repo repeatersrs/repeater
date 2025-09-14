@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from src.auth.jwt import get_current_user
 from src.db import get_db
@@ -229,7 +229,22 @@ def export_deck(
     if user.is_guest:
         raise HTTPException(status_code=403)
 
-    deck = Deck.filter_by(db_session, id=deck_id, user_id=user.id).one()
+    deck = (
+        db_session.query(Deck)
+        .filter_by(id=deck_id, user_id=user.id)
+        .options(
+            selectinload(Deck.cards),
+            selectinload(Deck.children).selectinload(Deck.cards),
+            selectinload(Deck.children)
+            .selectinload(Deck.children)
+            .selectinload(Deck.cards),
+            selectinload(Deck.children)
+            .selectinload(Deck.children)
+            .selectinload(Deck.children)
+            .selectinload(Deck.cards),
+        )
+        .one()
+    )
 
     safe_filename = "".join(
         c for c in deck.name if c.isalnum() or c in (" ", "-", "_")
