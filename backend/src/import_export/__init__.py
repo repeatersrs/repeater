@@ -37,12 +37,15 @@ def deck_to_deck_data(deck: Deck) -> DeckData:
         name=deck.name,
         description=deck.description,
         cards=cards,
-        sub_decks=[], # TODO: query and add sub-decks
+        sub_decks=[],  # TODO: query and add sub-decks
     )
 
 
 def store_imported_deck(
-    deck_data: DeckData, user_id: UUID, db_session: Session, parent_id: UUID | None = None
+    deck_data: DeckData,
+    user_id: UUID,
+    db_session: Session,
+    parent_id: UUID | None = None,
 ):
     try:
         deck = Deck(

@@ -179,7 +179,10 @@ async def test_import_deck_mochi_markdown_importer_md(db_session, user_client):
 
     cards = Card.filter_by(db_session, deck_id=decks[0].id).all()
     assert len(cards) == 1
-    assert cards[0].content == "this card is a **test**\n---\ncette carte est un **test**\n"
+    assert (
+        cards[0].content
+        == "this card is a **test**\n---\ncette carte est un **test**\n"
+    )
 
 
 async def test_import_deck_mochi_markdown_importer_zip(db_session, user_client):
@@ -229,12 +232,14 @@ async def test_export_deck(db_session, user_client):
         "name": "deck",
         "description": "",
         "cards": [{"content": "Test card"}],
-        "sub_decks": []
+        "sub_decks": [],
     }
+
 
 async def test_export_deck_with_sub_decks(db_session, user_client):
     # TODO: implement
     pass
+
 
 async def test_guest_user_import_deck_returns_403(client):
     with open("data/french.json", "rb") as file:

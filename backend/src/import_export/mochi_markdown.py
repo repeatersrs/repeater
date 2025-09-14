@@ -1,3 +1,5 @@
+import logging
+import zipfile
 from datetime import datetime
 from io import BytesIO
 from pathlib import PurePosixPath
@@ -10,8 +12,6 @@ from src.import_export import (
     CardData,
     DeckData,
 )
-import zipfile
-import logging
 
 """
 Importer for the Mochi markdown export format.
@@ -41,7 +41,7 @@ class MochiMarkdownImporter(BaseImporter):
                 name=path.stem,
                 description=None,
                 cards=[card_data],
-                sub_decks=[]
+                sub_decks=[],
             )
         elif path.suffix == ".zip" or self._looks_like_zip(content):
             return self._parse_zip_bytes(content, path.stem)
@@ -58,7 +58,7 @@ class MochiMarkdownImporter(BaseImporter):
                 name=f"Imported deck {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
                 description=None,
                 cards=[card_data],
-                sub_decks=[]
+                sub_decks=[],
             )
 
     # Helpers
@@ -73,7 +73,9 @@ class MochiMarkdownImporter(BaseImporter):
         except Exception:
             return False
 
-    def _parse_zip_bytes(self, content: bytes, root_name: str | None = None) -> DeckData:
+    def _parse_zip_bytes(
+        self, content: bytes, root_name: str | None = None
+    ) -> DeckData:
         """
         Structure rules:
             - each folder -> a sub-deck (recursively)
@@ -103,9 +105,9 @@ class MochiMarkdownImporter(BaseImporter):
                 node = node.children[p]
             return node
 
-        with zipfile.ZipFile(BytesIO(content), 'r') as zip_file:
+        with zipfile.ZipFile(BytesIO(content), "r") as zip_file:
             for info in zip_file.infolist():
-                if '__MACOSX' in info.filename:
+                if "__MACOSX" in info.filename:
                     continue
 
                 path = PurePosixPath(info.filename)
@@ -117,12 +119,12 @@ class MochiMarkdownImporter(BaseImporter):
                         get_or_create_node_at_path(list(path_parts))
                     continue
 
-                if path.name.startswith('.'):
+                if path.name.startswith("."):
                     continue
 
-                if path.suffix.lower() == '.md':
-                    with zip_file.open(info, 'r') as file_handler:
-                        text = file_handler.read().decode('UTF-8', errors="replace")
+                if path.suffix.lower() == ".md":
+                    with zip_file.open(info, "r") as file_handler:
+                        text = file_handler.read().decode("UTF-8", errors="replace")
                     dir_parts = list(path_parts[:-1]) if path_parts else []
                     deck_node = get_or_create_node_at_path(dir_parts)
                     deck_node.cards.append(CardData(text))
@@ -130,13 +132,15 @@ class MochiMarkdownImporter(BaseImporter):
                     logging.info(f"Ignoring unsupported file: {info.filename}")
 
         def deck_node_to_deck_data(node: DeckNode) -> DeckData:
-            sub_decks = [deck_node_to_deck_data(child) for child in node.children.values()]
+            sub_decks = [
+                deck_node_to_deck_data(child) for child in node.children.values()
+            ]
             return DeckData(
                 version=REPEATER_JSON_VERSION_LATEST,
                 name=node.name,
                 description=None,
                 cards=node.cards or [],
-                sub_decks=sub_decks or []
+                sub_decks=sub_decks or [],
             )
 
         return deck_node_to_deck_data(root)
