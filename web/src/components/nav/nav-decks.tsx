@@ -317,12 +317,37 @@ export function NavDecks() {
                                 Import deck
                             </DropdownMenuLabel>
                             <div className="flex flex-col gap-2 p-2">
-                                <Button variant="outline">Repeater</Button>
-                                <Button variant="outline">
+                                <Button
+                                    variant="outline"
+                                    className="flex justify-start"
+                                >
+                                    Repeater
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="flex justify-start"
+                                >
                                     Mochi (markdown)
                                 </Button>
-                                <Button variant="outline" disabled>
-                                    Mochi (soon)
+                                <Button
+                                    variant="outline"
+                                    className="relative flex justify-start"
+                                    disabled
+                                >
+                                    Mochi (.mochi)
+                                    <div className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-md px-1 py-0.5 text-[0.5rem]">
+                                        SOON
+                                    </div>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="relative flex justify-start"
+                                    disabled
+                                >
+                                    Anki
+                                    <div className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-md px-1 py-0.5 text-[0.5rem]">
+                                        SOON
+                                    </div>
                                 </Button>
                             </div>
                         </>
