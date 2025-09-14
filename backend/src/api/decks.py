@@ -17,7 +17,14 @@ from src.import_export import (
 )
 from src.import_export.custom import CustomImporter
 from src.import_export.mochi_markdown import MochiMarkdownImporter
-from src.schemas.deck import DeckCreate, DeckNode, DeckOut, DeckTree, DeckUpdate
+from src.schemas.deck import (
+    DeckCreate,
+    DeckNode,
+    DeckOut,
+    DeckTree,
+    DeckUpdate,
+    ImportFormat,
+)
 from src.util import (
     get_depth_to_root,
     set_children_archived,
@@ -185,7 +192,7 @@ def delete_deck(
 
 @router.post("/import", status_code=201)
 async def import_deck(
-    format: str = "repeater",
+    format: ImportFormat = ImportFormat.REPEATER,
     file: UploadFile = File(...),
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
@@ -193,12 +200,10 @@ async def import_deck(
     if user.is_guest:
         raise HTTPException(status_code=403)
 
-    if format == "repeater":
+    if format == ImportFormat.REPEATER:
         importer: BaseImporter = CustomImporter()
-    elif format == "mochi_markdown":
+    elif format == ImportFormat.MOCHI_MARKDOWN:
         importer: BaseImporter = MochiMarkdownImporter()
-    else:
-        raise HTTPException(status_code=400, detail="Unknown format")
 
     try:
         deck_data = await importer.parse_file(file)

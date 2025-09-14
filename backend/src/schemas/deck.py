@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import List, Optional
 from uuid import UUID
 
@@ -51,3 +52,8 @@ class DeckTree(BaseModel):
     decks: List[DeckNode]
     total_decks: int
     tree_depth: int
+
+
+class ImportFormat(str, Enum):
+    REPEATER = "repeater"
+    MOCHI_MARKDOWN = "mochi_markdown"
