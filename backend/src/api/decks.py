@@ -205,7 +205,9 @@ async def import_deck(
     elif format == ImportFormat.MOCHI_MARKDOWN:
         importer: BaseImporter = MochiMarkdownImporter()
     else:
-        raise HTTPException(status_code=400, detail=f"Unsupported import format: {format}")
+        raise HTTPException(
+            status_code=400, detail=f"Unsupported import format: {format}"
+        )
 
     try:
         deck_data = await importer.parse_file(file)
