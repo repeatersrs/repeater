@@ -147,12 +147,12 @@ async def test_delete_deck_doesnt_exist_returns_404(db_session, user_client):
 
 
 async def test_import_deck_custom_importer(db_session, user_client):
-    with open("data/french.json", "rb") as file:
+    with open("data/languages.json", "rb") as file:
         file_bytes = file.read()
         file.seek(0)
         deck_json = json.load(file)
 
-    files = {"file": ("french.json", file_bytes, "application/json")}
+    files = {"file": ("languages.json", file_bytes, "application/json")}
     res = await user_client.post(
         "decks/import", params={"format": "repeater"}, files=files
     )
@@ -160,8 +160,20 @@ async def test_import_deck_custom_importer(db_session, user_client):
 
     deck = Deck.all(db_session)[0]
     assert deck_json["name"] == deck.name
-    assert len(deck_json["cards"]) == len(Card.all(db_session))
+    assert len(deck_json["cards"]) == len(deck.cards)
 
+    children = deck.children
+    assert len(children) == 2
+
+    first_child_deck = children[0]
+    first_child_deck_json = deck_json["sub_decks"][0]
+    assert first_child_deck_json["name"] == first_child_deck.name
+    assert len(first_child_deck_json["cards"]) == len(first_child_deck.cards)
+
+    second_child_deck = children[1]
+    second_child_deck_json = deck_json["sub_decks"][1]
+    assert second_child_deck_json["name"] == second_child_deck.name
+    assert len(second_child_deck_json["cards"]) == len(second_child_deck.cards)
 
 async def test_import_deck_mochi_markdown_importer_md(db_session, user_client):
     with open("tests/data/mochi_markdown_test.md", "rb") as file:
@@ -311,10 +323,10 @@ async def test_export_deck_with_sub_decks(db_session, user_client):
 
 
 async def test_guest_user_import_deck_returns_403(client):
-    with open("data/french.json", "rb") as file:
+    with open("data/languages.json", "rb") as file:
         file_bytes = file.read()
 
-    files = {"file": ("french.json", file_bytes, "application/json")}
+    files = {"file": ("languages.json", file_bytes, "application/json")}
     res = await client.post("decks/import", params={"format": "repeater"}, files=files)
     assert res.status_code == 403
 
