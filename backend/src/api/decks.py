@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from src.auth.jwt import get_current_user
 from src.db import get_db
@@ -225,18 +225,37 @@ def export_deck(
     deck_id: UUID,
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
+    include_sub_decks: bool = True,
 ):
     if user.is_guest:
         raise HTTPException(status_code=403)
 
-    deck = Deck.filter_by(db_session, id=deck_id, user_id=user.id).one()
+    if include_sub_decks:
+        deck = (
+            db_session.query(Deck)
+            .filter_by(id=deck_id, user_id=user.id)
+            .options(
+                selectinload(Deck.cards),
+                selectinload(Deck.children).selectinload(Deck.cards),
+                selectinload(Deck.children)
+                .selectinload(Deck.children)
+                .selectinload(Deck.cards),
+                selectinload(Deck.children)
+                .selectinload(Deck.children)
+                .selectinload(Deck.children)
+                .selectinload(Deck.cards),
+            )
+            .one()
+        )
+    else:
+        deck = db_session.query(Deck).filter_by(id=deck_id, user_id=user.id).one()
 
     safe_filename = "".join(
         c for c in deck.name if c.isalnum() or c in (" ", "-", "_")
     ).rstrip()
     safe_filename = safe_filename or "deck"
 
-    deck_data = deck_to_deck_data(deck)
+    deck_data = deck_to_deck_data(deck, include_sub_decks=include_sub_decks)
     deck_bytes = export(deck_data)
     return StreamingResponse(
         BytesIO(deck_bytes),

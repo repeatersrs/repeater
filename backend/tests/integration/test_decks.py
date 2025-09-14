@@ -147,12 +147,12 @@ async def test_delete_deck_doesnt_exist_returns_404(db_session, user_client):
 
 
 async def test_import_deck_custom_importer(db_session, user_client):
-    with open("data/french.json", "rb") as file:
+    with open("data/languages.json", "rb") as file:
         file_bytes = file.read()
         file.seek(0)
         deck_json = json.load(file)
 
-    files = {"file": ("french.json", file_bytes, "application/json")}
+    files = {"file": ("languages.json", file_bytes, "application/json")}
     res = await user_client.post(
         "decks/import", params={"format": "repeater"}, files=files
     )
@@ -160,7 +160,20 @@ async def test_import_deck_custom_importer(db_session, user_client):
 
     deck = Deck.all(db_session)[0]
     assert deck_json["name"] == deck.name
-    assert len(deck_json["cards"]) == len(Card.all(db_session))
+    assert len(deck_json["cards"]) == len(deck.cards)
+
+    children = deck.children
+    assert len(children) == 2
+
+    first_child_deck = children[0]
+    first_child_deck_json = deck_json["sub_decks"][0]
+    assert first_child_deck_json["name"] == first_child_deck.name
+    assert len(first_child_deck_json["cards"]) == len(first_child_deck.cards)
+
+    second_child_deck = children[1]
+    second_child_deck_json = deck_json["sub_decks"][1]
+    assert second_child_deck_json["name"] == second_child_deck.name
+    assert len(second_child_deck_json["cards"]) == len(second_child_deck.cards)
 
 
 async def test_import_deck_mochi_markdown_importer_md(db_session, user_client):
@@ -237,15 +250,142 @@ async def test_export_deck(db_session, user_client):
 
 
 async def test_export_deck_with_sub_decks(db_session, user_client):
-    # TODO: implement
-    pass
+    res = await create_deck(
+        user_client, name="Parent Deck", description="Parent description"
+    )
+    parent_id = res.json()["id"]
+    res = await user_client.post(
+        "/cards",
+        json={
+            "deck_id": parent_id,
+            "content": "Parent card",
+        },
+    )
+
+    res = await create_deck(
+        user_client,
+        name="Child Deck",
+        description="Child description",
+        parent_id=parent_id,
+    )
+    child_id = res.json()["id"]
+    res = await user_client.post(
+        "/cards",
+        json={
+            "deck_id": child_id,
+            "content": "Child card",
+        },
+    )
+
+    res = await create_deck(
+        user_client,
+        name="Grandchild Deck",
+        description="Grandchild description",
+        parent_id=child_id,
+    )
+    grandchild_id = res.json()["id"]
+    res = await user_client.post(
+        "/cards",
+        json={
+            "deck_id": grandchild_id,
+            "content": "Grandchild card",
+        },
+    )
+
+    res = await user_client.get(f"/decks/{parent_id}/export?include_sub_decks=true")
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/json"
+
+    json_str = res.content.decode("utf-8")
+    json_obj = json.loads(json_str)
+    assert json_obj == {
+        "version": "repeater-v1",
+        "name": "Parent Deck",
+        "description": "Parent description",
+        "cards": [{"content": "Parent card"}],
+        "sub_decks": [
+            {
+                "version": "repeater-v1",
+                "name": "Child Deck",
+                "description": "Child description",
+                "cards": [{"content": "Child card"}],
+                "sub_decks": [
+                    {
+                        "version": "repeater-v1",
+                        "name": "Grandchild Deck",
+                        "description": "Grandchild description",
+                        "cards": [{"content": "Grandchild card"}],
+                        "sub_decks": [],
+                    }
+                ],
+            }
+        ],
+    }
+
+
+async def test_export_deck_without_sub_decks(db_session, user_client):
+    res = await create_deck(
+        user_client, name="Parent Deck", description="Parent description"
+    )
+    parent_id = res.json()["id"]
+    res = await user_client.post(
+        "/cards",
+        json={
+            "deck_id": parent_id,
+            "content": "Parent card",
+        },
+    )
+
+    res = await create_deck(
+        user_client,
+        name="Child Deck",
+        description="Child description",
+        parent_id=parent_id,
+    )
+    child_id = res.json()["id"]
+    res = await user_client.post(
+        "/cards",
+        json={
+            "deck_id": child_id,
+            "content": "Child card",
+        },
+    )
+
+    res = await create_deck(
+        user_client,
+        name="Grandchild Deck",
+        description="Grandchild description",
+        parent_id=child_id,
+    )
+    grandchild_id = res.json()["id"]
+    res = await user_client.post(
+        "/cards",
+        json={
+            "deck_id": grandchild_id,
+            "content": "Grandchild card",
+        },
+    )
+
+    res = await user_client.get(f"/decks/{parent_id}/export?include_sub_decks=false")
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/json"
+
+    json_str = res.content.decode("utf-8")
+    json_obj = json.loads(json_str)
+    assert json_obj == {
+        "version": "repeater-v1",
+        "name": "Parent Deck",
+        "description": "Parent description",
+        "cards": [{"content": "Parent card"}],
+        "sub_decks": [],
+    }
 
 
 async def test_guest_user_import_deck_returns_403(client):
-    with open("data/french.json", "rb") as file:
+    with open("data/languages.json", "rb") as file:
         file_bytes = file.read()
 
-    files = {"file": ("french.json", file_bytes, "application/json")}
+    files = {"file": ("languages.json", file_bytes, "application/json")}
     res = await client.post("decks/import", params={"format": "repeater"}, files=files)
     assert res.status_code == 403
 

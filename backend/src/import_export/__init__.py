@@ -28,16 +28,22 @@ class DeckData:
     sub_decks: List[DeckData]
 
 
-def deck_to_deck_data(deck: Deck) -> DeckData:
+def deck_to_deck_data(deck: Deck, include_sub_decks: bool = True) -> DeckData:
     cards = []
     for card in deck.cards:
         cards.append(CardData(content=card.content))
+
+    sub_decks = []
+    if include_sub_decks:
+        for child_deck in deck.children:
+            sub_decks.append(deck_to_deck_data(child_deck))
+
     return DeckData(
         version=REPEATER_JSON_VERSION_LATEST,
         name=deck.name,
         description=deck.description,
         cards=cards,
-        sub_decks=[],  # TODO: query and add sub-decks
+        sub_decks=sub_decks,
     )
 
 
