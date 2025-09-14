@@ -1,17 +1,24 @@
 {
-    "version": "repeater-v1",
-    "name": "Chinese (Pinyin)",
-    "description": "Simple Chinese phrases using Pinyin",
-    "cards": [
-      {"content": "What time is it?\n---\nXiànzài jǐ diǎn?"},
-      {"content": "I'm learning Chinese\n---\nWǒ zài xué zhōngwén"},
-      {"content": "Can you speak slower?\n---\nNǐ kěyǐ shuō màn yīdiǎn ma?"},
-      {"content": "Where is the nearest subway station?\n---\nZuì jìn de dìtiě zhàn zài nǎlǐ?"},
-      {"content": "How do you say this in Chinese?\n---\nZhège zhōngwén zěnme shuō?"},
-      {"content": "I’ve been studying for six months\n---\nWǒ xuéle liù gè yuè le"},
-      {"content": "I want to order some food\n---\nWǒ xiǎng diǎn cài"},
-      {"content": "I’m allergic to peanuts\n---\nWǒ duì huāshēng guòmǐn"},
-      {"content": "Can I pay by card?\n---\nKěyǐ yòng xìnyòngkǎ fùkuǎn ma?"},
-      {"content": "What do you recommend?\n---\nNǐ yǒu shé me tuījiàn de?"}
-    ]
+  "version": "repeater-v1",
+  "name": "Chinese (Pinyin)",
+  "description": "Simple Chinese phrases using Pinyin",
+  "cards": [
+    { "content": "What time is it?\n---\nXiànzài jǐ diǎn?" },
+    { "content": "I'm learning Chinese\n---\nWǒ zài xué zhōngwén" },
+    { "content": "Can you speak slower?\n---\nNǐ kěyǐ shuō màn yīdiǎn ma?" },
+    {
+      "content": "Where is the nearest subway station?\n---\nZuì jìn de dìtiě zhàn zài nǎlǐ?"
+    },
+    {
+      "content": "How do you say this in Chinese?\n---\nZhège zhōngwén zěnme shuō?"
+    },
+    {
+      "content": "I’ve been studying for six months\n---\nWǒ xuéle liù gè yuè le"
+    },
+    { "content": "I want to order some food\n---\nWǒ xiǎng diǎn cài" },
+    { "content": "I’m allergic to peanuts\n---\nWǒ duì huāshēng guòmǐn" },
+    { "content": "Can I pay by card?\n---\nKěyǐ yòng xìnyòngkǎ fùkuǎn ma?" },
+    { "content": "What do you recommend?\n---\nNǐ yǒu shé me tuījiàn de?" }
+  ],
+  "sub_decks": []
 }
