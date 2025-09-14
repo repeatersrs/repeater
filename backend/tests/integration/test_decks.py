@@ -175,6 +175,7 @@ async def test_import_deck_custom_importer(db_session, user_client):
     assert second_child_deck_json["name"] == second_child_deck.name
     assert len(second_child_deck_json["cards"]) == len(second_child_deck.cards)
 
+
 async def test_import_deck_mochi_markdown_importer_md(db_session, user_client):
     with open("tests/data/mochi_markdown_test.md", "rb") as file:
         file_bytes = file.read()
