@@ -24,10 +24,13 @@ export function validateCardContent(content: any[]): boolean {
  * Deserializes markdown string to Plate editor format
  */
 export function deserializeMarkdown(content: string): TElement[] {
+    // TODO: Temporary fix to remove extra backslash
+    // We should fix this by properly handling <hr> in the plate editor
+    const safe = content.replace(/^\s*---\s*$/gm, '\\---');
     const editor = createPlateEditor({
         plugins: [MarkdownPlugin, BoldPlugin, ItalicPlugin],
     });
-    return editor.getApi(MarkdownPlugin).markdown.deserialize(content);
+    return editor.getApi(MarkdownPlugin).markdown.deserialize(safe);
 }
 
 /**
@@ -38,5 +41,9 @@ export function serializeToMarkdown(content: Value): string {
         plugins: [MarkdownPlugin],
         value: content,
     });
-    return editor.api.markdown.serialize();
+    // TODO: Temporary fix to remove extra backslash
+    // We should fix this by properly handling <hr> in the plate editor
+    let md = editor.api.markdown.serialize();
+    md = md.replace(/^\s*\\---\s*$/gm, '---');
+    return md;
 }
