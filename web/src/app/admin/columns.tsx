@@ -21,6 +21,10 @@ export const columns: ColumnDef<UserOut>[] = [
         },
     },
     {
+        accessorKey: 'auth_provider',
+        header: () => <div className="font-bold">Auth provider</div>,
+    },
+    {
         accessorKey: 'role',
         header: () => <div className="font-bold">Role</div>,
     },

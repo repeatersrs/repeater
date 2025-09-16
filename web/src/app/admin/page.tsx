@@ -15,7 +15,7 @@ export default function AdminDashboard() {
         pageIndex: 0,
         pageSize: 10,
     });
-    const [showGuests, setShowGuests] = useState(true);
+    const [showGuests, setShowGuests] = useState(false);
 
     const {
         data: usersData,
