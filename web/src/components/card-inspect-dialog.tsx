@@ -91,6 +91,7 @@ export default function CardInspectDialog({
 }: CardInspectDialogProps) {
     usePageShortcuts('cards');
     const { registerAction, unregisterAction } = useShortcutActions();
+    const [resetKey, setResetKey] = useState(0);
 
     const [internalOpen, setInternalOpen] = useState(false);
     const isOpen = open ?? internalOpen;
@@ -172,6 +173,8 @@ export default function CardInspectDialog({
     });
 
     useEffect(() => {
+        // Hack to make EditorField content reset when switching cards
+        setResetKey((prev) => prev + 1);
         cardForm.reset({
             content: deserializeMarkdown(card.content),
             deck_id: card.deck_id,
@@ -203,7 +206,7 @@ export default function CardInspectDialog({
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
             <DialogContent
-                className="flex max-h-[90vh] min-w-2xl flex-col"
+                className="flex max-h-[90vh] min-w-3xl flex-col"
                 showCloseButton={false}
             >
                 <DialogHeader>
@@ -281,6 +284,7 @@ export default function CardInspectDialog({
                                             <FormItem className="flex-1">
                                                 <FormControl>
                                                     <EditorField
+                                                        key={resetKey}
                                                         className="h-96 resize-none"
                                                         autoFocus={true}
                                                         {...field}
@@ -314,7 +318,7 @@ export default function CardInspectDialog({
                                                             field.onChange
                                                         }
                                                     >
-                                                        <SelectTrigger>
+                                                        <SelectTrigger className="max-w-[200px]">
                                                             <SelectValue placeholder="Select a deck" />
                                                         </SelectTrigger>
                                                         <SelectContent>
@@ -332,10 +336,13 @@ export default function CardInspectDialog({
                                                                         key={
                                                                             deck.id
                                                                         }
+                                                                        title={deck.path.join(
+                                                                            ' / '
+                                                                        )}
                                                                     >
-                                                                        {
-                                                                            deck.name
-                                                                        }
+                                                                        {deck.path.join(
+                                                                            ' / '
+                                                                        )}
                                                                     </SelectItem>
                                                                 )
                                                             )}
