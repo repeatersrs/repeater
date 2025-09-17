@@ -1118,3 +1118,8 @@ async def test_get_deck_tree_does_not_show_archived_decks(user_client):
         "total_decks": 0,
         "tree_depth": 0,
     }
+
+
+async def test_deck_name_is_stripped(user_client):
+    deck = await create_deck(user_client, name="   abc   ")
+    assert deck.json()["name"] == "abc"

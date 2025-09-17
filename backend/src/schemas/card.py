@@ -5,11 +5,12 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from src.db.models import Card
+from src.util.validators import StrippedStr
 
 
 class CardCreate(BaseModel):
     deck_id: UUID
-    content: str
+    content: StrippedStr
 
 
 class CardOut(BaseModel):
@@ -39,4 +40,4 @@ class CardOut(BaseModel):
 
 class CardUpdate(BaseModel):
     deck_id: Optional[UUID] = None
-    content: Optional[str] = None
+    content: Optional[StrippedStr] = None
