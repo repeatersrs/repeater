@@ -5,10 +5,12 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from src.util.validators import StrippedStr
+
 
 class DeckCreate(BaseModel):
-    name: str
-    description: Optional[str] = ""
+    name: StrippedStr
+    description: Optional[StrippedStr] = ""
     parent_id: Optional[UUID] = None
 
 
@@ -27,8 +29,8 @@ class DeckOut(BaseModel):
 
 
 class DeckUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = ""
+    name: Optional[StrippedStr] = None
+    description: Optional[StrippedStr] = ""
     parent_id: Optional[UUID] = None
     is_paused: Optional[bool] = None
     is_archived: Optional[bool] = None
