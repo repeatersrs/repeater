@@ -383,3 +383,14 @@ async def test_get_cards_exclude_archived_parent(user, user_client):
     res = await user_client.get("/cards?exclude_archived=true")
     assert res.status_code == 200
     assert res.json() == []
+
+
+async def test_card_content_is_stripped(user_client):
+    deck = await create_deck(user_client)
+    deck_id = deck.json()["id"]
+    card = await create_card(
+        user_client,
+        deck_id,
+        content="\n\u200b\t\u00a0hello world\u00a0\t\u200b\n",
+    )
+    assert card.json()["content"] == "hello world"
