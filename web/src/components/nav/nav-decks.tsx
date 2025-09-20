@@ -1,12 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import {
-    Plus,
-    RotateCcw,
-    Folder,
-    FolderOpen,
-    ArrowRight,
-    ChevronLeft,
-} from 'lucide-react';
+import { Plus, RotateCcw, Folder, FolderOpen, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -18,7 +11,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuTrigger,
-    DropdownMenuItem,
     DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -283,7 +275,7 @@ export function NavDecks() {
                                             setDeckDescription('');
                                         }}
                                     >
-                                        Cancel
+                                        Back
                                     </Button>
                                     <Button
                                         className="flex-1"
@@ -303,16 +295,6 @@ export function NavDecks() {
                     )}
                     {dropdownState === DropdownState.import && (
                         <>
-                            <DropdownMenuItem
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    setDropdownState(DropdownState.initial);
-                                }}
-                                className="gap-2"
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                                Back
-                            </DropdownMenuItem>
                             <DropdownMenuLabel className="text-muted-foreground">
                                 Import deck
                             </DropdownMenuLabel>
@@ -335,7 +317,7 @@ export function NavDecks() {
                                     disabled
                                 >
                                     Mochi (.mochi)
-                                    <div className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-md px-1 py-0.5 text-[0.5rem]">
+                                    <div className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-md px-1.5 py-0.5 text-[0.5rem]">
                                         SOON
                                     </div>
                                 </Button>
@@ -345,9 +327,18 @@ export function NavDecks() {
                                     disabled
                                 >
                                     Anki
-                                    <div className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-md px-1 py-0.5 text-[0.5rem]">
+                                    <div className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-md px-1.5 py-0.5 text-[0.5rem]">
                                         SOON
                                     </div>
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setDropdownState(DropdownState.initial);
+                                    }}
+                                >
+                                    Back
                                 </Button>
                             </div>
                         </>
