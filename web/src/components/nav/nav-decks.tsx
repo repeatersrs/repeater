@@ -15,6 +15,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
+    Dropzone,
+    DropzoneContent,
+    DropzoneEmptyState,
+} from '@/components/ui/shadcn-io/dropzone';
+import {
     SidebarMenu,
     SidebarMenuItem,
     SidebarMenuButton,
@@ -183,16 +188,24 @@ export function NavDecks() {
 
     function SidebarGroupActionAddDeckDropdown() {
         enum DropdownState {
-            initial,
-            creation,
-            import,
+            Initial,
+            Creation,
+            Import,
+            ImportUpload,
+        }
+
+        enum ImportFormat {
+            Repeater = 'repeater',
+            MochiMarkdown = 'mochi_markdown',
         }
 
         const [dropdownState, setDropdownState] = useState(
-            DropdownState.initial
+            DropdownState.Initial
         );
+        const [_, setImportFormat] = useState<ImportFormat | null>(null);
         const [deckName, setDeckName] = useState('');
         const [deckDescription, setDeckDescription] = useState('');
+        const [files, setFiles] = useState<File[]>();
 
         return (
             <DropdownMenu>
@@ -206,7 +219,7 @@ export function NavDecks() {
                     </SidebarGroupAction>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side={isMobile ? 'bottom' : 'right'}>
-                    {dropdownState === DropdownState.initial && (
+                    {dropdownState === DropdownState.Initial && (
                         <>
                             <div className="flex flex-col gap-2 p-2">
                                 <Button
@@ -214,7 +227,7 @@ export function NavDecks() {
                                     onClick={(e) => {
                                         e.preventDefault();
                                         setDropdownState(
-                                            DropdownState.creation
+                                            DropdownState.Creation
                                         );
                                     }}
                                 >
@@ -224,7 +237,7 @@ export function NavDecks() {
                                     variant="outline"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        setDropdownState(DropdownState.import);
+                                        setDropdownState(DropdownState.Import);
                                     }}
                                 >
                                     Import deck
@@ -232,12 +245,12 @@ export function NavDecks() {
                             </div>
                         </>
                     )}
-                    {dropdownState === DropdownState.creation && (
+                    {dropdownState === DropdownState.Creation && (
                         <>
                             <DropdownMenuLabel className="text-muted-foreground">
                                 Create deck
                             </DropdownMenuLabel>
-                            <div className="flex flex-col gap-4 p-3">
+                            <div className="flex flex-col gap-2 p-2">
                                 <div className="flex flex-col gap-2">
                                     <Input
                                         id="deck-name"
@@ -269,7 +282,7 @@ export function NavDecks() {
                                         onClick={(e) => {
                                             e.preventDefault();
                                             setDropdownState(
-                                                DropdownState.initial
+                                                DropdownState.Initial
                                             );
                                             setDeckName('');
                                             setDeckDescription('');
@@ -293,7 +306,7 @@ export function NavDecks() {
                             </div>
                         </>
                     )}
-                    {dropdownState === DropdownState.import && (
+                    {dropdownState === DropdownState.Import && (
                         <>
                             <DropdownMenuLabel className="text-muted-foreground">
                                 Import deck
@@ -302,12 +315,26 @@ export function NavDecks() {
                                 <Button
                                     variant="outline"
                                     className="flex justify-start"
+                                    onClick={() => {
+                                        setImportFormat(ImportFormat.Repeater);
+                                        setDropdownState(
+                                            DropdownState.ImportUpload
+                                        );
+                                    }}
                                 >
                                     Repeater
                                 </Button>
                                 <Button
                                     variant="outline"
                                     className="flex justify-start"
+                                    onClick={() => {
+                                        setImportFormat(
+                                            ImportFormat.MochiMarkdown
+                                        );
+                                        setDropdownState(
+                                            DropdownState.ImportUpload
+                                        );
+                                    }}
                                 >
                                     Mochi (markdown)
                                 </Button>
@@ -335,11 +362,64 @@ export function NavDecks() {
                                     variant="secondary"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        setDropdownState(DropdownState.initial);
+                                        setDropdownState(DropdownState.Initial);
                                     }}
                                 >
                                     Back
                                 </Button>
+                            </div>
+                        </>
+                    )}
+                    {dropdownState === DropdownState.ImportUpload && (
+                        <>
+                            <DropdownMenuLabel className="text-muted-foreground">
+                                Import deck / Upload
+                            </DropdownMenuLabel>
+                            <div className="flex flex-col gap-2 p-2">
+                                <Dropzone
+                                    accept={{
+                                        'application/zip': ['.zip'],
+                                        'text/markdown': ['.md'],
+                                    }}
+                                    maxFiles={1}
+                                    maxSize={1024 * 1024 * 50}
+                                    onDrop={(files: File[]) => {
+                                        setFiles(files);
+                                        console.log(files);
+                                    }}
+                                    onError={console.error} // TODO: add proper error handling
+                                    src={files}
+                                >
+                                    <DropzoneEmptyState />
+                                    <DropzoneContent />
+                                </Dropzone>
+
+                                <div className="flex gap-2">
+                                    <Button
+                                        className="flex-1"
+                                        variant="secondary"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setDropdownState(
+                                                DropdownState.Import
+                                            );
+                                            setFiles([]);
+                                        }}
+                                    >
+                                        Back
+                                    </Button>
+                                    <Button
+                                        className="flex-1"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            console.log(
+                                                'TODO: make import call'
+                                            );
+                                        }}
+                                    >
+                                        Import
+                                    </Button>
+                                </div>
                             </div>
                         </>
                     )}

@@ -45,6 +45,7 @@
         "platejs": "^49.2.4",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
+        "react-dropzone": "^14.3.8",
         "react-hook-form": "^7.59.0",
         "react-hotkeys-hook": "^5.1.0",
         "react-markdown": "^10.1.0",
