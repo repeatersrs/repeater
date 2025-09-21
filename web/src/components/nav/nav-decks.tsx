@@ -136,6 +136,7 @@ export default function NavDecks() {
                 }
                 side={isMobile ? 'bottom' : 'right'}
             />
+
             {isLoading && !isError && (
                 <SidebarMenu>
                     <>

@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,8 @@ import {
     DropzoneContent,
     DropzoneEmptyState,
 } from '@/components/ui/shadcn-io/dropzone';
+import { importDeckDecksImportPost } from '@/gen/sdk.gen';
+import { ImportFormat } from '@/gen/types.gen';
 
 export function AddDeckDropdown({
     trigger,
@@ -28,13 +31,10 @@ export function AddDeckDropdown({
         ImportUpload,
     }
 
-    enum ImportFormat {
-        Repeater = 'repeater',
-        MochiMarkdown = 'mochi_markdown',
-    }
+    const queryClient = useQueryClient();
 
     const [dropdownState, setDropdownState] = useState(DropdownState.Initial);
-    const [_, setImportFormat] = useState<ImportFormat | null>(null);
+    const [importFormat, setImportFormat] = useState<ImportFormat | null>(null);
     const [deckName, setDeckName] = useState('');
     const [deckDescription, setDeckDescription] = useState('');
     const [files, setFiles] = useState<File[]>();
@@ -136,7 +136,7 @@ export function AddDeckDropdown({
                                 variant="outline"
                                 className="flex justify-start"
                                 onClick={() => {
-                                    setImportFormat(ImportFormat.Repeater);
+                                    setImportFormat('repeater');
                                     setDropdownState(
                                         DropdownState.ImportUpload
                                     );
@@ -148,7 +148,7 @@ export function AddDeckDropdown({
                                 variant="outline"
                                 className="flex justify-start"
                                 onClick={() => {
-                                    setImportFormat(ImportFormat.MochiMarkdown);
+                                    setImportFormat('mochi_markdown');
                                     setDropdownState(
                                         DropdownState.ImportUpload
                                     );
@@ -226,9 +226,28 @@ export function AddDeckDropdown({
                                 </Button>
                                 <Button
                                     className="flex-1"
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                         e.preventDefault();
-                                        console.log('TODO: make import call');
+                                        if (!files?.length || !importFormat) {
+                                            return;
+                                        }
+
+                                        try {
+                                            await importDeckDecksImportPost({
+                                                body: { file: files[0] },
+                                                query: { format: importFormat },
+                                            });
+                                            queryClient.invalidateQueries({
+                                                queryKey: ['decks'],
+                                            });
+                                            // TODO: Add success handling (e.g., refresh decks list, close dropdown)
+                                        } catch (error) {
+                                            // TODO: Add error handling
+                                            console.error(
+                                                'Import failed:',
+                                                error
+                                            );
+                                        }
                                     }}
                                 >
                                     Import
