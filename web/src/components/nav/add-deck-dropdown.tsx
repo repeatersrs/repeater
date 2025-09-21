@@ -157,6 +157,7 @@ export function AddDeckDropdown({
                                 </Button>
                                 <Button
                                     className="flex-1"
+                                    disabled // TODO: implement
                                     onClick={(e) => {
                                         e.preventDefault();
                                         console.log('Create deck:', {
@@ -274,11 +275,6 @@ export function AddDeckDropdown({
                                             }
 
                                             const handleImport = async () => {
-                                                await new Promise((resolve) =>
-                                                    setTimeout(resolve, 3000)
-                                                );
-                                                console.log('timeout done');
-
                                                 try {
                                                     await importDeckDecksImportPost(
                                                         {
