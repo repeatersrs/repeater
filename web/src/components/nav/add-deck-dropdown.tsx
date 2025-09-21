@@ -17,6 +17,35 @@ import {
 import { importDeckDecksImportPost } from '@/gen/sdk.gen';
 import { ImportFormat } from '@/gen/types.gen';
 
+const IMPORT_FORMATS = {
+    repeater: {
+        id: 'repeater' as ImportFormat,
+        name: 'Repeater',
+        accept: { 'application/json': ['.json'] },
+        available: true,
+    },
+    mochi_markdown: {
+        id: 'mochi_markdown' as ImportFormat,
+        name: 'Mochi (markdown)',
+        accept: { 'text/markdown': ['.md'], 'application/zip': ['.zip'] },
+        available: true,
+    },
+    mochi: {
+        id: 'mochi' as ImportFormat,
+        name: 'Mochi (.mochi)',
+        accept: { 'application/octet-stream': ['.mochi'] },
+        available: false,
+    },
+    anki: {
+        id: 'anki' as ImportFormat,
+        name: 'Anki',
+        accept: { 'application/x-sqlite3': ['.apkg'] },
+        available: false,
+    },
+} as const;
+
+type ImportFormatConfig = (typeof IMPORT_FORMATS)[keyof typeof IMPORT_FORMATS];
+
 export function AddDeckDropdown({
     trigger,
     side,
@@ -34,7 +63,8 @@ export function AddDeckDropdown({
     const queryClient = useQueryClient();
 
     const [dropdownState, setDropdownState] = useState(DropdownState.Initial);
-    const [importFormat, setImportFormat] = useState<ImportFormat | null>(null);
+    const [selectedFormat, setSelectedFormat] =
+        useState<ImportFormatConfig | null>(null);
     const [deckName, setDeckName] = useState('');
     const [deckDescription, setDeckDescription] = useState('');
     const [files, setFiles] = useState<File[]>();
@@ -132,55 +162,39 @@ export function AddDeckDropdown({
                             Import deck
                         </DropdownMenuLabel>
                         <div className="flex flex-col gap-2 p-2">
-                            <Button
-                                variant="outline"
-                                className="flex justify-start"
-                                onClick={() => {
-                                    setImportFormat('repeater');
-                                    setDropdownState(
-                                        DropdownState.ImportUpload
-                                    );
-                                }}
-                            >
-                                Repeater
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="flex justify-start"
-                                onClick={() => {
-                                    setImportFormat('mochi_markdown');
-                                    setDropdownState(
-                                        DropdownState.ImportUpload
-                                    );
-                                }}
-                            >
-                                Mochi (markdown)
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="relative flex justify-start"
-                                disabled
-                            >
-                                Mochi (.mochi)
-                                <div className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-md px-1.5 py-0.5 text-[0.5rem]">
-                                    SOON
-                                </div>
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="relative flex justify-start"
-                                disabled
-                            >
-                                Anki
-                                <div className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-md px-1.5 py-0.5 text-[0.5rem]">
-                                    SOON
-                                </div>
-                            </Button>
+                            {Object.values(IMPORT_FORMATS).map((format) => (
+                                <Button
+                                    key={format.id}
+                                    variant="outline"
+                                    className={
+                                        format.available
+                                            ? 'flex justify-start'
+                                            : 'relative flex justify-start'
+                                    }
+                                    disabled={!format.available}
+                                    onClick={() => {
+                                        if (format.available) {
+                                            setSelectedFormat(format);
+                                            setDropdownState(
+                                                DropdownState.ImportUpload
+                                            );
+                                        }
+                                    }}
+                                >
+                                    {format.name}
+                                    {!format.available && (
+                                        <div className="bg-primary text-primary-foreground absolute -top-1 -right-1 rounded-md px-1.5 py-0.5 text-[0.5rem]">
+                                            SOON
+                                        </div>
+                                    )}
+                                </Button>
+                            ))}
                             <Button
                                 variant="secondary"
                                 onClick={(e) => {
                                     e.preventDefault();
                                     setDropdownState(DropdownState.Initial);
+                                    setSelectedFormat(null);
                                 }}
                             >
                                 Back
@@ -188,74 +202,85 @@ export function AddDeckDropdown({
                         </div>
                     </>
                 )}
-                {dropdownState === DropdownState.ImportUpload && (
-                    <>
-                        <DropdownMenuLabel className="text-muted-foreground">
-                            Import deck / Upload
-                        </DropdownMenuLabel>
-                        <div className="flex flex-col gap-2 p-2">
-                            <Dropzone
-                                accept={{
-                                    'application/zip': ['.zip'],
-                                    'text/markdown': ['.md'],
-                                }}
-                                maxFiles={1}
-                                maxSize={1024 * 1024 * 50}
-                                onDrop={(files: File[]) => {
-                                    setFiles(files);
-                                    console.log(files);
-                                }}
-                                onError={console.error} // TODO: add proper error handling
-                                src={files}
-                            >
-                                <DropzoneEmptyState />
-                                <DropzoneContent />
-                            </Dropzone>
-
-                            <div className="flex gap-2">
-                                <Button
-                                    className="flex-1"
-                                    variant="secondary"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        setDropdownState(DropdownState.Import);
-                                        setFiles([]);
+                {dropdownState === DropdownState.ImportUpload &&
+                    selectedFormat && (
+                        <>
+                            <DropdownMenuLabel className="text-muted-foreground">
+                                Import {selectedFormat.name}
+                            </DropdownMenuLabel>
+                            <div className="flex flex-col gap-2 p-2">
+                                <Dropzone
+                                    accept={selectedFormat.accept}
+                                    maxFiles={1}
+                                    maxSize={1024 * 1024 * 50}
+                                    onDrop={(files: File[]) => {
+                                        setFiles(files);
+                                        console.log(files);
                                     }}
+                                    onError={console.error} // TODO: add proper error handling
+                                    src={files}
                                 >
-                                    Back
-                                </Button>
-                                <Button
-                                    className="flex-1"
-                                    onClick={async (e) => {
-                                        e.preventDefault();
-                                        if (!files?.length || !importFormat) {
-                                            return;
-                                        }
+                                    <DropzoneEmptyState />
+                                    <DropzoneContent />
+                                </Dropzone>
 
-                                        try {
-                                            await importDeckDecksImportPost({
-                                                body: { file: files[0] },
-                                                query: { format: importFormat },
-                                            });
-                                            queryClient.invalidateQueries({
-                                                queryKey: ['decks'],
-                                            });
-                                            // TODO: Add success handling (e.g., refresh decks list, close dropdown)
-                                        } catch (error) {
-                                            // TODO: Add error handling
-                                            console.error(
-                                                'Import failed:',
-                                                error
+                                <div className="flex gap-2">
+                                    <Button
+                                        className="flex-1"
+                                        variant="secondary"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setDropdownState(
+                                                DropdownState.Import
                                             );
-                                        }
-                                    }}
-                                >
-                                    Import
-                                </Button>
+                                            setFiles([]);
+                                        }}
+                                    >
+                                        Back
+                                    </Button>
+                                    <Button
+                                        className="flex-1"
+                                        onClick={async (e) => {
+                                            e.preventDefault();
+                                            if (
+                                                !files?.length ||
+                                                !selectedFormat
+                                            ) {
+                                                return;
+                                            }
+
+                                            try {
+                                                await importDeckDecksImportPost(
+                                                    {
+                                                        body: {
+                                                            file: files[0],
+                                                        },
+                                                        query: {
+                                                            format: selectedFormat.id,
+                                                        },
+                                                    }
+                                                );
+                                                setFiles([]);
+                                                setSelectedFormat(null);
+                                                queryClient.invalidateQueries({
+                                                    queryKey: ['decks'],
+                                                });
+                                                // TODO: close dropdown
+                                            } catch (error) {
+                                                // TODO: Add error handling
+                                                console.error(
+                                                    'Import failed:',
+                                                    error
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        Import
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    </>
-                )}
+                        </>
+                    )}
             </DropdownMenuContent>
         </DropdownMenu>
     );
