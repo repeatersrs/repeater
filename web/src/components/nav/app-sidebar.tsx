@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 import CardCreationDialog from '@/components/card-creation-dialog';
 import DeckCreationDialog from '@/components/deck-creation-dialog';
-import { NavDecks } from '@/components/nav/nav-decks';
+import NavDecks from '@/components/nav/nav-decks';
 import { NavProfile } from '@/components/nav/nav-profile';
 import { Button } from '@/components/ui/button';
 import {
