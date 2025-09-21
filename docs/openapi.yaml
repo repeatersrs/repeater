@@ -82,6 +82,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       requestBody:
         required: true
         content:
@@ -136,6 +144,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -167,6 +183,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -202,6 +226,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -236,6 +268,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       requestBody:
         required: true
         content:
@@ -276,6 +316,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -309,6 +357,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       requestBody:
         required: true
         content:
@@ -356,6 +412,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: A downloadable JSON file
@@ -385,6 +449,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       requestBody:
         required: true
         content:
@@ -446,6 +518,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -484,6 +564,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       requestBody:
         required: true
         content:
@@ -524,6 +612,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -577,6 +673,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -605,6 +709,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       requestBody:
         required: true
         content:
@@ -646,6 +758,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -677,6 +797,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -712,6 +840,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -780,6 +916,14 @@ paths:
           - type: string
           - type: 'null'
           title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
       responses:
         '200':
           description: Successful Response
@@ -949,7 +1093,9 @@ components:
           type: string
           title: Name
         description:
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
           title: Description
         is_paused:
           type: boolean
@@ -978,7 +1124,6 @@ components:
       - id
       - user_id
       - name
-      - description
       - is_paused
       - is_archived
       - is_root
