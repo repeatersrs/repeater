@@ -19,7 +19,7 @@ class DeckOut(BaseModel):
     user_id: UUID
     parent_id: Optional[UUID] = None
     name: str
-    description: str
+    description: Optional[str] = None
     is_paused: bool
     is_archived: bool
     is_root: bool

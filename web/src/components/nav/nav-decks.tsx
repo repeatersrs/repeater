@@ -2,6 +2,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Plus, RotateCcw, Folder, FolderOpen, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import DeckCreationDialog from '@/components/deck-creation-dialog';
 import { TreeView, TreeDataItem } from '@/components/tree-view';
@@ -12,27 +13,32 @@ import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarGroupAction,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { SidebarMenuSkeleton } from '@/components/ui/sidebar';
 import { DeckNode } from '@/gen';
 import { getDecksTreeDecksTreeGet, updateDeckDecksDeckIdPatch } from '@/gen';
+
+import { AddDeckDropdown } from './add-deck-dropdown';
 
 type MoveDeckArgs = {
     deck_id: string;
     new_parent_id: string | null;
 };
 
-export function NavDecks() {
+export default function NavDecks() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [defaultParentId, setDefaultParentId] = useState<string | undefined>(
         undefined
     );
     const queryClient = useQueryClient();
+    const { isMobile } = useSidebar();
+
     const {
         data: deckTree,
         isLoading,
         isError,
-        refetch,
+        refetch: refetchDeckTree,
     } = useQuery({
         queryKey: ['decks', 'tree'],
         queryFn: () => getDecksTreeDecksTreeGet(),
@@ -48,7 +54,7 @@ export function NavDecks() {
             queryClient.invalidateQueries({ queryKey: ['decks'] });
         },
         onError: (error) => {
-            // TODO: Add error handling/toast
+            toast.error(`Failed to update deck: ${error}`);
             console.error('Failed to update deck:', error);
         },
     });
@@ -107,7 +113,6 @@ export function NavDecks() {
     return (
         <SidebarGroup>
             <SidebarGroupLabel>Decks</SidebarGroupLabel>
-
             <DeckCreationDialog
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
@@ -119,17 +124,18 @@ export function NavDecks() {
                 defaultParentId={defaultParentId}
             />
 
-            <SidebarGroupAction
-                title="Create deck"
-                className="cursor-pointer"
-                hidden={isError}
-                onClick={(_) => {
-                    setDefaultParentId(undefined);
-                    setIsDialogOpen(true);
-                }}
-            >
-                <Plus /> <span className="sr-only">Create deck</span>
-            </SidebarGroupAction>
+            <AddDeckDropdown
+                trigger={
+                    <SidebarGroupAction
+                        title="Add deck"
+                        className="cursor-pointer"
+                        hidden={isError}
+                    >
+                        <Plus /> <span className="sr-only">Create deck</span>
+                    </SidebarGroupAction>
+                }
+                side={isMobile ? 'bottom' : 'right'}
+            />
 
             {isLoading && !isError && (
                 <SidebarMenu>
@@ -140,13 +146,12 @@ export function NavDecks() {
                     </>
                 </SidebarMenu>
             )}
-
             {isError && !isLoading && (
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton
                             className="text-destructive hover:text-destructive/90 active:text-destructive flex h-fit cursor-pointer justify-between"
-                            onClick={() => refetch()}
+                            onClick={() => refetchDeckTree()}
                             aria-label="Retry loading decks"
                         >
                             <div className="flex flex-col items-start">
@@ -162,7 +167,6 @@ export function NavDecks() {
                     </SidebarMenuItem>
                 </SidebarMenu>
             )}
-
             {deckTree && deckTree.data?.decks.length === 0 && (
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -175,7 +179,6 @@ export function NavDecks() {
                     </SidebarMenuItem>
                 </SidebarMenu>
             )}
-
             {deckTree && deckTree.data && (
                 <TreeView
                     data={mapToTreeData(deckTree.data.decks)}
