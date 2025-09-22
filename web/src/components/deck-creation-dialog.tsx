@@ -1,8 +1,5 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +20,8 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { createDeckDecksPost, getDeckDecksDeckIdGet, DeckCreate } from '@/gen';
+import { getDeckDecksDeckIdGet } from '@/gen';
+import { useDeckForm } from '@/hooks/use-deck-form';
 
 interface DeckCreationDialogProps {
     trigger?: React.ReactNode;
@@ -54,37 +52,14 @@ export default function DeckCreationDialog({
         enabled: defaultParentId ? true : false,
     });
 
-    const deckFormSchema = z.object({
-        name: z.string().min(1, 'Deck name required').max(50),
-        description: z.string().optional(),
-    }) satisfies z.ZodType<DeckCreate>;
-
-    const deckForm = useForm<z.infer<typeof deckFormSchema>>({
-        resolver: zodResolver(deckFormSchema),
-        defaultValues: {
-            name: '',
-            description: '',
-        },
-    });
-
-    async function onDeckCreate(values: z.infer<typeof deckFormSchema>) {
-        try {
-            await createDeckDecksPost({
-                body: {
-                    name: values.name,
-                    description: values.description,
-                    parent_id: defaultParentId,
-                },
-            });
-            deckForm.reset();
+    const { form: deckForm, onSubmit } = useDeckForm({
+        defaultParentId,
+        onSuccess: () => {
             setIsOpen(false);
-
             onSuccess?.();
-        } catch (err: unknown) {
-            const errorMessage = `There was an error creating deck: ${(err as Error)?.message ?? 'no details found'}`;
-            onError?.(errorMessage);
-        }
-    }
+        },
+        onError,
+    });
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -100,7 +75,7 @@ export default function DeckCreationDialog({
                 <Form {...deckForm}>
                     <form
                         className="flex flex-col gap-4"
-                        onSubmit={deckForm.handleSubmit(onDeckCreate)}
+                        onSubmit={deckForm.handleSubmit(onSubmit)}
                     >
                         <FormField
                             control={deckForm.control}
