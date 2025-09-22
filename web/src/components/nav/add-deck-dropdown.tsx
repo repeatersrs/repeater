@@ -1,5 +1,7 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -9,14 +11,22 @@ import {
     DropdownMenuTrigger,
     DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
     Dropzone,
     DropzoneContent,
     DropzoneEmptyState,
 } from '@/components/ui/shadcn-io/dropzone';
-import { importDeckDecksImportPost } from '@/gen/sdk.gen';
+import { importDeckDecksImportPost, createDeckDecksPost } from '@/gen/sdk.gen';
 import { ImportFormat } from '@/gen/types.gen';
+import { deckFormSchema, DeckFormValues } from '@/lib/schemas/deck';
 import { getErrorMessage } from '@/lib/utils';
 
 const IMPORT_FORMATS = {
@@ -68,19 +78,49 @@ export function AddDeckDropdown({
     const [addDeckState, setAddDeckState] = useState(AddDeckState.Initial);
     const [selectedFormat, setSelectedFormat] =
         useState<ImportFormatConfig | null>(null);
-    const [deckName, setDeckName] = useState('');
-    const [deckDescription, setDeckDescription] = useState('');
     const [files, setFiles] = useState<File[] | undefined>();
+
+    const deckForm = useForm<DeckFormValues>({
+        resolver: zodResolver(deckFormSchema),
+        defaultValues: {
+            name: '',
+            description: '',
+        },
+    });
 
     const handleOpenChange = (open: boolean) => {
         // Reset dropdown state when opening
         setDropdownOpen(open);
         if (open) {
             setAddDeckState(AddDeckState.Initial);
-            setDeckName('');
-            setDeckDescription('');
+            deckForm.reset();
             setFiles(undefined);
             setSelectedFormat(null);
+        }
+    };
+
+    const handleDeckCreate = async (values: DeckFormValues) => {
+        try {
+            await createDeckDecksPost({
+                body: {
+                    name: values.name,
+                    description: values.description,
+                },
+            });
+            queryClient.invalidateQueries({
+                queryKey: ['decks'],
+            });
+            deckForm.reset();
+            setDropdownOpen(false);
+        } catch (error) {
+            toast.error(
+                <div>
+                    <p>Failed to create deck</p>
+                    <p className="text-xs text-muted-foreground">
+                        {getErrorMessage(error)}
+                    </p>
+                </div>
+            );
         }
     };
 
@@ -117,59 +157,74 @@ export function AddDeckDropdown({
                         <DropdownMenuLabel className="text-muted-foreground">
                             Create deck
                         </DropdownMenuLabel>
-                        <div className="flex flex-col gap-2 p-2">
-                            <div className="flex flex-col gap-2">
-                                <Input
-                                    id="deck-name"
-                                    type="text"
-                                    placeholder="Deck name"
-                                    value={deckName}
-                                    onChange={(e) =>
-                                        setDeckName(e.target.value)
+                        <Form {...deckForm}>
+                            <form
+                                className="flex flex-col gap-2 p-2"
+                                onSubmit={deckForm.handleSubmit(
+                                    handleDeckCreate
+                                )}
+                                onKeyDown={(e) => {
+                                    // Prevent dropdown from handling Tab key
+                                    if (e.key === 'Tab') {
+                                        e.stopPropagation();
                                     }
-                                    className="w-full"
+                                }}
+                            >
+                                <FormField
+                                    control={deckForm.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Deck name"
+                                                    className="w-full"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
                                 />
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <Input
-                                    id="deck-description"
-                                    type="text"
-                                    placeholder="Description"
-                                    value={deckDescription}
-                                    onChange={(e) =>
-                                        setDeckDescription(e.target.value)
-                                    }
-                                    className="w-full"
+                                <FormField
+                                    control={deckForm.control}
+                                    name="description"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Description (optional)"
+                                                    className="w-full"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
                                 />
-                            </div>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="secondary"
-                                    className="flex-1"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        setAddDeckState(AddDeckState.Initial);
-                                        setDeckName('');
-                                        setDeckDescription('');
-                                    }}
-                                >
-                                    Back
-                                </Button>
-                                <Button
-                                    className="flex-1"
-                                    disabled // TODO: implement
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        console.log('Create deck:', {
-                                            deckName,
-                                            deckDescription,
-                                        });
-                                    }}
-                                >
-                                    Create
-                                </Button>
-                            </div>
-                        </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        className="flex-1"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setAddDeckState(
+                                                AddDeckState.Initial
+                                            );
+                                            deckForm.reset();
+                                        }}
+                                    >
+                                        Back
+                                    </Button>
+                                    <Button type="submit" className="flex-1">
+                                        Create
+                                    </Button>
+                                </div>
+                            </form>
+                        </Form>
                     </>
                 )}
                 {addDeckState === AddDeckState.Import && (
