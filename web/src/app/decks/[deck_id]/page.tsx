@@ -130,6 +130,7 @@ export default function DeckPage({
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decks', deck_id] });
             queryClient.invalidateQueries({ queryKey: ['decks', 'tree'] });
+            queryClient.invalidateQueries({ queryKey: ['cards', deck_id] });
             setIsEditing(false);
             // TODO: Add toast notification
         },
