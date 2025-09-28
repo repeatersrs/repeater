@@ -32,7 +32,7 @@ export default function NavDecks() {
         undefined
     );
     const queryClient = useQueryClient();
-    const { isMobile } = useSidebar();
+    const { isMobile, setOpenMobile } = useSidebar();
 
     const {
         data: deckTree,
@@ -90,6 +90,7 @@ export default function NavDecks() {
                     <Link
                         href={`/decks/${item.id}`}
                         className="hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
+                        onClick={() => setOpenMobile(false)}
                     >
                         <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -135,6 +136,7 @@ export default function NavDecks() {
                     </SidebarGroupAction>
                 }
                 side={isMobile ? 'bottom' : 'right'}
+                align={isMobile ? 'end' : 'start'}
             />
 
             {isLoading && !isError && (
