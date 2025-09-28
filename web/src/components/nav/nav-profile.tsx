@@ -40,7 +40,7 @@ export function NavProfile() {
         },
     });
 
-    const { isMobile } = useSidebar();
+    const { isMobile, setOpenMobile } = useSidebar();
 
     return (
         <SidebarMenu>
@@ -95,20 +95,26 @@ export function NavProfile() {
                             </SidebarMenuButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
-                            className="w-56"
-                            side={isMobile ? 'bottom' : 'right'}
+                            className="md:w-56"
+                            side={isMobile ? 'top' : 'right'}
                             align="end"
                         >
                             {user.data.role === 'guest' && (
                                 <>
                                     <DropdownMenuItem asChild>
-                                        <Link href="/login">
+                                        <Link
+                                            href="/login"
+                                            onClick={() => setOpenMobile(false)}
+                                        >
                                             <LogIn />
                                             Login
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
-                                        <Link href="/register">
+                                        <Link
+                                            href="/register"
+                                            onClick={() => setOpenMobile(false)}
+                                        >
                                             <UserPlus />
                                             Register
                                         </Link>
@@ -118,7 +124,10 @@ export function NavProfile() {
                             {user.data.role !== 'guest' && (
                                 <>
                                     <DropdownMenuItem asChild>
-                                        <Link href="/profile">
+                                        <Link
+                                            href="/profile"
+                                            onClick={() => setOpenMobile(false)}
+                                        >
                                             <User />
                                             Profile
                                         </Link>

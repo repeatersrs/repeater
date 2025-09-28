@@ -5,7 +5,6 @@ import { Geist, Geist_Mono } from 'next/font/google';
 
 import './globals.css';
 import { AppSidebar } from '@/components/nav/app-sidebar';
-import NavigationBar from '@/components/navigation-bar';
 import { SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -47,9 +46,8 @@ export default function RootLayout({
                 >
                     <AppSidebar />
                     <SidebarInset>
-                        <header className="md:p-4">
-                            <NavigationBar className="md:hidden" />
-                            <SidebarTrigger className="max-md:hidden" />
+                        <header className="md:p-4 pl-6 pt-6">
+                            <SidebarTrigger />
                         </header>
                         {children}
                     </SidebarInset>

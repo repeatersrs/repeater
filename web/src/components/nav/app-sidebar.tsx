@@ -24,11 +24,13 @@ import {
     SidebarMenu,
     SidebarMenuItem,
     SidebarMenuButton,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { useMe } from '@/hooks/use-me';
 
 const pages = [
     { href: '/review', label: 'Review' },
+    { href: '/decks', label: 'Decks' },
     { href: '/admin', label: 'Admin', roles: ['admin'] },
 ];
 
@@ -38,6 +40,8 @@ export function AppSidebar() {
     const [cardDialogOpen, setCardDialogOpen] = useState(false);
     const [deckDialogOpen, setDeckDialogOpen] = useState(false);
     const { data: user } = useMe();
+
+    const { setOpenMobile } = useSidebar();
 
     const visiblePages = pages.filter((page) => {
         if (!page.roles) return true;
@@ -101,6 +105,7 @@ export function AppSidebar() {
                                 <SidebarMenuButton
                                     asChild
                                     isActive={page.href === pathname}
+                                    onClick={() => setOpenMobile(false)}
                                 >
                                     <Link href={page.href}>{page.label}</Link>
                                 </SidebarMenuButton>
