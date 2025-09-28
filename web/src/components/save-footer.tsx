@@ -5,6 +5,7 @@ interface SaveFooterProps {
     onSave: () => void;
     onCancel: () => void;
     isSaving?: boolean;
+    isError?: boolean;
     isDirty?: boolean;
     saveText?: string;
     cancelText?: string;
@@ -14,6 +15,7 @@ export default function SaveFooter({
     onSave,
     onCancel,
     isSaving = false,
+    isError = false,
     isDirty = false,
     saveText = 'Save',
     cancelText = 'Cancel',
@@ -42,7 +44,11 @@ export default function SaveFooter({
                                 onClick={onSave}
                                 disabled={isSaving}
                             >
-                                {isSaving ? 'Saving...' : saveText}
+                                {isSaving
+                                    ? 'Saving...'
+                                    : isError
+                                      ? 'Retry'
+                                      : saveText}
                             </Button>
                         </div>
                     </div>
