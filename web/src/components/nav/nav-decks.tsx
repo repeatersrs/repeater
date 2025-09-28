@@ -136,6 +136,7 @@ export default function NavDecks() {
                     </SidebarGroupAction>
                 }
                 side={isMobile ? 'bottom' : 'right'}
+                align={isMobile ? 'end' : 'start'}
             />
 
             {isLoading && !isError && (

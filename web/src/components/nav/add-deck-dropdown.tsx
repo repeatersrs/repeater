@@ -61,9 +61,11 @@ type ImportFormatConfig = (typeof IMPORT_FORMATS)[keyof typeof IMPORT_FORMATS];
 export function AddDeckDropdown({
     trigger,
     side,
+    align,
 }: {
     trigger?: React.ReactNode;
     side?: 'top' | 'right' | 'bottom' | 'left';
+    align?: 'start' | 'center' | 'end';
 }) {
     enum AddDeckState {
         Initial,
@@ -127,7 +129,7 @@ export function AddDeckDropdown({
     return (
         <DropdownMenu open={dropdownOpen} onOpenChange={handleOpenChange}>
             <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
-            <DropdownMenuContent side={side}>
+            <DropdownMenuContent side={side} align={align}>
                 {addDeckState === AddDeckState.Initial && (
                     <>
                         <div className="flex flex-col gap-2 p-2">
