@@ -18,7 +18,7 @@ export default function SaveFooter({
     isError = false,
     isDirty = false,
     saveText = 'Save',
-    cancelText = 'Cancel',
+    cancelText = 'Discard',
 }: SaveFooterProps) {
     if (!isDirty) return null;
 
