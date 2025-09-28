@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 import { use } from 'react';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import CardInspectDialog from '@/components/card-inspect-dialog';
@@ -54,7 +55,7 @@ import {
     updateDeckDecksDeckIdPatch,
     deleteDeckDecksDeckIdDelete,
 } from '@/gen';
-import { formatDateForDisplay } from '@/lib/utils';
+import { formatDateForDisplay, getErrorMessage } from '@/lib/utils';
 
 export default function DeckPage({
     params,
@@ -132,11 +133,16 @@ export default function DeckPage({
             queryClient.invalidateQueries({ queryKey: ['decks', 'tree'] });
             queryClient.invalidateQueries({ queryKey: ['cards', deck_id] });
             setIsEditing(false);
-            // TODO: Add toast notification
         },
         onError: (error) => {
-            // TODO: Add error handling/toast
-            console.error('Failed to update deck:', error);
+            toast.error(
+                <div>
+                    <p>Failed to update deck</p>
+                    <p className="text-xs text-muted-foreground">
+                        {getErrorMessage(error)}
+                    </p>
+                </div>
+            );
         },
     });
 
@@ -533,6 +539,7 @@ export default function DeckPage({
                         onSave={handleSave}
                         onCancel={handleCancel}
                         isSaving={updateDeckMutation.isPending}
+                        isError={updateDeckMutation.isError}
                         isDirty={isDirty}
                     />
                 )}
