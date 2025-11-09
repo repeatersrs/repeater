@@ -1,7 +1,5 @@
-'use client';
 import { useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, useLocation } from '@tanstack/react-router';
 import { useState } from 'react';
 
 import CardCreationDialog from '@/components/card-creation-dialog';
@@ -36,7 +34,8 @@ const pages = [
 
 export function AppSidebar() {
     const queryClient = useQueryClient();
-    const pathname = usePathname();
+    const location = useLocation();
+    const pathname = location.pathname;
     const [cardDialogOpen, setCardDialogOpen] = useState(false);
     const [deckDialogOpen, setDeckDialogOpen] = useState(false);
     const { data: user } = useMe();
@@ -107,7 +106,7 @@ export function AppSidebar() {
                                     isActive={page.href === pathname}
                                     onClick={() => setOpenMobile(false)}
                                 >
-                                    <Link href={page.href}>{page.label}</Link>
+                                    <Link to={page.href}>{page.label}</Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         ))}

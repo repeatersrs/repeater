@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { UserPlus, UserRoundX, User, LogIn, LogOut } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { ThemeChangerItems } from '@/components/theme-changer-items';
@@ -25,7 +24,7 @@ import { useMe } from '@/hooks/use-me';
 
 export function NavProfile() {
     const queryClient = useQueryClient();
-    const router = useRouter();
+    const navigate = useNavigate();
     const { data: user, isPending: userPending, isError: userError } = useMe();
 
     const logoutMutation = useMutation({
@@ -33,7 +32,7 @@ export function NavProfile() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['me'] });
             queryClient.invalidateQueries({ queryKey: ['decks'] });
-            router.push('/login');
+            navigate({ to: '/login' });
         },
         onError: () => {
             toast.error('There was an error when logging out. Try again.');

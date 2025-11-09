@@ -1,4 +1,3 @@
-import { env } from 'next-runtime-env';
 import React from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,7 +7,7 @@ type Props = {
 };
 
 export default function GoogleLogin({ children }: Props) {
-    const apiURL = env('NEXT_PUBLIC_API_URL');
+    const apiURL = import.meta.env.VITE_API_URL;
 
     if (!apiURL) return <Skeleton className="h-8 w-36 rounded-md" />;
 
