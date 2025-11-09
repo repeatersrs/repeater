@@ -1,4 +1,4 @@
-import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
@@ -7,11 +7,8 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
     plugins: [
         tsconfigPaths(),
+        tanstackRouter({ target: 'react', autoCodeSplitting: true }),
         react(),
-        TanStackRouterVite({
-            routesDirectory: './src/routes',
-            generatedRouteTree: './src/routeTree.gen.ts',
-        }),
     ],
     resolve: {
         alias: {
@@ -20,7 +17,7 @@ export default defineConfig({
     },
     server: {
         port: 3000,
-        host: true, // Expose to network (needed for Docker)
+        host: true,
     },
     preview: {
         port: 3000,
