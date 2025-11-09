@@ -1,7 +1,6 @@
-'use client';
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import {
     MoreVertical,
@@ -14,9 +13,6 @@ import {
     ArchiveRestore,
     Trash,
 } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { use } from 'react';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -56,14 +52,14 @@ import {
 } from '@/gen';
 import { formatDateForDisplay, getErrorMessage } from '@/lib/utils';
 
-export default function DeckPage({
-    params,
-}: {
-    params: Promise<{ deck_id: string }>;
-}) {
-    const { deck_id } = use(params);
+export const Route = createFileRoute('/decks/$deckId')({
+    component: DeckPage,
+});
+
+function DeckPage() {
+    const { deckId } = Route.useParams();
     const queryClient = useQueryClient();
-    const router = useRouter();
+    const navigate = useNavigate();
     const apiUrl = import.meta.env.VITE_API_URL;
     const [isEditing, setIsEditing] = useState(false);
 
@@ -73,8 +69,8 @@ export default function DeckPage({
         isError: isDeckError,
         error: deckError,
     } = useQuery({
-        queryKey: ['decks', deck_id],
-        queryFn: () => getDeckDecksDeckIdGet({ path: { deck_id: deck_id } }),
+        queryKey: ['decks', deckId],
+        queryFn: () => getDeckDecksDeckIdGet({ path: { deck_id: deckId } }),
     });
 
     const {
@@ -83,17 +79,17 @@ export default function DeckPage({
         isError: isCardsError,
         error: cardsError,
     } = useQuery({
-        queryKey: ['cards', deck_id],
+        queryKey: ['cards', deckId],
         queryFn: () =>
             getCardsCardsGet({
-                query: { deck_id: deck_id },
+                query: { deck_id: deckId },
             }),
     });
 
     const { data: stats, isLoading: isStatsLoading } = useQuery({
-        queryKey: ['stats', deck_id],
+        queryKey: ['stats', deckId],
         queryFn: () =>
-            getUserDeckStatisticsStatsDeckIdGet({ path: { deck_id: deck_id } }),
+            getUserDeckStatisticsStatsDeckIdGet({ path: { deck_id: deckId } }),
     });
 
     function prefetchCardHistory(cardId: string) {
@@ -124,13 +120,13 @@ export default function DeckPage({
     const updateDeckMutation = useMutation({
         mutationFn: (values: z.infer<typeof deckUpdateSchema>) =>
             updateDeckDecksDeckIdPatch({
-                path: { deck_id: deck_id },
+                path: { deck_id: deckId },
                 body: values,
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['decks', deck_id] });
+            queryClient.invalidateQueries({ queryKey: ['decks', deckId] });
             queryClient.invalidateQueries({ queryKey: ['decks', 'tree'] });
-            queryClient.invalidateQueries({ queryKey: ['cards', deck_id] });
+            queryClient.invalidateQueries({ queryKey: ['cards', deckId] });
             setIsEditing(false);
         },
         onError: (error) => {
@@ -152,7 +148,7 @@ export default function DeckPage({
                 body: { is_paused: !deck.is_paused },
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['decks', deck_id] });
+            queryClient.invalidateQueries({ queryKey: ['decks', deckId] });
             queryClient.invalidateQueries({ queryKey: ['decks', 'tree'] });
         },
     });
@@ -197,7 +193,7 @@ export default function DeckPage({
                 body: { is_archived: !deck.is_archived },
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['decks', deck_id] });
+            queryClient.invalidateQueries({ queryKey: ['decks', deckId] });
             queryClient.invalidateQueries({ queryKey: ['decks', 'tree'] });
         },
     });
@@ -207,7 +203,7 @@ export default function DeckPage({
             deleteDeckDecksDeckIdDelete({ path: { deck_id: deck.id } }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decks'] });
-            router.push('/decks');
+            navigate({ to: '/decks' });
         },
     });
 
@@ -255,7 +251,7 @@ export default function DeckPage({
         return (
             <div className="container mx-auto px-6 py-6">
                 <div className="mb-6">
-                    <Link href="/decks">
+                    <Link to="/decks">
                         <Button variant="ghost" className="mb-4">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Decks
@@ -278,7 +274,7 @@ export default function DeckPage({
                 <div className="mb-6">
                     {/* Back button */}
                     <div className="mb-4">
-                        <Link href="/decks">
+                        <Link to="/decks">
                             <Button variant="ghost">
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Back to Decks
@@ -560,7 +556,7 @@ export default function DeckPage({
                     onCardCreated={() => {
                         queryClient.invalidateQueries({ queryKey: ['cards'] });
                     }}
-                    defaultDeckId={deck_id}
+                    defaultDeckId={deckId}
                 />
             </div>
 
