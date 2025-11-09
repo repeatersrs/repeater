@@ -4,11 +4,25 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { ActivityHeatmap, HeatmapData } from '@/components/activity-heatmap';
 import MetricCard from '@/components/metric-card';
 import { Card, CardContent } from '@/components/ui/card';
-import { getUserStatisticsStatsGet } from '@/gen';
+import { getUserStatisticsStatsGet, getUserInfoMeGet } from '@/gen';
 import { useMe } from '@/hooks/use-me';
 import { formatDateForDisplay } from '@/lib/utils';
 
 export const Route = createFileRoute('/profile')({
+    loader: async ({ context: { queryClient } }) => {
+        const [profile, stats] = await Promise.all([
+            queryClient.ensureQueryData({
+                queryKey: ['me'],
+                queryFn: () => getUserInfoMeGet(),
+                staleTime: 5 * 60 * 1000,
+            }),
+            queryClient.ensureQueryData({
+                queryKey: ['stats'],
+                queryFn: () => getUserStatisticsStatsGet(),
+            }),
+        ]);
+        return { profile, stats };
+    },
     component: Profile,
 });
 

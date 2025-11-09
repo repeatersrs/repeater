@@ -53,6 +53,30 @@ import {
 import { formatDateForDisplay, getErrorMessage } from '@/lib/utils';
 
 export const Route = createFileRoute('/decks/$deckId')({
+    loader: async ({ context: { queryClient }, params: { deckId } }) => {
+        const [deck, cards, stats] = await Promise.all([
+            queryClient.ensureQueryData({
+                queryKey: ['decks', deckId],
+                queryFn: () =>
+                    getDeckDecksDeckIdGet({ path: { deck_id: deckId } }),
+            }),
+            queryClient.ensureQueryData({
+                queryKey: ['cards', deckId],
+                queryFn: () =>
+                    getCardsCardsGet({
+                        query: { deck_id: deckId },
+                    }),
+            }),
+            queryClient.ensureQueryData({
+                queryKey: ['stats', deckId],
+                queryFn: () =>
+                    getUserDeckStatisticsStatsDeckIdGet({
+                        path: { deck_id: deckId },
+                    }),
+            }),
+        ]);
+        return { deck, cards, stats };
+    },
     component: DeckPage,
 });
 

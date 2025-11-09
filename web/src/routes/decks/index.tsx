@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 
@@ -12,6 +12,20 @@ import {
 } from '@/gen';
 
 export const Route = createFileRoute('/decks/')({
+    loader: async ({ context: { queryClient } }) => {
+        const [decks, cards] = await Promise.all([
+            queryClient.ensureQueryData({
+                queryKey: ['decks'],
+                queryFn: () => getDecksDecksGet(),
+            }),
+            queryClient.ensureQueryData({
+                queryKey: ['cards'],
+                queryFn: () =>
+                    getCardsCardsGet({ query: { exclude_archived: true } }),
+            }),
+        ]);
+        return { decks, cards };
+    },
     component: Decks,
 });
 

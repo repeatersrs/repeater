@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -16,8 +16,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { loginAuthLoginPost, UserLogin } from '@/gen';
+import { redirectIfAuthenticated } from '@/lib/auth';
 
 export const Route = createFileRoute('/login')({
+    beforeLoad: async ({ context: { queryClient } }) => {
+        await redirectIfAuthenticated(queryClient);
+    },
     component: Login,
 });
 
@@ -119,12 +123,12 @@ function Login() {
                 </Form>
             </div>
             <div className="mt-4 flex items-center justify-center gap-4">
-                <a
-                    href="/register"
+                <Link
+                    to="/register"
                     className="color-primary whitespace-nowrap hover:underline"
                 >
                     Register
-                </a>
+                </Link>
                 <div className="h-5 w-px bg-gray-300" />
                 <GoogleLogin />
             </div>
