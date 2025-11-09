@@ -23,4 +23,5 @@ README.md
 Thumbs.db
 
 node_modules
-.next
+dist
+routeTree.gen.ts
