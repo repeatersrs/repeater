@@ -57,6 +57,11 @@ function Review() {
 
     const queryClient = useQueryClient();
 
+    const [activeCardIndex, setActiveCardIndex] = useState(0);
+    const [sidesVisible, setSidesVisible] = useState(1);
+    const activeCard = dueCards?.data?.[activeCardIndex];
+    const activeCardSides = activeCard?.content.split('---') || [];
+
     const reviewCard = useMutation({
         mutationFn: (feedback: 'ok' | 'skipped' | 'forgot') =>
             createReviewReviewsPost({
@@ -78,10 +83,7 @@ function Review() {
         // TODO: implement error handling
     });
 
-    const [activeCardIndex, setActiveCardIndex] = useState(0);
-    const [sidesVisible, setSidesVisible] = useState(1);
-    const activeCard = dueCards?.data?.[activeCardIndex];
-    const activeCardSides = activeCard?.content.split('---') || [];
+    const { mutate: mutateReview } = reviewCard;
 
     const nextCard = () => {
         if (dueCards?.data && activeCardIndex < dueCards.data.length - 1) {
@@ -114,8 +116,8 @@ function Review() {
 
     useEffect(() => {
         const actions = createActions({
-            'card-forgot': () => reviewCard.mutate('forgot'),
-            'card-ok': () => reviewCard.mutate('ok'),
+            'card-forgot': () => mutateReview('forgot'),
+            'card-ok': () => mutateReview('ok'),
             'reveal-next': revealNext,
         });
 
@@ -128,7 +130,7 @@ function Review() {
                 unregisterAction(action);
             });
         };
-    }, [registerAction, unregisterAction, reviewCard, revealNext]);
+    }, [registerAction, unregisterAction, mutateReview, revealNext]);
 
     return (
         <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center justify-between gap-4 py-4">

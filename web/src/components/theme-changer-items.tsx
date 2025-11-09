@@ -1,8 +1,8 @@
 'use client';
 import { Monitor, Moon, Sun } from 'lucide-react';
-import { useTheme } from '@/components/theme-provider';
 import { useState, useEffect } from 'react';
 
+import { useTheme } from '@/components/theme-provider';
 import {
     DropdownMenuRadioGroup,
     DropdownMenuRadioItem,
@@ -36,7 +36,12 @@ export function ThemeChangerItems() {
                 </span>
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+                <DropdownMenuRadioGroup
+                    value={theme}
+                    onValueChange={(value) =>
+                        setTheme(value as 'light' | 'dark' | 'system')
+                    }
+                >
                     <DropdownMenuRadioItem value="light">
                         <Sun className="mr-2 h-4 w-4" />
                         Light

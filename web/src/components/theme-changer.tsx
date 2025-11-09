@@ -1,8 +1,8 @@
 'use client';
 import { Monitor, Moon, Sun } from 'lucide-react';
-import { useTheme } from '@/components/theme-provider';
 import { useState, useEffect } from 'react';
 
+import { useTheme } from '@/components/theme-provider';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,

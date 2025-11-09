@@ -136,7 +136,9 @@ function Profile() {
                                     title={
                                         <Link
                                             to="/decks/$deckId"
-                                            params={{ deckId: deckStat.deck_id }}
+                                            params={{
+                                                deckId: deckStat.deck_id,
+                                            }}
                                             className="underline"
                                         >
                                             {`${deckStat.deck_path.join(' / ')}`}

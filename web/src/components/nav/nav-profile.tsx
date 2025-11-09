@@ -102,7 +102,7 @@ export function NavProfile() {
                                 <>
                                     <DropdownMenuItem asChild>
                                         <Link
-                                            href="/login"
+                                            to="/login"
                                             onClick={() => setOpenMobile(false)}
                                         >
                                             <LogIn />
@@ -111,7 +111,7 @@ export function NavProfile() {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
                                         <Link
-                                            href="/register"
+                                            to="/register"
                                             onClick={() => setOpenMobile(false)}
                                         >
                                             <UserPlus />
@@ -124,7 +124,7 @@ export function NavProfile() {
                                 <>
                                     <DropdownMenuItem asChild>
                                         <Link
-                                            href="/profile"
+                                            to="/profile"
                                             onClick={() => setOpenMobile(false)}
                                         >
                                             <User />
