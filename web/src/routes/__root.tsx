@@ -17,7 +17,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootComponent() {
     return (
-        <AppProviders defaultTheme="system" storageKey="vite-ui-theme">
+        <AppProviders>
             <AppSidebar />
             <SidebarInset>
                 <header className="pl-6 pt-6 md:p-4">
