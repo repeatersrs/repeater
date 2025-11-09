@@ -3,6 +3,7 @@ import betterTailwindcss from 'eslint-plugin-better-tailwindcss';
 import perfectionist from 'eslint-plugin-perfectionist';
 import prettier from 'eslint-plugin-prettier/recommended';
 import { dirname } from 'path';
+import tseslint from 'typescript-eslint';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,9 +15,11 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
     {
-        ignores: ['src/gen/**/*'],
+        ignores: ['src/gen/**/*', 'dist/**/*'],
     },
-    ...compat.extends('next/core-web-vitals', 'next/typescript'),
+    ...tseslint.configs.recommended,
+    ...compat.extends('plugin:@tanstack/eslint-plugin-query/recommended'),
+    ...compat.extends('plugin:react-hooks/recommended'),
     prettier,
     {
         plugins: {
@@ -25,7 +28,7 @@ const eslintConfig = [
         },
         settings: {
             'better-tailwindcss': {
-                entryPoint: 'src/app/globals.css',
+                entryPoint: 'src/globals.css',
             },
         },
         rules: {

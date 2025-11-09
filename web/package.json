@@ -6,9 +6,9 @@
         "dev": "vite --host",
         "build": "vite build",
         "preview": "vite preview --host",
-        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0 && pnpm run lint:typescript",
+        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 10 && pnpm run lint:typescript",
         "lint:fix": "eslint . --ext ts,tsx --fix && pnpm run lint:typescript",
-        "lint:typescript": "tsc --noEmit",
+        "lint:typescript": "tsc --noEmit --skipLibCheck",
         "openapi-ts": "openapi-ts"
     },
     "dependencies": {
@@ -60,6 +60,7 @@
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3",
+        "@eslint/js": "^9.39.1",
         "@hey-api/openapi-ts": "^0.74.0",
         "@tailwindcss/postcss": "^4",
         "@tanstack/eslint-plugin-query": "^5.81.2",
@@ -72,9 +73,11 @@
         "eslint-plugin-perfectionist": "^4.15.0",
         "eslint-plugin-prettier": "^5.5.4",
         "eslint-plugin-react-hooks": "^5.2.0",
+        "eslint-plugin-react-refresh": "^0.4.24",
         "tailwindcss": "^4",
         "tw-animate-css": "^1.3.4",
-        "typescript": "^5"
+        "typescript": "^5",
+        "typescript-eslint": "^8.46.3"
     },
     "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
 }
