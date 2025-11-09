@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { Plus, RotateCcw, Folder, FolderOpen, ArrowRight } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
+import { Plus, RotateCcw, Folder, FolderOpen, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -88,7 +88,8 @@ export default function NavDecks() {
                         <Plus className="h-4 w-4" />
                     </div>
                     <Link
-                        href={`/decks/${item.id}`}
+                        to="/decks/$deckId"
+                        params={{ deckId: item.id }}
                         className="hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
                         onClick={() => setOpenMobile(false)}
                     >
