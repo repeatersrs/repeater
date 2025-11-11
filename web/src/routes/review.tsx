@@ -33,6 +33,20 @@ import { createActions, getShortcut } from '@/lib/shortcuts';
 import { daysSince } from '@/lib/utils';
 
 export const Route = createFileRoute('/review')({
+    loader: async ({ context: { queryClient } }) => {
+        const dueCards = await queryClient.ensureQueryData({
+            queryKey: ['cards', 'due'],
+            queryFn: () =>
+                getCardsCardsGet({
+                    query: {
+                        only_due: true,
+                        exclude_paused: true,
+                        exclude_archived: true,
+                    },
+                }),
+        });
+        return { dueCards };
+    },
     component: Review,
 });
 

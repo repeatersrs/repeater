@@ -7,8 +7,26 @@ import { DataTable } from '@/components/table/data-table';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { getUsersAdminUsersGet } from '@/gen';
+import { requireAdmin } from '@/lib/auth';
 
 export const Route = createFileRoute('/admin/')({
+    beforeLoad: async ({ context: { queryClient } }) => {
+        await requireAdmin(queryClient);
+    },
+    loader: async ({ context: { queryClient } }) => {
+        const users = await queryClient.ensureQueryData({
+            queryKey: ['users', false, 0, 10],
+            queryFn: () =>
+                getUsersAdminUsersGet({
+                    query: {
+                        show_guests: false,
+                        page: 1,
+                        size: 10,
+                    },
+                }),
+        });
+        return { users };
+    },
     component: AdminDashboard,
 });
 
