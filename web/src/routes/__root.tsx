@@ -26,7 +26,9 @@ function RootComponent() {
                 <Outlet />
             </SidebarInset>
             <Toaster />
-            <TanStackRouterDevtools position="bottom-right" />
+            {import.meta.env.MODE === 'development' ? (
+                <TanStackRouterDevtools position="bottom-right" />
+            ) : null}
         </AppProviders>
     );
 }

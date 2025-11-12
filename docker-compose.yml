@@ -86,7 +86,6 @@ services:
           path: ./web/pnpm-lock.yaml
 
     environment:
-      - NODE_ENV=development
       - VITE_API_URL=http://localhost:8000
 
   db:
