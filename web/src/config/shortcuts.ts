@@ -54,4 +54,16 @@ export const SHORTCUT_CONFIG: ShortcutConfig[] = [
         description: 'Go to the next deck',
         scope: ShortcutScope.Decks,
     },
+    {
+        key: 'arrowleft',
+        action: 'card-prev',
+        description: 'Go to the previous card during review',
+        scope: ShortcutScope.Review,
+    },
+    {
+        key: 'arrowright',
+        action: 'card-next',
+        description: 'Go to the next card during review',
+        scope: ShortcutScope.Review,
+    },
 ];

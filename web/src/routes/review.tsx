@@ -104,19 +104,19 @@ function Review() {
 
     const { mutate: mutateReview } = reviewCard;
 
-    const nextCard = () => {
+    const nextCard = useCallback(() => {
         if (dueCards?.data && activeCardIndex < dueCards.data.length - 1) {
             setActiveCardIndex((prev) => prev + 1);
             setSidesVisible(1);
         }
-    };
+    }, [dueCards?.data, activeCardIndex]);
 
-    const prevCard = () => {
+    const prevCard = useCallback(() => {
         if (activeCardIndex > 0) {
             setActiveCardIndex((prev) => prev - 1);
             setSidesVisible(1);
         }
-    };
+    }, [activeCardIndex]);
 
     const revealNext = useCallback(() => {
         if (sidesVisible < activeCardSides.length) {
@@ -129,6 +129,8 @@ function Review() {
             'card-forgot': () => mutateReview('forgot'),
             'card-ok': () => mutateReview('ok'),
             'reveal-next': revealNext,
+            'card-prev': prevCard,
+            'card-next': nextCard,
         });
 
         Object.entries(actions).forEach(([action, handler]) => {
@@ -140,7 +142,14 @@ function Review() {
                 unregisterAction(action);
             });
         };
-    }, [registerAction, unregisterAction, mutateReview, revealNext]);
+    }, [
+        registerAction,
+        unregisterAction,
+        mutateReview,
+        revealNext,
+        prevCard,
+        nextCard,
+    ]);
 
     return (
         <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center justify-between gap-4 pt-8 pb-4">
@@ -252,26 +261,64 @@ function Review() {
                     <div className="flex flex-col items-center gap-4">
                         <div className="flex gap-4 items-center">
                             <div className="gap-2 flex">
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={prevCard}
-                                    disabled={activeCardIndex === 0}
-                                >
-                                    <ChevronLeft />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={nextCard}
-                                    disabled={
-                                        !dueCards?.data ||
-                                        activeCardIndex >=
-                                            dueCards.data.length - 1
-                                    }
-                                >
-                                    <ChevronRight />
-                                </Button>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={prevCard}
+                                            disabled={activeCardIndex === 0}
+                                        >
+                                            <ChevronLeft />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <div>
+                                            {
+                                                getShortcut(
+                                                    'card-prev',
+                                                    ShortcutScope.Review
+                                                ).description
+                                            }
+                                            <Kbd
+                                                action="card-prev"
+                                                scope={ShortcutScope.Review}
+                                                className="ml-2"
+                                            />
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={nextCard}
+                                            disabled={
+                                                !dueCards?.data ||
+                                                activeCardIndex >=
+                                                    dueCards.data.length - 1
+                                            }
+                                        >
+                                            <ChevronRight />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <div>
+                                            {
+                                                getShortcut(
+                                                    'card-next',
+                                                    ShortcutScope.Review
+                                                ).description
+                                            }
+                                            <Kbd
+                                                action="card-next"
+                                                scope={ShortcutScope.Review}
+                                                className="ml-2"
+                                            />
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
                             </div>
                             <Tooltip>
                                 <TooltipTrigger asChild>
