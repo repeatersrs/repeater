@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from src.db.models import ReviewFeedback
 
@@ -12,6 +12,8 @@ class ReviewCreate(BaseModel):
 
 
 class ReviewOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     card_id: UUID
     deck_id: UUID

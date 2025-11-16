@@ -3,11 +3,12 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, contains_eager
 
 from src.auth.jwt import get_current_user
 from src.db import get_db
-from src.db.models import Card, Deck, User
+from src.db.models import Card, Deck, Review, User
 from src.schemas.card import CardCreate, CardOut, CardUpdate
 from src.util import get_user_card
 
@@ -28,8 +29,9 @@ def create_card(
 
 @router.get("", response_model=List[CardOut])
 def get_cards(
-    deck_id: UUID = None,
+    deck_id: UUID | None = None,
     only_due: bool = False,
+    review_session: bool = False,
     exclude_paused: bool = False,
     exclude_archived: bool = False,
     user: User = Depends(get_current_user),
@@ -51,7 +53,27 @@ def get_cards(
     if exclude_archived:
         query = query.filter(Deck.is_archived == False)
 
-    if only_due:
+    today_start = None
+    if review_session:
+        today_start = datetime.now(timezone.utc).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+
+        cards_reviewed_today = (
+            db_session.query(Review.card_id)
+            .filter(Review.user_id == user.id)
+            .filter(Review.reviewed_at >= today_start)
+            .distinct()
+            .subquery()
+        )
+
+        query = query.filter(
+            or_(
+                Card.next_review_date <= today_start,
+                Card.id.in_(db_session.query(cards_reviewed_today.c.card_id)),
+            )
+        ).order_by(Card.next_review_date)
+    elif only_due:
         query = query.filter(
             Card.next_review_date <= datetime.now(timezone.utc)
         ).order_by(Card.next_review_date)
@@ -59,6 +81,31 @@ def get_cards(
         query = query.order_by(Card.created_at.desc())
 
     cards = query.all()
+
+    if review_session:
+        todays_card_ids = [card.id for card in cards]
+
+        if todays_card_ids:
+            todays_reviews = (
+                db_session.query(Review)
+                .filter(Review.user_id == user.id)
+                .filter(Review.card_id.in_(todays_card_ids))
+                .filter(Review.reviewed_at >= today_start)
+                .order_by(Review.reviewed_at)
+                .all()
+            )
+
+            reviews_by_card = {}
+            for review in todays_reviews:
+                if review.card_id not in reviews_by_card:
+                    reviews_by_card[review.card_id] = []
+                reviews_by_card[review.card_id].append(review)
+
+            return [
+                CardOut.from_card(card, todays_reviews=reviews_by_card.get(card.id))
+                for card in cards
+            ]
+
     return [CardOut.from_card(card) for card in cards]
 
 

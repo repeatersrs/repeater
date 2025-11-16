@@ -486,8 +486,10 @@ paths:
         in: query
         required: false
         schema:
-          type: string
-          format: uuid
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
           title: Deck Id
       - name: only_due
         in: query
@@ -496,6 +498,13 @@ paths:
           type: boolean
           default: false
           title: Only Due
+      - name: review_session
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Review Session
       - name: exclude_paused
         in: query
         required: false
@@ -994,6 +1003,13 @@ components:
           type: string
           format: date-time
           title: Updated At
+        todays_reviews:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/ReviewOut'
+            type: array
+          - type: 'null'
+          title: Todays Reviews
       type: object
       required:
       - id
