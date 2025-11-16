@@ -1,4 +1,4 @@
-import { SHORTCUT_CONFIG } from '@/config/shortcuts';
+import { SHORTCUT_CONFIG, ShortcutScope } from '@/config/shortcuts';
 
 export function createActions<T extends Record<string, () => void>>(
     actions: T & Record<string, () => void>
@@ -13,11 +13,11 @@ export function createActions<T extends Record<string, () => void>>(
     return actions;
 }
 
-export function getShortcutsForScope(scope: string) {
+export function getShortcutsForScope(scope: ShortcutScope) {
     return SHORTCUT_CONFIG.filter((shortcut) => shortcut.scope === scope);
 }
 
-export function getShortcut(action: string, scope: string) {
+export function getShortcut(action: string, scope: ShortcutScope) {
     const shortcut = SHORTCUT_CONFIG.find(
         (item) => item.action === action && item.scope === scope
     );

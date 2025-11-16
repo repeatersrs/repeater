@@ -41,6 +41,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ShortcutScope } from '@/config/shortcuts';
 import {
     getDecksDecksGet,
     getReviewHistoryReviewsCardIdGet,
@@ -89,7 +90,7 @@ export default function CardInspectDialog({
     hasNext,
     hasPrev,
 }: CardInspectDialogProps) {
-    usePageShortcuts('cards');
+    usePageShortcuts(ShortcutScope.Cards);
     const { registerAction, unregisterAction } = useShortcutActions();
     const [resetKey, setResetKey] = useState(0);
 
@@ -227,12 +228,14 @@ export default function CardInspectDialog({
                                 <TooltipContent>
                                     <div>
                                         {
-                                            getShortcut('card-prev', 'cards')
-                                                .description
+                                            getShortcut(
+                                                'card-prev',
+                                                ShortcutScope.Cards
+                                            ).description
                                         }
                                         <Kbd
                                             action="card-prev"
-                                            scope="cards"
+                                            scope={ShortcutScope.Cards}
                                             className="ml-2"
                                         />
                                     </div>
@@ -252,12 +255,14 @@ export default function CardInspectDialog({
                                 <TooltipContent>
                                     <div>
                                         {
-                                            getShortcut('card-next', 'cards')
-                                                .description
+                                            getShortcut(
+                                                'card-next',
+                                                ShortcutScope.Cards
+                                            ).description
                                         }
                                         <Kbd
                                             action="card-next"
-                                            scope="cards"
+                                            scope={ShortcutScope.Cards}
                                             className="ml-2"
                                         />
                                     </div>

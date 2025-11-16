@@ -1,8 +1,9 @@
+import { ShortcutScope } from '@/config/shortcuts';
 import { getShortcut } from '@/lib/shortcuts';
 
 interface KbdProps {
     action: string;
-    scope: string;
+    scope: ShortcutScope;
     className?: string;
 }
 
