@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 import { AppProviders } from '@/components/app-providers';
 import { AppSidebar } from '@/components/nav/app-sidebar';
