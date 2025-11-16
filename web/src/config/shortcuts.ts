@@ -1,8 +1,14 @@
+export enum ShortcutScope {
+    Decks = 'decks',
+    Cards = 'cards',
+    Profile = 'profile',
+    Review = 'review',
+}
 export interface ShortcutConfig {
     key: string;
     action: string;
     description: string;
-    scope: 'decks' | 'cards' | 'profile' | 'review';
+    scope: ShortcutScope;
 }
 
 export const SHORTCUT_CONFIG: ShortcutConfig[] = [
@@ -10,42 +16,42 @@ export const SHORTCUT_CONFIG: ShortcutConfig[] = [
         key: 'j',
         action: 'card-forgot',
         description: 'Mark card as forgotten',
-        scope: 'review',
+        scope: ShortcutScope.Review,
     },
     {
         key: 'l',
         action: 'card-ok',
         description: 'Mark card as remembered',
-        scope: 'review',
+        scope: ShortcutScope.Review,
     },
     {
         key: 'space',
         action: 'reveal-next',
         description: 'Reveal next side',
-        scope: 'review',
+        scope: ShortcutScope.Review,
     },
     {
         key: 'arrowleft',
         action: 'card-prev',
         description: 'Go to the previous card',
-        scope: 'cards',
+        scope: ShortcutScope.Cards,
     },
     {
         key: 'arrowright',
         action: 'card-next',
         description: 'Go to the next card',
-        scope: 'cards',
+        scope: ShortcutScope.Cards,
     },
     {
         key: 'arrowleft',
         action: 'deck-prev',
         description: 'Go to the previous deck',
-        scope: 'decks',
+        scope: ShortcutScope.Decks,
     },
     {
         key: 'arrowright',
         action: 'deck-next',
         description: 'Go to the next deck',
-        scope: 'decks',
+        scope: ShortcutScope.Decks,
     },
 ];

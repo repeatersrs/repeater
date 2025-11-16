@@ -27,6 +27,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ShortcutScope } from '@/config/shortcuts';
 import { getCardsCardsGet, createReviewReviewsPost, CardOut } from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
 import { createActions, getShortcut } from '@/lib/shortcuts';
@@ -51,7 +52,7 @@ export const Route = createFileRoute('/review')({
 });
 
 function Review() {
-    usePageShortcuts('review');
+    usePageShortcuts(ShortcutScope.Review);
     const { registerAction, unregisterAction } = useShortcutActions();
     const {
         isPending,
@@ -239,12 +240,14 @@ function Review() {
                                 <TooltipContent>
                                     <div>
                                         {
-                                            getShortcut('reveal-next', 'review')
-                                                .description
+                                            getShortcut(
+                                                'reveal-next',
+                                                ShortcutScope.Review
+                                            ).description
                                         }
                                         <Kbd
                                             action="reveal-next"
-                                            scope="review"
+                                            scope={ShortcutScope.Review}
                                             className="ml-2"
                                         />
                                     </div>
@@ -267,12 +270,14 @@ function Review() {
                                 <TooltipContent>
                                     <div>
                                         {
-                                            getShortcut('card-forgot', 'review')
-                                                .description
+                                            getShortcut(
+                                                'card-forgot',
+                                                ShortcutScope.Review
+                                            ).description
                                         }
                                         <Kbd
                                             action="card-forgot"
-                                            scope="review"
+                                            scope={ShortcutScope.Review}
                                             className="ml-2"
                                         />
                                     </div>
@@ -290,12 +295,14 @@ function Review() {
                                 <TooltipContent>
                                     <div>
                                         {
-                                            getShortcut('card-ok', 'review')
-                                                .description
+                                            getShortcut(
+                                                'card-ok',
+                                                ShortcutScope.Review
+                                            ).description
                                         }
                                         <Kbd
                                             action="card-ok"
-                                            scope="review"
+                                            scope={ShortcutScope.Review}
                                             className="ml-2"
                                         />
                                     </div>
