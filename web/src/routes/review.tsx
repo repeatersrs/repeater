@@ -168,6 +168,17 @@ function Review() {
                         <Card className="relative z-10 flex flex-col flex-1 pb-0">
                             <CardHeader className="text-xs flex flex-row items-center justify-between ">
                                 <Breadcrumb>
+                                    {/*TODO:
+                                      Update breadcrumbs to show current deck's parent decks as well. The structure should be:
+                                      1 parent: Parent > Child
+                                      2+ parents: Grand parent > ... > Child
+
+                                      The breadcrumb path can be gotten by using getDeckDecksDeckIdGet with activeCard.deck_id,
+                                      and using the 'path' property of the active deck.
+
+                                      What's preventing implementation now is that the path is only an array of strings, meaning we don't have
+                                      the id for the parent decks that we need to build the BreadcrumbLink.
+                                      */}
                                     <BreadcrumbList>
                                         <BreadcrumbItem>
                                             <BreadcrumbLink
