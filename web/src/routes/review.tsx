@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { ChevronLeft, ChevronRight, CircleCheck } from 'lucide-react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    CircleCheck,
+    CalendarX2,
+    ArrowBigDownDash,
+} from 'lucide-react';
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
@@ -12,7 +18,6 @@ import {
     BreadcrumbList,
     BreadcrumbItem,
     BreadcrumbLink,
-    BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,10 +33,9 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ShortcutScope } from '@/config/shortcuts';
-import { getCardsCardsGet, createReviewReviewsPost, CardOut } from '@/gen';
+import { getCardsCardsGet, createReviewReviewsPost } from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
 import { createActions, getShortcut } from '@/lib/shortcuts';
-import { daysSince } from '@/lib/utils';
 
 export const Route = createFileRoute('/review')({
     loader: async ({ context: { queryClient } }) => {
@@ -120,15 +124,6 @@ function Review() {
         }
     }, [activeCardSides.length, sidesVisible]);
 
-    function getDaysSinceText(card: CardOut): string {
-        const nrOverdueDays = daysSince(new Date(card.next_review_date));
-        if (nrOverdueDays == 1) {
-            return `Due 1 day ago`;
-        } else {
-            return `Due ${nrOverdueDays} days ago`;
-        }
-    }
-
     useEffect(() => {
         const actions = createActions({
             'card-forgot': () => mutateReview('forgot'),
@@ -148,7 +143,7 @@ function Review() {
     }, [registerAction, unregisterAction, mutateReview, revealNext]);
 
     return (
-        <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center justify-between gap-4 py-4">
+        <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center justify-between gap-4 pt-8 pb-4">
             {isPending && !isError && <p>loading</p>}
             {!isPending && isError && <p>error!</p>}
             {dueCards?.data?.length === 0 && (
@@ -162,28 +157,92 @@ function Review() {
             )}
             {activeCard && (
                 <>
-                    <Card className="flex aspect-[3/4] w-4/6 max-w-sm flex-col">
-                        <CardHeader className="flex flex-row items-center justify-between text-xs">
-                            <Breadcrumb>
-                                <BreadcrumbList>
-                                    <BreadcrumbItem>
-                                        <BreadcrumbLink href="/decks">
-                                            Deck
-                                        </BreadcrumbLink>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator />
-                                    <BreadcrumbItem>
-                                        <BreadcrumbLink
-                                            href={`/decks/${activeCard.deck_id}`}
-                                        >
-                                            {activeCard.deck_name}
-                                        </BreadcrumbLink>
-                                    </BreadcrumbItem>
-                                </BreadcrumbList>
-                            </Breadcrumb>
-                            <div>
+                    <div className="relative flex aspect-[3/4] w-4/6 max-w-xs">
+                        {dueCards?.data && dueCards.data.length > 2 && (
+                            <Card className="absolute inset-0 translate-y-4 translate-x-3 pointer-events-none"></Card>
+                        )}
+                        {dueCards?.data && dueCards.data.length > 1 && (
+                            <Card className="absolute inset-0 translate-y-2 translate-x-1.5 pointer-events-none"></Card>
+                        )}
+
+                        <Card className="relative z-10 flex flex-col flex-1 pb-0">
+                            <CardHeader className="text-xs flex flex-row items-center justify-between ">
+                                <Breadcrumb>
+                                    <BreadcrumbList>
+                                        <BreadcrumbItem>
+                                            <BreadcrumbLink
+                                                href={`/decks/${activeCard.deck_id}`}
+                                            >
+                                                {activeCard.deck_name}
+                                            </BreadcrumbLink>
+                                        </BreadcrumbItem>
+                                    </BreadcrumbList>
+                                </Breadcrumb>
+
+                                {activeCard.overdue && (
+                                    <p className="flex items-center gap-2 flex-row text-destructive/90">
+                                        <CalendarX2 className="size-3.5" />
+                                        {new Date(
+                                            activeCard.next_review_date
+                                        ).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit',
+                                        })}
+                                    </p>
+                                )}
+                            </CardHeader>
+                            <CardContent className="flex-1">
+                                {activeCardSides?.map(
+                                    (content, index) =>
+                                        index < sidesVisible && (
+                                            <div key={index}>
+                                                {index !== 0 && (
+                                                    <Separator className="my-2" />
+                                                )}
+                                                <Markdown>{content}</Markdown>
+                                            </div>
+                                        )
+                                )}
+                            </CardContent>
+                            <CardFooter className="p-0">
+                                {sidesVisible < activeCardSides.length && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                onClick={revealNext}
+                                                className="h-10 w-full text-xs p-6 bg-transparent hover:bg-transparent hover:bg-gradient-to-t hover:from-accent/25 hover:to-card text-muted-foreground transition-none hover:transition-all"
+                                            >
+                                                Next side
+                                                <ArrowBigDownDash />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <div>
+                                                {
+                                                    getShortcut(
+                                                        'reveal-next',
+                                                        ShortcutScope.Review
+                                                    ).description
+                                                }
+                                                <Kbd
+                                                    action="reveal-next"
+                                                    scope={ShortcutScope.Review}
+                                                    className="ml-2"
+                                                />
+                                            </div>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                            </CardFooter>
+                        </Card>
+                    </div>
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="flex gap-4 items-center">
+                            <div className="gap-2 flex">
                                 <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="icon"
                                     onClick={prevCard}
                                     disabled={activeCardIndex === 0}
@@ -191,7 +250,7 @@ function Review() {
                                     <ChevronLeft />
                                 </Button>
                                 <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="icon"
                                     onClick={nextCard}
                                     disabled={
@@ -203,68 +262,16 @@ function Review() {
                                     <ChevronRight />
                                 </Button>
                             </div>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                            {activeCardSides?.map(
-                                (content, index) =>
-                                    index < sidesVisible && (
-                                        <div key={index}>
-                                            {index !== 0 && (
-                                                <Separator className="my-2" />
-                                            )}
-                                            <Markdown>{content}</Markdown>
-                                        </div>
-                                    )
-                            )}
-                        </CardContent>
-                        <CardFooter className="flex flex-row justify-center gap-4">
-                            {activeCard.overdue && (
-                                <p className="text-destructive text-sm">
-                                    {getDaysSinceText(activeCard)}
-                                </p>
-                            )}
-                        </CardFooter>
-                    </Card>
-                    <div className="flex flex-col items-center gap-4">
-                        {sidesVisible < activeCardSides.length && (
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        onClick={revealNext}
-                                        className="h-10"
-                                    >
-                                        Reveal next side
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div>
-                                        {
-                                            getShortcut(
-                                                'reveal-next',
-                                                ShortcutScope.Review
-                                            ).description
-                                        }
-                                        <Kbd
-                                            action="reveal-next"
-                                            scope={ShortcutScope.Review}
-                                            className="ml-2"
-                                        />
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        )}
-                        <div className="flex gap-4">
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
                                         variant="secondary"
-                                        className="h-12 w-30"
+                                        className="h-12 px-8"
                                         onClick={() =>
                                             reviewCard.mutate('forgot')
                                         }
                                     >
-                                        Forgor
+                                        Forgot
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -286,10 +293,10 @@ function Review() {
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
-                                        className="h-12 w-30"
+                                        className="h-12 px-8"
                                         onClick={() => reviewCard.mutate('ok')}
                                     >
-                                        I got it :)
+                                        Remembered
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
