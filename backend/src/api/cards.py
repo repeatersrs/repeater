@@ -2,7 +2,8 @@ from datetime import datetime, timezone
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session, contains_eager
 
 from src.auth.jwt import get_current_user
@@ -59,6 +60,50 @@ def get_cards(
         query = query.order_by(Card.created_at.desc())
 
     cards = query.all()
+    return [CardOut.from_card(card) for card in cards]
+
+
+@router.get("/random", response_model=List[CardOut])
+def get_random_cards(
+    deck_ids: str = "",
+    count: int = 10,
+    exclude_paused: bool = False,
+    exclude_archived: bool = False,
+    user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_db),
+):
+    if count < 1:
+        raise HTTPException(status_code=400, detail="count must be greater than 1")
+
+    deck_uuids = []
+
+    if deck_ids:
+        for deck_id in deck_ids.split(","):
+            try:
+                deck_id = UUID(deck_id)
+                deck_uuids.append(deck_id)
+            except ValueError:
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid deck ID {deck_id}"
+                )
+
+    query = (
+        db_session.query(Card)
+        .join(Deck)
+        .filter(Deck.user_id == user.id)
+        .options(contains_eager(Card.deck))
+    )
+
+    if exclude_paused:
+        query = query.filter(Deck.is_paused == False)
+
+    if exclude_archived:
+        query = query.filter(Deck.is_archived == False)
+
+    if deck_uuids:
+        query = query.filter(Deck.id.in_(deck_uuids))
+
+    cards = query.order_by(func.random()).limit(count).all()
     return [CardOut.from_card(card) for card in cards]
 
 

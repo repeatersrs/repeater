@@ -394,3 +394,46 @@ async def test_card_content_is_stripped(user_client):
         content="\n\u200b\t\u00a0hello world\u00a0\t\u200b\n",
     )
     assert card.json()["content"] == "hello world"
+
+
+async def test_get_random_cards(user_client):
+    deck = await create_deck(user_client)
+    deck_id = deck.json()["id"]
+    for _ in range(10):
+        await create_card(
+            user_client,
+            deck_id,
+        )
+    res = await user_client.get("/cards/random?count=5")
+    assert res.status_code == 200
+    assert len(res.json()) == 5
+
+    res = await user_client.get("/cards/random?count=11")
+    assert res.status_code == 200
+    assert len(res.json()) == 10
+
+
+async def test_get_random_cards_by_deck_ids(user_client):
+    deck1 = await create_deck(user_client)
+    deck1_id = deck1.json()["id"]
+    for _ in range(10):
+        await create_card(
+            user_client,
+            deck1_id,
+        )
+
+    deck2 = await create_deck(user_client)
+    deck2_id = deck2.json()["id"]
+    for _ in range(5):
+        await create_card(
+            user_client,
+            deck2_id,
+        )
+
+    res = await user_client.get(f"/cards/random?deck_ids={deck1_id}")
+    assert res.status_code == 200
+    assert len(res.json()) == 10
+    assert [card["id"] == deck1_id for card in res.json()]
+
+    res = await user_client.get("/cards/random?deck_ids=non-existent-id")
+    assert res.status_code == 400

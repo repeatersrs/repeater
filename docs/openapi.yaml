@@ -542,6 +542,73 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /cards/random:
+    get:
+      tags:
+      - cards
+      summary: Get Random Cards
+      operationId: get_random_cards_cards_random_get
+      parameters:
+      - name: deck_ids
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Deck Ids
+      - name: count
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+          title: Count
+      - name: exclude_paused
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Exclude Paused
+      - name: exclude_archived
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Exclude Archived
+      - name: access_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardOut'
+                title: Response Get Random Cards Cards Random Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /cards/{card_id}:
     patch:
       tags:
