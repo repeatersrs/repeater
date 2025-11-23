@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { DeckSelector } from '@/components/deck-selector';
 import { EditorField } from '@/components/editor-field';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,16 +24,7 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { createCardCardsPost, CardCreate, getDecksDecksGet } from '@/gen';
+import { createCardCardsPost, CardCreate } from '@/gen';
 import { validateCardContent, serializeToMarkdown } from '@/lib/editor-utils';
 
 interface CardCreationDialogProps {
@@ -56,10 +48,6 @@ export default function CardCreationDialog({
 
     const isOpen = open ?? internalOpen;
     const setIsOpen = onOpenChange ?? setInternalOpen;
-    const { data: decks } = useQuery({
-        queryKey: ['decks'],
-        queryFn: () => getDecksDecksGet(),
-    });
 
     const cardFormSchema = z.object({
         content: z
@@ -118,29 +106,10 @@ export default function CardCreationDialog({
                                         Select a Deck
                                     </FormLabel>
                                     <FormControl>
-                                        <Select
+                                        <DeckSelector
+                                            value={field.value}
                                             onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a deck" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup>
-                                                    <SelectLabel>
-                                                        Deck
-                                                    </SelectLabel>
-                                                </SelectGroup>
-                                                {decks?.data?.map((deck) => (
-                                                    <SelectItem
-                                                        value={deck.id}
-                                                        key={deck.id}
-                                                    >
-                                                        {deck.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

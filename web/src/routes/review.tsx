@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { ChevronLeft, ChevronRight, CircleCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
 import Kbd from '@/components/kbd';
+import { PracticeModeAlert } from '@/components/practice-mode-alert';
 import { useShortcutActions } from '@/components/shortcut-provider';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import {
     Breadcrumb,
     BreadcrumbList,
@@ -28,7 +28,12 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ShortcutScope } from '@/config/shortcuts';
-import { getCardsCardsGet, createReviewReviewsPost, CardOut } from '@/gen';
+import {
+    getCardsCardsGet,
+    createReviewReviewsPost,
+    getRandomCardsCardsRandomGet,
+    CardOut,
+} from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
 import { createActions, getShortcut } from '@/lib/shortcuts';
 import { daysSince } from '@/lib/utils';
@@ -53,21 +58,37 @@ export const Route = createFileRoute('/review')({
 
 function Review() {
     usePageShortcuts(ShortcutScope.Review);
+    const [practiceMode, setPracticeMode] = useState(false);
+    const [practiceDeckId, setPracticeDeckId] = useState<string | undefined>();
+    const [practiceCardCount, setPracticeCardCount] = useState(10);
+    const [includeChildDecks, setIncludeChildDecks] = useState(false);
     const { registerAction, unregisterAction } = useShortcutActions();
     const {
         isPending,
         isError,
         data: dueCards,
+        refetch: refetchCards,
     } = useQuery({
         queryKey: ['cards', 'due'],
         queryFn: () =>
-            getCardsCardsGet({
-                query: {
-                    only_due: true,
-                    exclude_paused: true,
-                    exclude_archived: true,
-                },
-            }),
+            !practiceMode
+                ? getCardsCardsGet({
+                      query: {
+                          only_due: true,
+                          exclude_paused: true,
+                          exclude_archived: true,
+                      },
+                  })
+                : getRandomCardsCardsRandomGet({
+                      query: {
+                          count: practiceCardCount,
+                          exclude_paused: true,
+                          exclude_archived: true,
+                          ...(practiceDeckId && {
+                              deck_ids: practiceDeckId,
+                          }),
+                      },
+                  }),
     });
 
     const queryClient = useQueryClient();
@@ -86,7 +107,7 @@ function Review() {
                 },
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['cards'] });
+            removeCardAtIndex(activeCardIndex);
             queryClient.invalidateQueries({
                 queryKey: ['reviews', activeCard!.id],
             });
@@ -95,10 +116,38 @@ function Review() {
             });
             setSidesVisible(1);
         },
-        // TODO: implement error handling
     });
 
+    useEffect(() => {
+        if (practiceMode) {
+            refetchCards();
+        }
+    }, [practiceMode]);
+
+    const startPracticeMode = async (options: {
+        deckId?: string;
+        count: number;
+        includeChildDecks: boolean;
+    }) => {
+        setPracticeMode(true);
+        setPracticeDeckId(options.deckId);
+        setPracticeCardCount(options.count);
+        setIncludeChildDecks(options.includeChildDecks);
+        setActiveCardIndex(0);
+        setSidesVisible(1);
+    };
+
     const { mutate: mutateReview } = reviewCard;
+
+    const removeCardAtIndex = (index: number) => {
+        queryClient.setQueryData(['cards', 'due'], (oldCards: any) => {
+            if (!oldCards?.data) return oldCards;
+            return {
+                ...oldCards,
+                data: oldCards.data.filter((_: any, i: number) => i !== index),
+            };
+        });
+    };
 
     const nextCard = () => {
         if (dueCards?.data && activeCardIndex < dueCards.data.length - 1) {
@@ -152,13 +201,7 @@ function Review() {
             {isPending && !isError && <p>loading</p>}
             {!isPending && isError && <p>error!</p>}
             {dueCards?.data?.length === 0 && (
-                <Alert className="bg-muted max-w-md">
-                    <CircleCheck className="h-4 w-4" />
-                    <AlertTitle>All done!</AlertTitle>
-                    <AlertDescription className="text-muted-foreground">
-                        No due cards to review.
-                    </AlertDescription>
-                </Alert>
+                <PracticeModeAlert onStartPractice={startPracticeMode} />
             )}
             {activeCard && (
                 <>
@@ -260,9 +303,15 @@ function Review() {
                                     <Button
                                         variant="secondary"
                                         className="h-12 w-30"
-                                        onClick={() =>
-                                            reviewCard.mutate('forgot')
-                                        }
+                                        onClick={() => {
+                                            if (!practiceMode) {
+                                                reviewCard.mutate('forgot');
+                                            } else {
+                                                removeCardAtIndex(
+                                                    activeCardIndex
+                                                );
+                                            }
+                                        }}
                                     >
                                         Forgor
                                     </Button>
@@ -287,7 +336,15 @@ function Review() {
                                 <TooltipTrigger asChild>
                                     <Button
                                         className="h-12 w-30"
-                                        onClick={() => reviewCard.mutate('ok')}
+                                        onClick={() => {
+                                            if (!practiceMode) {
+                                                reviewCard.mutate('ok');
+                                            } else {
+                                                removeCardAtIndex(
+                                                    activeCardIndex
+                                                );
+                                            }
+                                        }}
                                     >
                                         I got it :)
                                     </Button>
@@ -309,6 +366,11 @@ function Review() {
                                 </TooltipContent>
                             </Tooltip>
                         </div>
+                        {practiceMode && (
+                            <p className="text-muted-foreground text-xs">
+                                Practice mode: Your reviews are not saved.
+                            </p>
+                        )}
                     </div>
                 </>
             )}
