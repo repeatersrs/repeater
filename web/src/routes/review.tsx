@@ -61,7 +61,6 @@ function Review() {
     const [practiceMode, setPracticeMode] = useState(false);
     const [practiceDeckId, setPracticeDeckId] = useState<string | undefined>();
     const [practiceCardCount, setPracticeCardCount] = useState(10);
-    const [includeChildDecks, setIncludeChildDecks] = useState(false);
     const { registerAction, unregisterAction } = useShortcutActions();
     const {
         isPending,
@@ -69,7 +68,13 @@ function Review() {
         data: dueCards,
         refetch: refetchCards,
     } = useQuery({
-        queryKey: ['cards', 'due'],
+        queryKey: [
+            'cards',
+            'due',
+            practiceMode,
+            practiceDeckId,
+            practiceCardCount,
+        ],
         queryFn: () =>
             !practiceMode
                 ? getCardsCardsGet({
@@ -122,17 +127,15 @@ function Review() {
         if (practiceMode) {
             refetchCards();
         }
-    }, [practiceMode]);
+    }, [practiceMode, refetchCards]);
 
     const startPracticeMode = async (options: {
         deckId?: string;
         count: number;
-        includeChildDecks: boolean;
     }) => {
         setPracticeMode(true);
         setPracticeDeckId(options.deckId);
         setPracticeCardCount(options.count);
-        setIncludeChildDecks(options.includeChildDecks);
         setActiveCardIndex(0);
         setSidesVisible(1);
     };
@@ -140,13 +143,18 @@ function Review() {
     const { mutate: mutateReview } = reviewCard;
 
     const removeCardAtIndex = (index: number) => {
-        queryClient.setQueryData(['cards', 'due'], (oldCards: any) => {
-            if (!oldCards?.data) return oldCards;
-            return {
-                ...oldCards,
-                data: oldCards.data.filter((_: any, i: number) => i !== index),
-            };
-        });
+        queryClient.setQueryData(
+            ['cards', 'due', practiceMode, practiceDeckId, practiceCardCount],
+            (oldCards: { data?: CardOut[] }) => {
+                if (!oldCards?.data) return oldCards;
+                return {
+                    ...oldCards,
+                    data: oldCards.data.filter(
+                        (_: CardOut, i: number) => i !== index
+                    ),
+                };
+            }
+        );
     };
 
     const nextCard = () => {

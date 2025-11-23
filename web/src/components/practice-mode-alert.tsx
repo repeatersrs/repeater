@@ -4,28 +4,21 @@ import { useState } from 'react';
 import { DeckSelector } from '@/components/deck-selector';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface PracticeModeAlertProps {
-    onStartPractice: (options: {
-        deckId?: string;
-        count: number;
-        includeChildDecks: boolean;
-    }) => void;
+    onStartPractice: (options: { deckId?: string; count: number }) => void;
 }
 
 export function PracticeModeAlert({ onStartPractice }: PracticeModeAlertProps) {
     const [selectedDeckId, setSelectedDeckId] = useState<string | undefined>();
     const [cardCount, setCardCount] = useState(10);
-    const [includeChildDecks, setIncludeChildDecks] = useState(false);
 
     const handleStartPractice = () => {
         onStartPractice({
             deckId: selectedDeckId,
             count: cardCount,
-            includeChildDecks,
         });
     };
 
@@ -53,23 +46,6 @@ export function PracticeModeAlert({ onStartPractice }: PracticeModeAlertProps) {
                         onValueChange={setSelectedDeckId}
                         placeholder="All decks"
                     />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="include-children"
-                        checked={includeChildDecks}
-                        onCheckedChange={(checked) =>
-                            setIncludeChildDecks(checked === true)
-                        }
-                        disabled={!selectedDeckId}
-                    />
-                    <label
-                        htmlFor="include-children"
-                        className="text-sm text-muted-foreground cursor-pointer select-none"
-                    >
-                        Include child decks
-                    </label>
                 </div>
 
                 <div className="space-y-2">
