@@ -18,6 +18,7 @@ from src.api import (
     healthcheck,
     me,
     oauth,
+    review_session,
     reviews,
     statistics,
 )
@@ -99,6 +100,7 @@ app.include_router(decks.router)
 app.include_router(cards.router)
 app.include_router(oauth.router)
 app.include_router(me.router)
+app.include_router(review_session.router)
 app.include_router(reviews.router)
 app.include_router(statistics.router)
 app.include_router(healthcheck.router)
