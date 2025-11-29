@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List
 from uuid import UUID
 
@@ -25,7 +25,7 @@ class ReviewSessionCard(BaseModel):
         return cls(
             **card.__dict__,
             deck_name=card.deck.name,
-            overdue=card.next_review_date < now,
+            overdue=now >= card.next_review_date + timedelta(hours=24),
             todays_reviews=[
                 ReviewOut.model_validate(review, from_attributes=True)
                 for review in todays_reviews
