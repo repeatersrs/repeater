@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
@@ -26,15 +26,10 @@ class CardOut(BaseModel):
     @classmethod
     def from_card(cls, card: Card) -> "CardOut":
         now = datetime.now(timezone.utc)
-        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        next_review_date_start = card.next_review_date.replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-
         return cls(
             **card.__dict__,
             deck_name=card.deck.name,
-            overdue=next_review_date_start < today_start,
+            overdue=now >= card.next_review_date + timedelta(hours=24),
         )
 
 

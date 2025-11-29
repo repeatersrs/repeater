@@ -26,7 +26,6 @@ from src.db import get_db
 from src.db.models import User, UserRole
 from src.exceptions import RefreshTokenAuthenticationError
 from src.log import set_up_logger
-from src.util import add_user
 
 load_dotenv()
 set_up_logger()
@@ -48,7 +47,7 @@ async def lifespan(app: FastAPI):
         if User.filter_by(db_session, email=admin_email).first():
             logging.info("Admin user already exists")
         else:
-            add_user(admin_email, admin_password, UserRole.ADMIN, db_session)
+            User.add_user(admin_email, admin_password, UserRole.ADMIN, db_session)
 
     yield
 

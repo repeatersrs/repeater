@@ -4,9 +4,16 @@ from enum import StrEnum
 
 import bcrypt
 from sqlalchemy import UUID, Boolean, DateTime, Float, ForeignKey, Integer, String
-from sqlalchemy.orm import DeclarativeBase, Session, mapped_column, relationship
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Session,
+    contains_eager,
+    mapped_column,
+    relationship,
+)
 
 from src.const import SCHEDULE_DEFAULT_EASE_FACTOR
+from src.util import to_start_of_day
 
 
 class Base(DeclarativeBase):
@@ -110,6 +117,15 @@ class User(Base, BaseMixin):
     def is_admin(self):
         return self.role == UserRole.ADMIN
 
+    @staticmethod
+    def add_user(
+        email: str, password: str, role: UserRole, db_session: Session
+    ) -> "User":
+        user = User(email=email, role=role)
+        user.set_password(password)
+        user = user.save(db_session)
+        return user
+
 
 class Deck(Base, BaseMixin):
     __tablename__ = "decks"
@@ -143,6 +159,40 @@ class Deck(Base, BaseMixin):
             current = current.parent
         return list(reversed(path_parts))
 
+    def get_depth_to_root(self) -> int:
+        depth = 0
+        current = self
+        while current.parent_id:
+            current = current.parent
+            depth += 1
+        return depth
+
+    def set_children_archived(self, db_session: Session):
+        def traverse_and_archive(deck: Deck):
+            deck.is_archived = True
+            deck.save(db_session)
+            for child in deck.children:
+                traverse_and_archive(child)
+
+        traverse_and_archive(self)
+
+    def set_children_paused(self, db_session: Session):
+        def traverse_and_pause(deck: Deck):
+            deck.is_paused = True
+            deck.save(db_session)
+            for child in deck.children:
+                traverse_and_pause(child)
+
+        traverse_and_pause(self)
+
+    def would_create_cycle(self, new_parent: "Deck") -> bool:
+        current = new_parent
+        while current:
+            if current.id == self.id:
+                return True
+            current = current.parent
+        return False
+
 
 class Card(Base, BaseMixin):
     __tablename__ = "cards"
@@ -153,11 +203,21 @@ class Card(Base, BaseMixin):
     content = mapped_column(String)
     next_review_date = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: to_start_of_day(datetime.now(timezone.utc)),
         nullable=False,
     )
 
     deck = relationship("Deck", back_populates="cards")
+
+    @staticmethod
+    def get_user_card(card_id: UUID, user_id: UUID, db_session: Session) -> "Card":
+        return (
+            db_session.query(Card)
+            .join(Deck)
+            .filter(Card.id == card_id, Deck.user_id == user_id)
+            .options(contains_eager(Card.deck))
+            .one()
+        )
 
 
 class Review(Base, BaseMixin):

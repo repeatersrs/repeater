@@ -1,15 +1,14 @@
 from src.db import get_db
-from src.db.models import UserRole
+from src.db.models import User, UserRole
 from src.import_export import BaseImporter, store_imported_deck
 from src.import_export.custom import CustomImporter
-from src.util import add_user
 
 BOOTSTRAP_DECKS_JSON_PATHS = ["data/languages.json"]
 
 
 def bootstrap():
     with next(get_db()) as db_session:
-        user = add_user("user@domain.com", "password", UserRole.USER, db_session)
+        user = User.add_user("user@domain.com", "password", UserRole.USER, db_session)
 
         for deck_path in BOOTSTRAP_DECKS_JSON_PATHS:
             with open(deck_path, "rb") as file:

@@ -4,7 +4,7 @@ from authlib.integrations.starlette_client import OAuth
 from sqlalchemy.orm import Session
 from starlette.config import Config
 
-from src import util
+from src.auth.jwt import get_user_from_token
 from src.db.models import AuthProviders, User, UserRole
 
 config = Config(".env")
@@ -28,7 +28,7 @@ async def get_user_oauth(request, db_session: Session):
     email = user["email"]
 
     # Case 1, the user making the request has a guest account. Promote the account and return it
-    user = util.get_user_from_token(request, db_session)
+    user = get_user_from_token(request, db_session)
     if user and user.role == UserRole.GUEST:
         user.promote_to_user(email, password=None, auth_provider=AuthProviders.GOOGLE)
         user.save(db_session)

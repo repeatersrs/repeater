@@ -25,12 +25,6 @@ from src.schemas.deck import (
     DeckUpdate,
     ImportFormat,
 )
-from src.util import (
-    get_depth_to_root,
-    set_children_archived,
-    set_children_paused,
-    would_create_cycle,
-)
 
 router = APIRouter(prefix="/decks", tags=["decks"])
 
@@ -88,7 +82,7 @@ def get_decks_tree(
     tree_decks = 0
 
     def build_node(deck: Deck) -> DeckNode:
-        node_depth = get_depth_to_root(deck) + 1
+        node_depth = deck.get_depth_to_root() + 1
         nonlocal tree_depth
         nonlocal tree_decks
         tree_depth = max(tree_depth, node_depth)
@@ -149,16 +143,16 @@ def update_deck(
             db_session, id=deck_req.parent_id, user_id=user.id
         ).one()
 
-        if would_create_cycle(deck.id, parent_deck):
+        if deck.would_create_cycle(parent_deck):
             raise HTTPException(
                 status_code=400, detail="Would create circular reference"
             )
 
     if deck_req.is_paused:
-        set_children_paused(deck, db_session)
+        deck.set_children_paused(db_session)
 
     if deck_req.is_archived:
-        set_children_archived(deck, db_session)
+        deck.set_children_archived(db_session)
 
     updates = deck_req.model_dump(exclude_unset=True)
     for field, value in updates.items():

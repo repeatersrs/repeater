@@ -23,9 +23,9 @@ def get_review_session(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    today = datetime.now(timezone.utc)
-    today_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = today.replace(hour=23, minute=59, second=59, microsecond=9999)
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = now.replace(hour=23, minute=59, second=59, microsecond=9999)
 
     cards_reviewed_today = (
         db_session.query(Review)

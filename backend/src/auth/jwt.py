@@ -3,7 +3,7 @@ from os import getenv
 from uuid import UUID, uuid4
 
 import jwt
-from fastapi import Cookie, Depends, HTTPException, Response
+from fastapi import Cookie, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
 from src.db import get_db
@@ -124,3 +124,18 @@ def get_current_user(
             pass
 
     raise HTTPException(status_code=401, detail="Invalid or expired access token")
+
+
+def get_user_from_token(request: Request, db_session: Session) -> User | None:
+    token = request.cookies.get("access_token")
+    if not token:
+        return None
+    try:
+        payload = decode_jwt(token)
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        user = User.get(db_session, user_id)
+        return user
+    except Exception:
+        return None

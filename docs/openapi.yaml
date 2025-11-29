@@ -694,6 +694,73 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /review-session:
+    get:
+      tags:
+      - review_session
+      summary: Get Review Session
+      operationId: get_review_session_review_session_get
+      parameters:
+      - name: deck_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Deck Id
+      - name: user_tz
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: User Tz
+      - name: exclude_paused
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Exclude Paused
+      - name: exclude_archived
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Exclude Archived
+      - name: access_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewSessionOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /reviews:
     post:
       tags:
@@ -1364,6 +1431,82 @@ components:
       - succeeded
       - failed
       title: ReviewOut
+    ReviewSessionCard:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        deck_id:
+          type: string
+          format: uuid
+          title: Deck Id
+        deck_name:
+          type: string
+          title: Deck Name
+        content:
+          type: string
+          title: Content
+        next_review_date:
+          type: string
+          format: date-time
+          title: Next Review Date
+        overdue:
+          type: boolean
+          title: Overdue
+        todays_reviews:
+          items:
+            $ref: '#/components/schemas/ReviewOut'
+          type: array
+          title: Todays Reviews
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - id
+      - deck_id
+      - deck_name
+      - content
+      - next_review_date
+      - overdue
+      - todays_reviews
+      - created_at
+      - updated_at
+      title: ReviewSessionCard
+    ReviewSessionOut:
+      properties:
+        date:
+          type: string
+          format: date-time
+          title: Date
+        remaining:
+          items:
+            $ref: '#/components/schemas/ReviewSessionCard'
+          type: array
+          title: Remaining
+        completed:
+          items:
+            $ref: '#/components/schemas/ReviewSessionCard'
+          type: array
+          title: Completed
+        failed:
+          items:
+            $ref: '#/components/schemas/ReviewSessionCard'
+          type: array
+          title: Failed
+      type: object
+      required:
+      - date
+      - remaining
+      - completed
+      - failed
+      title: ReviewSessionOut
     StatisticsOut:
       properties:
         total_reviews:
