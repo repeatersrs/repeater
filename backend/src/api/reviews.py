@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from src.auth.jwt import get_current_user
@@ -11,11 +11,10 @@ from src.const import (
     SCHEDULE_DEFAULT_REPETITIONS,
 )
 from src.db import get_db
-from src.db.models import Review, User
+from src.db.models import Card, Review, User
 from src.schedulers import Scheduler
 from src.schedulers.basic import BasicScheduler
 from src.schemas.review import ReviewCreate, ReviewOut
-from src.util import get_user_card
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -31,7 +30,7 @@ def create_review(
     db_session: Session = Depends(get_db),
     scheduler: Scheduler = Depends(get_scheduler),
 ):
-    card = get_user_card(review_req.card_id, user.id, db_session)
+    card = Card.get_user_card(review_req.card_id, user.id, db_session)
     last_review = (
         Review.filter_by(db_session, card_id=card.id)
         .order_by(Review.reviewed_at.desc())
@@ -75,7 +74,7 @@ def get_review_history(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    card = get_user_card(card_id, user.id, db_session)
+    card = Card.get_user_card(card_id, user.id, db_session)
     return (
         Review.filter_by(db_session, card_id=card.id)
         .order_by(Review.reviewed_at.desc())

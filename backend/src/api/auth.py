@@ -6,13 +6,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from src import util
 from src.auth.jwt import (
     create_access_token,
     create_refresh_token,
     decode_jwt,
     get_access_token_cookie_kwargs,
     get_refresh_token_cookie_kwargs,
+    get_user_from_token,
 )
 from src.db import get_db
 from src.db.models import User, UserRole
@@ -69,7 +69,7 @@ def register(
     if User.filter_by(db_session, email=user_req.email).first():
         raise HTTPException(status_code=400, detail="Email is in use")
 
-    user = util.get_user_from_token(request, db_session)
+    user = get_user_from_token(request, db_session)
     if user and user.role == UserRole.GUEST:
         user.promote_to_user(user_req.email, user_req.password)
         user.save(db_session)

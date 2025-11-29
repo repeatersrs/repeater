@@ -9,7 +9,6 @@ from src.auth.jwt import get_current_user
 from src.db import get_db
 from src.db.models import Card, Deck, User
 from src.schemas.card import CardCreate, CardOut, CardUpdate
-from src.util import get_user_card
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
@@ -69,7 +68,7 @@ def update_card(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    card = get_user_card(card_id, user.id, db_session)
+    card = Card.get_user_card(card_id, user.id, db_session)
     updates = card_req.model_dump(exclude_unset=True)
     for field, value in updates.items():
         setattr(card, field, value)
@@ -83,6 +82,6 @@ def delete_card(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    card = get_user_card(card_id, user.id, db_session)
+    card = Card.get_user_card(card_id, user.id, db_session)
     card.delete(db_session)
     return {"id": card.id}
