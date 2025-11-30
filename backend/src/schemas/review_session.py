@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import List
+from typing import List, Self
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -20,7 +20,7 @@ class ReviewSessionCard(BaseModel):
     updated_at: datetime
 
     @classmethod
-    def from_card(cls, card: Card, todays_reviews: List[Review]) -> "ReviewSessionCard":
+    def from_card(cls, card: Card, todays_reviews: List[Review]) -> Self:
         now = datetime.now(timezone.utc)
         return cls(
             **card.__dict__,
