@@ -4,6 +4,7 @@ from freezegun import freeze_time
 
 from src.db.models import ReviewFeedback
 from src.statistics import DifficultyRankings
+from tests.asserts import is_uuid_string
 
 
 @freeze_time("2025-07-01")
@@ -57,7 +58,7 @@ async def test_get_statistics(ignore_jwt_expiration, user, user_client):
             {
                 "deck_id": deck_id,
                 "deck_name": "deck",
-                "deck_path": ["deck"],
+                "deck_path": [{"id": is_uuid_string(), "name": "deck"}],
                 "retention_rate": 0,
                 "total_reviews": 2,
                 "last_studied": datetime(2025, 7, 2).isoformat(timespec="seconds")
@@ -132,7 +133,7 @@ async def test_get_statistics_different_decks(ignore_jwt_expiration, user, user_
             {
                 "deck_id": deck_1_id,
                 "deck_name": "deck",
-                "deck_path": ["deck"],
+                "deck_path": [{"id": is_uuid_string(), "name": "deck"}],
                 "retention_rate": 0,
                 "total_reviews": 1,
                 "last_studied": datetime(2025, 7, 2).isoformat(timespec="seconds")
@@ -142,7 +143,7 @@ async def test_get_statistics_different_decks(ignore_jwt_expiration, user, user_
             {
                 "deck_id": deck_2_id,
                 "deck_name": "deck",
-                "deck_path": ["deck"],
+                "deck_path": [{"id": is_uuid_string(), "name": "deck"}],
                 "retention_rate": 0,
                 "total_reviews": 1,
                 "last_studied": datetime(2025, 7, 2).isoformat(timespec="seconds")
@@ -194,7 +195,7 @@ async def test_get_statistics_deleted_card(ignore_jwt_expiration, user_client):
             {
                 "deck_id": deck_id,
                 "deck_name": "deck",
-                "deck_path": ["deck"],
+                "deck_path": [{"id": is_uuid_string(), "name": "deck"}],
                 "retention_rate": 0,
                 "total_reviews": 1,
                 "last_studied": datetime(2025, 7, 1).isoformat(timespec="seconds")
@@ -254,7 +255,7 @@ async def test_get_statistics_deleted_deck(ignore_jwt_expiration, user_client):
             {
                 "deck_id": deck_id,
                 "deck_name": "deck",
-                "deck_path": ["deck"],
+                "deck_path": [{"id": is_uuid_string(), "name": "deck"}],
                 "retention_rate": 0,
                 "total_reviews": 1,
                 "last_studied": datetime(2025, 7, 1).isoformat(timespec="seconds")
@@ -329,7 +330,7 @@ async def test_get_deck_statistics(ignore_jwt_expiration, user_client):
         assert res.json() == {
             "deck_id": deck_1_id,
             "deck_name": "deck",
-            "deck_path": ["deck"],
+            "deck_path": [{"id": is_uuid_string(), "name": "deck"}],
             "retention_rate": 0,
             "total_reviews": 1,
             "last_studied": datetime(2025, 7, 2).isoformat(timespec="seconds") + "Z",
@@ -342,7 +343,7 @@ async def test_get_deck_statistics(ignore_jwt_expiration, user_client):
         assert res.json() == {
             "deck_id": deck_2_id,
             "deck_name": "deck",
-            "deck_path": ["deck"],
+            "deck_path": [{"id": is_uuid_string(), "name": "deck"}],
             "retention_rate": 0,
             "total_reviews": 0,
             "last_studied": None,

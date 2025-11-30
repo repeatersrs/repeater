@@ -18,7 +18,7 @@ async def test_create_deck(db_session, user, user_client):
         "is_paused": False,
         "is_archived": False,
         "is_root": True,
-        "path": ["deck"],
+        "path": [{"id": is_uuid_string(), "name": "deck"}],
         "created_at": is_utc_isoformat_string(),
         "updated_at": is_utc_isoformat_string(),
     }
@@ -46,7 +46,7 @@ async def test_get_deck(user, user_client):
         "is_paused": False,
         "is_archived": False,
         "is_root": True,
-        "path": ["deck"],
+        "path": [{"id": is_uuid_string(), "name": "deck"}],
         "created_at": is_utc_isoformat_string(),
         "updated_at": is_utc_isoformat_string(),
     }
@@ -70,7 +70,7 @@ async def test_get_decks(user, user_client):
             "is_paused": False,
             "is_archived": False,
             "is_root": True,
-            "path": ["deck"],
+            "path": [{"id": is_uuid_string(), "name": "deck"}],
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
         }
@@ -95,7 +95,7 @@ async def test_update_deck(user, user_client):
         "is_paused": False,
         "is_archived": False,
         "is_root": True,
-        "path": ["test"],
+        "path": [{"id": is_uuid_string(), "name": "test"}],
         "created_at": is_utc_isoformat_string(),
         "updated_at": is_utc_isoformat_string(),
     }
@@ -424,7 +424,10 @@ async def test_create_subdeck(user_client):
         "is_paused": False,
         "is_archived": False,
         "is_root": False,
-        "path": ["parent", "child"],
+        "path": [
+            {"id": is_uuid_string(), "name": "parent"},
+            {"id": is_uuid_string(), "name": "child"},
+        ],
         "created_at": is_utc_isoformat_string(),
         "updated_at": is_utc_isoformat_string(),
     }
@@ -450,7 +453,10 @@ async def test_get_decks_with_children(user_client):
             "is_paused": False,
             "is_archived": False,
             "is_root": False,
-            "path": ["parent", "child"],
+            "path": [
+                {"id": is_uuid_string(), "name": "parent"},
+                {"id": is_uuid_string(), "name": "child"},
+            ],
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
         },
@@ -463,7 +469,9 @@ async def test_get_decks_with_children(user_client):
             "is_paused": False,
             "is_archived": False,
             "is_root": True,
-            "path": ["parent"],
+            "path": [
+                {"id": is_uuid_string(), "name": "parent"},
+            ],
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
         },
@@ -558,7 +566,10 @@ async def test_move_deck_to_new_parent(user_client):
         "is_paused": False,
         "is_archived": False,
         "is_root": False,
-        "path": ["parent 1", "child"],
+        "path": [
+            {"id": is_uuid_string(), "name": "parent 1"},
+            {"id": is_uuid_string(), "name": "child"},
+        ],
         "created_at": is_utc_isoformat_string(),
         "updated_at": is_utc_isoformat_string(),
     }
@@ -575,7 +586,10 @@ async def test_move_deck_to_new_parent(user_client):
         "is_paused": False,
         "is_archived": False,
         "is_root": False,
-        "path": ["parent 2", "child"],
+        "path": [
+            {"id": is_uuid_string(), "name": "parent 2"},
+            {"id": is_uuid_string(), "name": "child"},
+        ],
         "created_at": is_utc_isoformat_string(),
         "updated_at": is_utc_isoformat_string(),
     }
@@ -677,7 +691,9 @@ async def test_user_can_only_see_own_decks(user_client, admin_client):
             "is_paused": False,
             "is_archived": False,
             "is_root": True,
-            "path": ["user"],
+            "path": [
+                {"id": is_uuid_string(), "name": "user"},
+            ],
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
         },
@@ -871,7 +887,11 @@ async def test_deck_path_property(user_client):
     assert res.status_code == 201
 
     res = await user_client.get(f"/decks/{res.json()['id']}")
-    assert res.json()["path"] == ["level1", "level2", "level3"]
+    assert res.json()["path"] == [
+        {"id": is_uuid_string(), "name": "level1"},
+        {"id": is_uuid_string(), "name": "level2"},
+        {"id": is_uuid_string(), "name": "level3"},
+    ]
     assert res.json()["is_root"] == False
 
 
@@ -889,7 +909,7 @@ async def test_move_deck_to_remove_parent(user_client):
     assert res.status_code == 200
     assert res.json()["parent_id"] is None
     assert res.json()["is_root"] == True
-    assert res.json()["path"] == ["child"]
+    assert res.json()["path"] == [{"id": is_uuid_string(), "name": "child"}]
 
 
 async def test_move_deck_to_existing_parent(user_client):
@@ -917,7 +937,10 @@ async def test_move_deck_to_existing_parent(user_client):
         "is_paused": False,
         "is_archived": False,
         "is_root": False,
-        "path": ["parent1", "deck"],
+        "path": [
+            {"id": is_uuid_string(), "name": "parent1"},
+            {"id": is_uuid_string(), "name": "deck"},
+        ],
         "created_at": is_utc_isoformat_string(),
         "updated_at": is_utc_isoformat_string(),
     }
@@ -939,7 +962,10 @@ async def test_move_deck_to_existing_parent(user_client):
         "is_paused": False,
         "is_archived": False,
         "is_root": False,
-        "path": ["parent2", "deck"],
+        "path": [
+            {"id": is_uuid_string(), "name": "parent2"},
+            {"id": is_uuid_string(), "name": "deck"},
+        ],
         "created_at": is_utc_isoformat_string(),
         "updated_at": is_utc_isoformat_string(),
     }
@@ -978,7 +1004,7 @@ async def test_move_deck_to_other_users_parent(user_client, admin_client):
 
 
 async def test_get_decks_by_parent(user, user_client):
-    res = await create_deck(user_client, name="parent_deck")
+    res = await create_deck(user_client, name="parent deck")
     assert res.status_code == 201
     parent_id = res.json()["id"]
 
@@ -1008,7 +1034,10 @@ async def test_get_decks_by_parent(user, user_client):
             "is_paused": False,
             "is_archived": False,
             "is_root": False,
-            "path": ["parent_deck", "deck inside parent"],
+            "path": [
+                {"id": is_uuid_string(), "name": "parent deck"},
+                {"id": is_uuid_string(), "name": "deck inside parent"},
+            ],
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
         }
@@ -1038,7 +1067,9 @@ async def test_get_decks_exclude_paused(user, user_client):
             "is_paused": False,
             "is_archived": False,
             "is_root": True,
-            "path": ["deck"],
+            "path": [
+                {"id": is_uuid_string(), "name": "deck"},
+            ],
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
         }
@@ -1068,7 +1099,9 @@ async def test_get_decks_exclude_archived(user, user_client):
             "is_paused": False,
             "is_archived": False,
             "is_root": True,
-            "path": ["deck"],
+            "path": [
+                {"id": is_uuid_string(), "name": "deck"},
+            ],
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
         }

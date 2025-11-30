@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Self
+from typing import Dict, List, Optional, Self
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -23,7 +23,7 @@ class DeckOut(BaseModel):
     is_paused: bool
     is_archived: bool
     is_root: bool
-    path: List[str]
+    path: List[Dict[str, str]]
     created_at: datetime
     updated_at: datetime
 

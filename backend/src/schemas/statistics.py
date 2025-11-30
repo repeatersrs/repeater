@@ -7,7 +7,7 @@ from pydantic import BaseModel
 class DeckStatistics(BaseModel):
     deck_id: str
     deck_name: str
-    deck_path: List[str]
+    deck_path: List[Dict[str, str]]
     retention_rate: float
     total_reviews: int
     last_studied: Optional[datetime] = None
