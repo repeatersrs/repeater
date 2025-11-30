@@ -1175,7 +1175,9 @@ components:
           title: Is Root
         path:
           items:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
           type: array
           title: Path
         created_at:

@@ -152,11 +152,11 @@ class Deck(Base, BaseMixin):
     @property
     def path(self):
         if self.is_root:
-            return [self.name]
+            return [{"id": str(self.id), "name": self.name}]
         path_parts = []
         current = self
         while current is not None:
-            path_parts.append(current.name)
+            path_parts.append({"id": str(current.id), "name": current.name})
             current = current.parent
         return list(reversed(path_parts))
 
