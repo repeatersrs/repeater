@@ -1043,6 +1043,13 @@ components:
         deck_name:
           type: string
           title: Deck Name
+        deck_path:
+          items:
+            additionalProperties:
+              type: string
+            type: object
+          type: array
+          title: Deck Path
         content:
           type: string
           title: Content
@@ -1066,6 +1073,7 @@ components:
       - id
       - deck_id
       - deck_name
+      - deck_path
       - content
       - next_review_date
       - overdue
@@ -1210,7 +1218,9 @@ components:
           title: Deck Name
         deck_path:
           items:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
           type: array
           title: Deck Path
         retention_rate:
@@ -1446,6 +1456,13 @@ components:
         deck_name:
           type: string
           title: Deck Name
+        deck_path:
+          items:
+            additionalProperties:
+              type: string
+            type: object
+          type: array
+          title: Deck Path
         content:
           type: string
           title: Content
@@ -1474,6 +1491,7 @@ components:
       - id
       - deck_id
       - deck_name
+      - deck_path
       - content
       - next_review_date
       - overdue

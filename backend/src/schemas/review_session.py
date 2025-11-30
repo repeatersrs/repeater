@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import List, Self
+from typing import Dict, List, Self
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -12,6 +12,7 @@ class ReviewSessionCard(BaseModel):
     id: UUID
     deck_id: UUID
     deck_name: str
+    deck_path: List[Dict[str, str]]
     content: str
     next_review_date: datetime
     overdue: bool
@@ -25,6 +26,7 @@ class ReviewSessionCard(BaseModel):
         return cls(
             **card.__dict__,
             deck_name=card.deck.name,
+            deck_path=card.deck.path,
             overdue=now >= card.next_review_date + timedelta(hours=24),
             todays_reviews=[
                 ReviewOut.model_validate(review, from_attributes=True)
