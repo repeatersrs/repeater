@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from enum import StrEnum
+from typing import Self
 
 import bcrypt
 from sqlalchemy import UUID, Boolean, DateTime, Float, ForeignKey, Integer, String
@@ -185,7 +186,7 @@ class Deck(Base, BaseMixin):
 
         traverse_and_pause(self)
 
-    def would_create_cycle(self, new_parent: "Deck") -> bool:
+    def would_create_cycle(self, new_parent: Self) -> bool:
         current = new_parent
         while current:
             if current.id == self.id:
@@ -210,7 +211,7 @@ class Card(Base, BaseMixin):
     deck = relationship("Deck", back_populates="cards")
 
     @staticmethod
-    def get_user_card(card_id: UUID, user_id: UUID, db_session: Session) -> "Card":
+    def get_user_card(card_id: UUID, user_id: UUID, db_session: Session) -> Self:
         return (
             db_session.query(Card)
             .join(Deck)

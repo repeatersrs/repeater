@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Self
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -44,7 +44,7 @@ class DeckSummary(BaseModel):
 class DeckNode(BaseModel):
     id: UUID
     name: str
-    children: List["DeckNode"]
+    children: List[Self]
     card_count: int
     depth: int
     is_paused: bool
