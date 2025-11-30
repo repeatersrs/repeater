@@ -155,7 +155,7 @@ function Profile() {
                                             }}
                                             className="underline"
                                         >
-                                            {`${deckStat.deck_path.join(' / ')}`}
+                                            {`${deckStat.deck_path.map((d) => d.name).join(' > ')}`}
                                         </Link>
                                     }
                                     description="Some explanation"
