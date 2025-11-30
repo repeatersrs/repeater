@@ -10,15 +10,10 @@ import {
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
+import DeckPathBreadcrumbs from '@/components/deck-path-breadcrumbs';
 import Kbd from '@/components/kbd';
 import { useShortcutActions } from '@/components/shortcut-provider';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import {
-    Breadcrumb,
-    BreadcrumbList,
-    BreadcrumbItem,
-    BreadcrumbLink,
-} from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -176,29 +171,10 @@ function Review() {
 
                         <Card className="relative z-10 flex flex-col flex-1 pb-0">
                             <CardHeader className="text-xs flex flex-row items-center justify-between ">
-                                <Breadcrumb>
-                                    {/*TODO:
-                                      Update breadcrumbs to show current deck's parent decks as well. The structure should be:
-                                      1 parent: Parent > Child
-                                      2+ parents: Grand parent > ... > Child
-
-                                      The breadcrumb path can be gotten by using getDeckDecksDeckIdGet with activeCard.deck_id,
-                                      and using the 'path' property of the active deck.
-
-                                      What's preventing implementation now is that the path is only an array of strings, meaning we don't have
-                                      the id for the parent decks that we need to build the BreadcrumbLink.
-                                      */}
-                                    <BreadcrumbList>
-                                        <BreadcrumbItem>
-                                            <BreadcrumbLink
-                                                href={`/decks/${activeCard.deck_id}`}
-                                            >
-                                                {activeCard.deck_name}
-                                            </BreadcrumbLink>
-                                        </BreadcrumbItem>
-                                    </BreadcrumbList>
-                                </Breadcrumb>
-
+                                <DeckPathBreadcrumbs
+                                    path={activeCard.deck_path}
+                                    showFullPath={false}
+                                />
                                 {activeCard.overdue && (
                                     <p className="flex items-center gap-2 flex-row text-destructive/90">
                                         <CalendarX2 className="size-3.5" />
