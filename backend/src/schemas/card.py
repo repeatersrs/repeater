@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -17,6 +17,7 @@ class CardOut(BaseModel):
     id: UUID
     deck_id: UUID
     deck_name: str
+    deck_path: List[Dict[str, str]]
     content: str
     next_review_date: datetime
     overdue: bool
@@ -29,6 +30,7 @@ class CardOut(BaseModel):
         return cls(
             **card.__dict__,
             deck_name=card.deck.name,
+            deck_path=card.deck.path,
             overdue=now >= card.next_review_date + timedelta(hours=24),
         )
 
