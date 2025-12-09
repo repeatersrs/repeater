@@ -1,4 +1,4 @@
-# monorepo
+# Repeater
 
 ## Helpful commands
 
