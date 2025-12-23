@@ -158,7 +158,7 @@ export default function CardCreationDialog({
                                         <EditorField
                                             {...field}
                                             placeholder="Enter card content..."
-                                            className="h-36"
+                                            className="min-h-36 max-h-96 overflow-y-auto"
                                         />
                                     </FormControl>
                                     <FormMessage />
