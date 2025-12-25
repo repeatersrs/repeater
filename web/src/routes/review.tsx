@@ -28,24 +28,25 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ShortcutScope } from '@/config/shortcuts';
-import { getCardsCardsGet, createReviewReviewsPost } from '@/gen';
+import {
+    createReviewReviewsPost,
+    getReviewSessionReviewSessionGet,
+} from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
 import { createActions, getShortcut } from '@/lib/shortcuts';
 
 export const Route = createFileRoute('/review')({
     loader: async ({ context: { queryClient } }) => {
-        const dueCards = await queryClient.ensureQueryData({
-            queryKey: ['cards', 'due'],
+        await queryClient.ensureQueryData({
+            queryKey: ['review-session'],
             queryFn: () =>
-                getCardsCardsGet({
+                getReviewSessionReviewSessionGet({
                     query: {
-                        only_due: true,
                         exclude_paused: true,
                         exclude_archived: true,
                     },
                 }),
         });
-        return { dueCards };
     },
     component: Review,
 });
@@ -56,38 +57,40 @@ function Review() {
     const {
         isPending,
         isError,
-        data: dueCards,
+        data: { remainingCards = [] } = {},
     } = useQuery({
-        queryKey: ['cards', 'due'],
+        queryKey: ['review-session'],
         queryFn: () =>
-            getCardsCardsGet({
+            getReviewSessionReviewSessionGet({
                 query: {
-                    only_due: true,
                     exclude_paused: true,
                     exclude_archived: true,
                 },
             }),
+        select: (response) => ({
+            remainingCards: response.data?.remaining,
+        }),
     });
 
     const queryClient = useQueryClient();
 
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [sidesVisible, setSidesVisible] = useState(1);
-    const activeCard = dueCards?.data?.[activeCardIndex];
-    const activeCardSides = activeCard?.content.split('---') || [];
+    const currentCard = remainingCards[activeCardIndex];
+    const activeCardSides = currentCard?.content.split('---') || [];
 
     const reviewCard = useMutation({
         mutationFn: (feedback: 'ok' | 'skipped' | 'forgot') =>
             createReviewReviewsPost({
                 body: {
-                    card_id: activeCard!.id,
+                    card_id: currentCard!.id,
                     feedback: feedback,
                 },
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['cards'] });
+            queryClient.invalidateQueries({ queryKey: ['review-session'] });
             queryClient.invalidateQueries({
-                queryKey: ['reviews', activeCard!.id],
+                queryKey: ['reviews', currentCard!.id],
             });
             queryClient.invalidateQueries({
                 queryKey: ['stats'],
@@ -100,11 +103,11 @@ function Review() {
     const { mutate: mutateReview } = reviewCard;
 
     const nextCard = useCallback(() => {
-        if (dueCards?.data && activeCardIndex < dueCards.data.length - 1) {
+        if (activeCardIndex < remainingCards.length - 1) {
             setActiveCardIndex((prev) => prev + 1);
             setSidesVisible(1);
         }
-    }, [dueCards?.data, activeCardIndex]);
+    }, [remainingCards, activeCardIndex]);
 
     const prevCard = useCallback(() => {
         if (activeCardIndex > 0) {
@@ -150,7 +153,7 @@ function Review() {
         <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center justify-between gap-4 pt-8 pb-4">
             {isPending && !isError && <p>loading</p>}
             {!isPending && isError && <p>error!</p>}
-            {dueCards?.data?.length === 0 && (
+            {remainingCards.length === 0 && (
                 <Alert className="bg-muted max-w-md">
                     <CircleCheck className="h-4 w-4" />
                     <AlertTitle>All done!</AlertTitle>
@@ -159,27 +162,27 @@ function Review() {
                     </AlertDescription>
                 </Alert>
             )}
-            {activeCard && (
+            {currentCard && (
                 <>
                     <div className="relative flex aspect-[3/4] w-4/6 max-w-xs">
-                        {dueCards?.data && dueCards.data.length > 2 && (
+                        {remainingCards.length > 2 && (
                             <Card className="pointer-events-none absolute inset-0 translate-x-3 translate-y-4"></Card>
                         )}
-                        {dueCards?.data && dueCards.data.length > 1 && (
+                        {remainingCards.length > 1 && (
                             <Card className="pointer-events-none absolute inset-0 translate-x-1.5 translate-y-2"></Card>
                         )}
 
                         <Card className="relative z-10 flex flex-1 flex-col pb-0">
                             <CardHeader className="flex flex-row items-center justify-between text-xs">
                                 <DeckPathBreadcrumbs
-                                    path={activeCard.deck_path}
+                                    path={currentCard.deck_path}
                                     showFullPath={false}
                                 />
-                                {activeCard.overdue && (
+                                {currentCard.overdue && (
                                     <p className="text-destructive/90 flex flex-row items-center gap-2">
                                         <CalendarX2 className="size-3.5" />
                                         {new Date(
-                                            activeCard.next_review_date
+                                            currentCard.next_review_date
                                         ).toLocaleDateString('en-US', {
                                             year: 'numeric',
                                             month: '2-digit',
@@ -273,9 +276,8 @@ function Review() {
                                             size="icon"
                                             onClick={nextCard}
                                             disabled={
-                                                !dueCards?.data ||
                                                 activeCardIndex >=
-                                                    dueCards.data.length - 1
+                                                remainingCards.length - 1
                                             }
                                         >
                                             <ChevronRight />
