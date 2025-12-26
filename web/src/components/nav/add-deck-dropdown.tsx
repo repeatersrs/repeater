@@ -118,7 +118,7 @@ export function AddDeckDropdown({
             toast.error(
                 <div>
                     <p>Failed to create deck</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                         {getErrorMessage(error)}
                     </p>
                 </div>
@@ -294,7 +294,7 @@ export function AddDeckDropdown({
                                         toast.error(
                                             <div>
                                                 <p>File upload failed</p>
-                                                <p className="text-xs text-muted-foreground">
+                                                <p className="text-muted-foreground text-xs">
                                                     {getErrorMessage(error)}
                                                 </p>
                                             </div>
@@ -366,7 +366,7 @@ export function AddDeckDropdown({
                                                                 {files[0].name}
                                                             </span>
                                                         </p>
-                                                        <p className="text-xs text-muted-foreground">
+                                                        <p className="text-muted-foreground text-xs">
                                                             {getErrorMessage(
                                                                 error
                                                             )}

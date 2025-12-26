@@ -44,6 +44,7 @@ test *args:
 format:
     docker exec {{backend_container}} uvx ruff check --select I --fix
     docker exec {{backend_container}} uvx ruff format
+    docker exec {{frontend_container}} pnpm run format
     docker exec {{frontend_container}} pnpm run lint:fix
 
 # Create a new database migration

@@ -1,7 +1,6 @@
 import { FlatCompat } from '@eslint/eslintrc';
-import betterTailwindcss from 'eslint-plugin-better-tailwindcss';
+import prettierConfig from 'eslint-config-prettier';
 import perfectionist from 'eslint-plugin-perfectionist';
-import prettier from 'eslint-plugin-prettier/recommended';
 import { dirname } from 'path';
 import tseslint from 'typescript-eslint';
 import { fileURLToPath } from 'url';
@@ -20,16 +19,9 @@ const eslintConfig = [
     ...tseslint.configs.recommended,
     ...compat.extends('plugin:@tanstack/eslint-plugin-query/recommended'),
     ...compat.extends('plugin:react-hooks/recommended'),
-    prettier,
     {
         plugins: {
             perfectionist,
-            'better-tailwindcss': betterTailwindcss,
-        },
-        settings: {
-            'better-tailwindcss': {
-                entryPoint: 'src/styles/globals.css',
-            },
         },
         rules: {
             'perfectionist/sort-imports': 'error',
@@ -42,6 +34,7 @@ const eslintConfig = [
             ],
         },
     },
+    prettierConfig,
 ];
 
 export default eslintConfig;

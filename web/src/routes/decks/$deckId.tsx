@@ -158,7 +158,7 @@ function DeckPage() {
             toast.error(
                 <div>
                     <p>Failed to update deck</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                         {getErrorMessage(error)}
                     </p>
                 </div>

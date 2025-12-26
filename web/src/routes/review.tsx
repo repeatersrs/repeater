@@ -163,20 +163,20 @@ function Review() {
                 <>
                     <div className="relative flex aspect-[3/4] w-4/6 max-w-xs">
                         {dueCards?.data && dueCards.data.length > 2 && (
-                            <Card className="absolute inset-0 translate-y-4 translate-x-3 pointer-events-none"></Card>
+                            <Card className="pointer-events-none absolute inset-0 translate-x-3 translate-y-4"></Card>
                         )}
                         {dueCards?.data && dueCards.data.length > 1 && (
-                            <Card className="absolute inset-0 translate-y-2 translate-x-1.5 pointer-events-none"></Card>
+                            <Card className="pointer-events-none absolute inset-0 translate-x-1.5 translate-y-2"></Card>
                         )}
 
-                        <Card className="relative z-10 flex flex-col flex-1 pb-0">
-                            <CardHeader className="text-xs flex flex-row items-center justify-between ">
+                        <Card className="relative z-10 flex flex-1 flex-col pb-0">
+                            <CardHeader className="flex flex-row items-center justify-between text-xs">
                                 <DeckPathBreadcrumbs
                                     path={activeCard.deck_path}
                                     showFullPath={false}
                                 />
                                 {activeCard.overdue && (
-                                    <p className="flex items-center gap-2 flex-row text-destructive/90">
+                                    <p className="text-destructive/90 flex flex-row items-center gap-2">
                                         <CalendarX2 className="size-3.5" />
                                         {new Date(
                                             activeCard.next_review_date
@@ -188,7 +188,7 @@ function Review() {
                                     </p>
                                 )}
                             </CardHeader>
-                            <CardContent className="flex-1 overflow-y-auto scrollbar-hidden">
+                            <CardContent className="scrollbar-hidden flex-1 overflow-y-auto">
                                 {activeCardSides?.map(
                                     (content, index) =>
                                         index < sidesVisible && (
@@ -201,7 +201,7 @@ function Review() {
                                         )
                                 )}
 
-                                <div className="sticky bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card to-transparent pointer-events-none"></div>
+                                <div className="from-card pointer-events-none sticky right-0 bottom-0 left-0 h-16 bg-gradient-to-t to-transparent"></div>
                             </CardContent>
                             <CardFooter className="p-0">
                                 {sidesVisible < activeCardSides.length && (
@@ -210,7 +210,7 @@ function Review() {
                                             <Button
                                                 variant="ghost"
                                                 onClick={revealNext}
-                                                className="h-10 w-full text-xs p-6 bg-transparent hover:bg-transparent hover:bg-gradient-to-t hover:from-accent/25 hover:to-card text-muted-foreground transition-none hover:transition-all"
+                                                className="hover:from-accent/25 hover:to-card text-muted-foreground h-10 w-full bg-transparent p-6 text-xs transition-none hover:bg-transparent hover:bg-gradient-to-t hover:transition-all"
                                             >
                                                 Next side
                                                 <ArrowBigDownDash />
@@ -237,8 +237,8 @@ function Review() {
                         </Card>
                     </div>
                     <div className="flex flex-col items-center gap-4">
-                        <div className="flex gap-4 items-center">
-                            <div className="gap-2 flex">
+                        <div className="flex items-center gap-4">
+                            <div className="flex gap-2">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button

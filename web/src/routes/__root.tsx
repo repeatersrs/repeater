@@ -20,7 +20,7 @@ function RootComponent() {
         <AppProviders>
             <AppSidebar />
             <SidebarInset>
-                <header className="pl-6 pt-6 md:p-4">
+                <header className="pt-6 pl-6 md:p-4">
                     <SidebarTrigger />
                 </header>
                 <Outlet />

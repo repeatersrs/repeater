@@ -89,8 +89,11 @@ jobs:
         working-directory: ./web
 
       - name: Run frontend formatting check
-        run: |
-          pnpm run lint
+        run: pnpm run format:check
+        working-directory: ./web
+
+      - name: Run frontend lint
+        run: pnpm run lint
         working-directory: ./web
 
       - name: Upload generated client
