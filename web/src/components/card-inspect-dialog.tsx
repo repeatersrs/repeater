@@ -290,7 +290,7 @@ export default function CardInspectDialog({
                                                 <FormControl>
                                                     <EditorField
                                                         key={resetKey}
-                                                        className="h-96 resize-none"
+                                                        className="h-96 overflow-y-auto resize-none"
                                                         autoFocus={true}
                                                         {...field}
                                                     />

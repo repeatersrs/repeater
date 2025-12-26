@@ -188,7 +188,7 @@ function Review() {
                                     </p>
                                 )}
                             </CardHeader>
-                            <CardContent className="flex-1">
+                            <CardContent className="flex-1 overflow-y-auto scrollbar-hidden">
                                 {activeCardSides?.map(
                                     (content, index) =>
                                         index < sidesVisible && (
@@ -200,6 +200,8 @@ function Review() {
                                             </div>
                                         )
                                 )}
+
+                                <div className="sticky bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card to-transparent pointer-events-none"></div>
                             </CardContent>
                             <CardFooter className="p-0">
                                 {sidesVisible < activeCardSides.length && (
