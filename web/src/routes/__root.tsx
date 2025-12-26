@@ -3,8 +3,9 @@ import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 import { AppProviders } from '@/components/app-providers';
+import Header from '@/components/header';
 import { AppSidebar } from '@/components/nav/app-sidebar';
-import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarInset } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 
 interface RouterContext {
@@ -20,9 +21,7 @@ function RootComponent() {
         <AppProviders>
             <AppSidebar />
             <SidebarInset>
-                <header className="pt-6 pl-6 md:p-4">
-                    <SidebarTrigger />
-                </header>
+                <Header />
                 <Outlet />
             </SidebarInset>
             <Toaster />

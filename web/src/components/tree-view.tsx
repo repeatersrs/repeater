@@ -190,7 +190,7 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
         }, [data, expandAll, initialSelectedItemId]);
 
         return (
-            <div className={cn('relative overflow-hidden p-2', className)}>
+            <div className={cn('relative overflow-hidden', className)}>
                 <TreeItem
                     data={data}
                     ref={ref}
@@ -208,7 +208,7 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
                 <div
                     className={cn(
                         dropZoneVariants({ state: dropZoneState }),
-                        'mx-1 mt-2 h-12 w-full'
+                        'mx-1 mt-1 h-8 w-full'
                     )}
                     onDrop={handleDropZoneDrop}
                     onDragOver={handleDropZoneDragOver}

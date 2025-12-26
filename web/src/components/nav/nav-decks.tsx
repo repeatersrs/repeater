@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Plus, RotateCcw, Folder, FolderOpen, ArrowRight } from 'lucide-react';
+import { Plus, RotateCcw, ArrowRight, Folders } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -72,9 +72,6 @@ export default function NavDecks() {
             draggable: true,
             droppable: true,
             disabled: false,
-            icon:
-                item.children && item.children.length > 0 ? Folder : FolderOpen,
-            openIcon: FolderOpen,
             data: item,
 
             actions: (
@@ -113,81 +110,104 @@ export default function NavDecks() {
     }
 
     return (
-        <SidebarGroup>
-            <SidebarGroupLabel>Decks</SidebarGroupLabel>
-            <DeckCreationDialog
-                open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
-                onSuccess={() =>
-                    queryClient.invalidateQueries({
-                        queryKey: ['decks'],
-                    })
-                }
-                defaultParentId={defaultParentId}
-            />
-
-            <AddDeckDropdown
-                trigger={
-                    <SidebarGroupAction
-                        title="Add deck"
-                        className="cursor-pointer"
-                        hidden={isError}
-                    >
-                        <Plus /> <span className="sr-only">Create deck</span>
-                    </SidebarGroupAction>
-                }
-                side={isMobile ? 'bottom' : 'right'}
-                align={isMobile ? 'end' : 'start'}
-            />
-
-            {isLoading && !isError && (
-                <SidebarMenu>
-                    <>
-                        <SidebarMenuSkeleton />
-                        <SidebarMenuSkeleton />
-                        <SidebarMenuSkeleton />
-                    </>
-                </SidebarMenu>
-            )}
-            {isError && !isLoading && (
+        <>
+            {/* Collapsed view - single icon */}
+            <SidebarGroup className="hidden group-data-[collapsible=icon]:block">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton
-                            className="text-destructive hover:text-destructive/90 active:text-destructive flex h-fit cursor-pointer justify-between"
-                            onClick={() => refetchDeckTree()}
-                            aria-label="Retry loading decks"
-                        >
-                            <div className="flex flex-col items-start">
-                                <span className="text-sm">
-                                    Failed to load decks.
-                                </span>
-                                <span className="text-xs opacity-70">
-                                    Click to try again
-                                </span>
-                            </div>
-                            <RotateCcw />
+                        <SidebarMenuButton asChild tooltip="Decks">
+                            <Link to="/decks">
+                                <Folders />
+                                <span>Decks</span>
+                            </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
-            )}
-            {deckTree && deckTree.data?.decks.length === 0 && (
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            disabled
-                            className="text-muted-foreground"
-                        >
-                            No decks created
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            )}
-            {deckTree && deckTree.data && (
-                <TreeView
-                    data={mapToTreeData(deckTree.data.decks)}
-                    onDocumentDrag={handleDocumentDrag}
+            </SidebarGroup>
+
+            {/* Expanded view - full tree with label */}
+            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+                <SidebarGroupLabel>
+                    <Link to="/decks" className="flex items-center gap-1.5">
+                        <Folders className="size-4" />
+                        Decks
+                    </Link>
+                </SidebarGroupLabel>
+                <DeckCreationDialog
+                    open={isDialogOpen}
+                    onOpenChange={setIsDialogOpen}
+                    onSuccess={() =>
+                        queryClient.invalidateQueries({
+                            queryKey: ['decks'],
+                        })
+                    }
+                    defaultParentId={defaultParentId}
                 />
-            )}
-        </SidebarGroup>
+
+                <AddDeckDropdown
+                    trigger={
+                        <SidebarGroupAction
+                            title="Add deck"
+                            className="cursor-pointer"
+                            hidden={isError}
+                        >
+                            <Plus /> <span className="sr-only">Create deck</span>
+                        </SidebarGroupAction>
+                    }
+                    side={isMobile ? 'bottom' : 'right'}
+                    align={isMobile ? 'end' : 'start'}
+                />
+
+                {isLoading && !isError && (
+                    <SidebarMenu>
+                        <>
+                            <SidebarMenuSkeleton />
+                            <SidebarMenuSkeleton />
+                            <SidebarMenuSkeleton />
+                        </>
+                    </SidebarMenu>
+                )}
+                {isError && !isLoading && (
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                className="text-destructive hover:text-destructive/90 active:text-destructive flex h-fit cursor-pointer justify-between"
+                                onClick={() => refetchDeckTree()}
+                                aria-label="Retry loading decks"
+                            >
+                                <div className="flex flex-col items-start">
+                                    <span className="text-sm">
+                                        Failed to load decks.
+                                    </span>
+                                    <span className="text-xs opacity-70">
+                                        Click to try again
+                                    </span>
+                                </div>
+                                <RotateCcw />
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                )}
+                {deckTree && deckTree.data?.decks.length === 0 && (
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                disabled
+                                className="text-muted-foreground"
+                            >
+                                No decks created
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                )}
+                {deckTree && deckTree.data && (
+                    <TreeView
+                        data={mapToTreeData(deckTree.data.decks)}
+                        onDocumentDrag={handleDocumentDrag}
+                        className="p-0"
+                    />
+                )}
+            </SidebarGroup>
+        </>
     );
 }
