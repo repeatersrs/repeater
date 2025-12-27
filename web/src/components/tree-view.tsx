@@ -524,13 +524,19 @@ const TreeNodeRow = React.forwardRef<
         )}
         {...props}
     >
-        <ChevronRight
-            className={cn(
-                'text-accent-foreground/50 mr-1 h-4 w-4 shrink-0 transition-transform duration-200',
-                isOpen && 'rotate-90'
-            )}
+        <button
+            type="button"
             onClick={onChevronClick}
-        />
+            className="relative mr-1 flex h-4 w-4 shrink-0 items-center justify-center after:absolute after:-inset-2 md:after:hidden"
+            aria-label={isOpen ? 'Collapse' : 'Expand'}
+        >
+            <ChevronRight
+                className={cn(
+                    'text-accent-foreground/50 h-4 w-4 transition-transform duration-200',
+                    isOpen && 'rotate-90'
+                )}
+            />
+        </button>
         {children}
     </div>
 ));

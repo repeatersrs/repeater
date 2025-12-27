@@ -105,8 +105,12 @@ export default function NavDecks() {
 
             {/* Expanded view - full tree with label */}
             <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-                <SidebarGroupLabel>
-                    <Link to="/decks" className="flex items-center gap-1.5">
+                <SidebarGroupLabel className="h-9">
+                    <Link
+                        to="/decks"
+                        onClick={() => setOpenMobile(false)}
+                        className="relative flex items-center gap-1.5 after:absolute after:-inset-2 md:after:hidden"
+                    >
                         <Folders className="size-4" />
                         Decks
                     </Link>
