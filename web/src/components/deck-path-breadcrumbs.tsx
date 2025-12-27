@@ -1,3 +1,4 @@
+import { Folders } from 'lucide-react';
 import React from 'react';
 
 import {
@@ -23,6 +24,17 @@ export default function DeckPathBreadcrumbs({
     return (
         <Breadcrumb>
             <BreadcrumbList>
+                <BreadcrumbItem>
+                    <BreadcrumbLink
+                        className="relative flex flex-row items-center gap-2 after:absolute after:-inset-2"
+                        href="/decks"
+                    >
+                        <Folders className="size-4" />
+                        <span className="sr-only">Decks</span>
+                    </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+
                 {path.map((d, i) => {
                     const isFirst = i === 0;
                     const isLast = i === path.length - 1;
