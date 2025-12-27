@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'motion/react';
 import { ReactNode } from 'react';
 
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';

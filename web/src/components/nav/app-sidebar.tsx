@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from '@tanstack/react-router';
 import { Brain, UserLock, Repeat, Plus } from 'lucide-react';
-import { motion } from 'motion/react';
 import { useState } from 'react';
 
 import CardCreationDialog from '@/components/card-creation-dialog';

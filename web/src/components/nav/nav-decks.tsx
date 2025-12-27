@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { Link } from '@tanstack/react-router';
 import { Plus, RotateCcw, Folders } from 'lucide-react';
 import { useState } from 'react';
@@ -32,6 +32,7 @@ export default function NavDecks() {
     const queryClient = useQueryClient();
     const { isMobile, setOpenMobile } = useSidebar();
     const navigate = useNavigate();
+    const { deckId } = useParams({ strict: false });
 
     const {
         data: deckTree,
@@ -132,7 +133,8 @@ export default function NavDecks() {
                             className="cursor-pointer"
                             hidden={isError}
                         >
-                            <Plus /> <span className="sr-only">Create deck</span>
+                            <Plus />{' '}
+                            <span className="sr-only">Create deck</span>
                         </SidebarGroupAction>
                     }
                     side={isMobile ? 'bottom' : 'right'}
@@ -184,6 +186,7 @@ export default function NavDecks() {
                 {deckTree && deckTree.data && (
                     <TreeView
                         data={mapToTreeData(deckTree.data.decks)}
+                        selectedItemId={deckId}
                         onDocumentDrag={handleDocumentDrag}
                         className="p-0"
                     />
