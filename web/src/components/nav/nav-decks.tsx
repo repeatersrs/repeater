@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import { Link } from '@tanstack/react-router';
-import { Plus, RotateCcw, ArrowRight, Folders } from 'lucide-react';
+import { Plus, RotateCcw, Folders } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -28,11 +29,9 @@ type MoveDeckArgs = {
 
 export default function NavDecks() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [defaultParentId, setDefaultParentId] = useState<string | undefined>(
-        undefined
-    );
     const queryClient = useQueryClient();
     const { isMobile, setOpenMobile } = useSidebar();
+    const navigate = useNavigate();
 
     const {
         data: deckTree,
@@ -74,32 +73,11 @@ export default function NavDecks() {
             disabled: false,
             data: item,
 
-            actions: (
-                <div className="flex items-center gap-1">
-                    <div
-                        className="hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
-                        onClick={() => {
-                            handleClickAddDeck(item.id);
-                        }}
-                    >
-                        <Plus className="h-4 w-4" />
-                    </div>
-                    <Link
-                        to="/decks/$deckId"
-                        params={{ deckId: item.id }}
-                        className="hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
-                        onClick={() => setOpenMobile(false)}
-                    >
-                        <ArrowRight className="h-4 w-4" />
-                    </Link>
-                </div>
-            ),
+            onClick: () => {
+                navigate({ to: '/decks/$deckId', params: { deckId: item.id } });
+                setOpenMobile(false);
+            },
         }));
-    }
-
-    function handleClickAddDeck(deck_id: string) {
-        setDefaultParentId(deck_id);
-        setIsDialogOpen(true);
     }
 
     function handleDocumentDrag(source: TreeDataItem, target: TreeDataItem) {
@@ -141,7 +119,6 @@ export default function NavDecks() {
                             queryKey: ['decks'],
                         })
                     }
-                    defaultParentId={defaultParentId}
                 />
 
                 <AddDeckDropdown
