@@ -1,10 +1,9 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { Link } from '@tanstack/react-router';
-import { Plus, RotateCcw, Folder, FolderOpen, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, RotateCcw, Folders } from 'lucide-react';
 import { toast } from 'sonner';
 
-import DeckCreationDialog from '@/components/deck-creation-dialog';
 import { TreeView, TreeDataItem } from '@/components/tree-view';
 import {
     SidebarMenu,
@@ -27,12 +26,10 @@ type MoveDeckArgs = {
 };
 
 export default function NavDecks() {
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [defaultParentId, setDefaultParentId] = useState<string | undefined>(
-        undefined
-    );
     const queryClient = useQueryClient();
     const { isMobile, setOpenMobile } = useSidebar();
+    const navigate = useNavigate();
+    const { deckId } = useParams({ strict: false });
 
     const {
         data: deckTree,
@@ -72,37 +69,13 @@ export default function NavDecks() {
             draggable: true,
             droppable: true,
             disabled: false,
-            icon:
-                item.children && item.children.length > 0 ? Folder : FolderOpen,
-            openIcon: FolderOpen,
             data: item,
 
-            actions: (
-                <div className="flex items-center gap-1">
-                    <div
-                        className="hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
-                        onClick={() => {
-                            handleClickAddDeck(item.id);
-                        }}
-                    >
-                        <Plus className="h-4 w-4" />
-                    </div>
-                    <Link
-                        to="/decks/$deckId"
-                        params={{ deckId: item.id }}
-                        className="hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50"
-                        onClick={() => setOpenMobile(false)}
-                    >
-                        <ArrowRight className="h-4 w-4" />
-                    </Link>
-                </div>
-            ),
+            onClick: () => {
+                navigate({ to: '/decks/$deckId', params: { deckId: item.id } });
+                setOpenMobile(false);
+            },
         }));
-    }
-
-    function handleClickAddDeck(deck_id: string) {
-        setDefaultParentId(deck_id);
-        setIsDialogOpen(true);
     }
 
     function handleDocumentDrag(source: TreeDataItem, target: TreeDataItem) {
@@ -113,81 +86,99 @@ export default function NavDecks() {
     }
 
     return (
-        <SidebarGroup>
-            <SidebarGroupLabel>Decks</SidebarGroupLabel>
-            <DeckCreationDialog
-                open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
-                onSuccess={() =>
-                    queryClient.invalidateQueries({
-                        queryKey: ['decks'],
-                    })
-                }
-                defaultParentId={defaultParentId}
-            />
+        <>
+            {/* Collapsed view - single icon */}
+            <SidebarGroup className="hidden group-data-[collapsible=icon]:block">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild tooltip="Decks">
+                            <Link to="/decks">
+                                <Folders />
+                                <span>Decks</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarGroup>
 
-            <AddDeckDropdown
-                trigger={
-                    <SidebarGroupAction
-                        title="Add deck"
-                        className="cursor-pointer"
-                        hidden={isError}
+            {/* Expanded view - full tree with label */}
+            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+                <SidebarGroupLabel className="h-9">
+                    <Link
+                        to="/decks"
+                        onClick={() => setOpenMobile(false)}
+                        className="relative flex items-center gap-1.5 after:absolute after:-inset-2 md:after:hidden"
                     >
-                        <Plus /> <span className="sr-only">Create deck</span>
-                    </SidebarGroupAction>
-                }
-                side={isMobile ? 'bottom' : 'right'}
-                align={isMobile ? 'end' : 'start'}
-            />
-
-            {isLoading && !isError && (
-                <SidebarMenu>
-                    <>
-                        <SidebarMenuSkeleton />
-                        <SidebarMenuSkeleton />
-                        <SidebarMenuSkeleton />
-                    </>
-                </SidebarMenu>
-            )}
-            {isError && !isLoading && (
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            className="text-destructive hover:text-destructive/90 active:text-destructive flex h-fit cursor-pointer justify-between"
-                            onClick={() => refetchDeckTree()}
-                            aria-label="Retry loading decks"
+                        <Folders className="size-4" />
+                        Decks
+                    </Link>
+                </SidebarGroupLabel>
+                <AddDeckDropdown
+                    trigger={
+                        <SidebarGroupAction
+                            title="Add deck"
+                            className="cursor-pointer"
+                            hidden={isError}
                         >
-                            <div className="flex flex-col items-start">
-                                <span className="text-sm">
-                                    Failed to load decks.
-                                </span>
-                                <span className="text-xs opacity-70">
-                                    Click to try again
-                                </span>
-                            </div>
-                            <RotateCcw />
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            )}
-            {deckTree && deckTree.data?.decks.length === 0 && (
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            disabled
-                            className="text-muted-foreground"
-                        >
-                            No decks created
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            )}
-            {deckTree && deckTree.data && (
-                <TreeView
-                    data={mapToTreeData(deckTree.data.decks)}
-                    onDocumentDrag={handleDocumentDrag}
+                            <Plus />{' '}
+                            <span className="sr-only">Create deck</span>
+                        </SidebarGroupAction>
+                    }
+                    side={isMobile ? 'bottom' : 'right'}
+                    align={isMobile ? 'end' : 'start'}
                 />
-            )}
-        </SidebarGroup>
+
+                {isLoading && !isError && (
+                    <SidebarMenu>
+                        <>
+                            <SidebarMenuSkeleton />
+                            <SidebarMenuSkeleton />
+                            <SidebarMenuSkeleton />
+                        </>
+                    </SidebarMenu>
+                )}
+                {isError && !isLoading && (
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                className="text-destructive hover:text-destructive/90 active:text-destructive flex h-fit cursor-pointer justify-between"
+                                onClick={() => refetchDeckTree()}
+                                aria-label="Retry loading decks"
+                            >
+                                <div className="flex flex-col items-start">
+                                    <span className="text-sm">
+                                        Failed to load decks.
+                                    </span>
+                                    <span className="text-xs opacity-70">
+                                        Click to try again
+                                    </span>
+                                </div>
+                                <RotateCcw />
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                )}
+                {deckTree && deckTree.data?.decks.length === 0 && (
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                disabled
+                                className="text-muted-foreground"
+                            >
+                                No decks created
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                )}
+                {deckTree && deckTree.data && (
+                    <TreeView
+                        data={mapToTreeData(deckTree.data.decks)}
+                        selectedItemId={deckId}
+                        onDocumentDrag={handleDocumentDrag}
+                        className="p-0"
+                    />
+                )}
+            </SidebarGroup>
+        </>
     );
 }
