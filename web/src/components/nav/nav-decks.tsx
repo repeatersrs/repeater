@@ -2,10 +2,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { Link } from '@tanstack/react-router';
 import { Plus, RotateCcw, Folders } from 'lucide-react';
-import { useState } from 'react';
 import { toast } from 'sonner';
-
-import DeckCreationDialog from '@/components/deck-creation-dialog';
 import { TreeView, TreeDataItem } from '@/components/tree-view';
 import {
     SidebarMenu,
@@ -28,7 +25,6 @@ type MoveDeckArgs = {
 };
 
 export default function NavDecks() {
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const queryClient = useQueryClient();
     const { isMobile, setOpenMobile } = useSidebar();
     const navigate = useNavigate();
@@ -116,16 +112,6 @@ export default function NavDecks() {
                         Decks
                     </Link>
                 </SidebarGroupLabel>
-                <DeckCreationDialog
-                    open={isDialogOpen}
-                    onOpenChange={setIsDialogOpen}
-                    onSuccess={() =>
-                        queryClient.invalidateQueries({
-                            queryKey: ['decks'],
-                        })
-                    }
-                />
-
                 <AddDeckDropdown
                     trigger={
                         <SidebarGroupAction

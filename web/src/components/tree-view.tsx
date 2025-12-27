@@ -46,7 +46,6 @@ interface TreeDataItem {
     selectedIcon?: any;
     openIcon?: any;
     children?: TreeDataItem[];
-    actions?: React.ReactNode;
     onClick?: () => void;
     draggable?: boolean;
     droppable?: boolean;
@@ -299,6 +298,17 @@ const TreeNode = ({
         expandedItemIds.includes(item.id) ? [item.id] : []
     );
     const [isDragOver, setIsDragOver] = React.useState(false);
+    const prevSelectedItemId = React.useRef(selectedItemId);
+
+    React.useEffect(() => {
+        if (selectedItemId !== prevSelectedItemId.current) {
+            prevSelectedItemId.current = selectedItemId;
+            const shouldBeExpanded = expandedItemIds.includes(item.id);
+            if (shouldBeExpanded && !value.includes(item.id)) {
+                setValue([item.id]);
+            }
+        }
+    }, [selectedItemId, expandedItemIds, item.id, value]);
 
     const isOpen = value.includes(item.id);
 
