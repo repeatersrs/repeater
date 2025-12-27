@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { cn } from '@udecode/cn';
 import {
     ChevronLeft,
     ChevronRight,
     CircleCheck,
     CalendarX2,
     ArrowBigDownDash,
+    CircleDashed,
 } from 'lucide-react';
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
@@ -57,7 +59,11 @@ function Review() {
     const {
         isPending,
         isError,
-        data: { remainingCards = [] } = {},
+        data: {
+            remainingCards = [],
+            failedCards = [],
+            completedCards = [],
+        } = {},
     } = useQuery({
         queryKey: ['review-session'],
         queryFn: () =>
@@ -69,8 +75,15 @@ function Review() {
             }),
         select: (response) => ({
             remainingCards: response.data?.remaining,
+            failedCards: response.data?.failed,
+            completedCards: response.data?.completed,
         }),
     });
+    const totalCards =
+        remainingCards.length + failedCards.length + completedCards.length || 1;
+    const reviewedCards = failedCards.length + completedCards.length;
+    const completedPercentage = (completedCards.length / totalCards) * 100;
+    const failedPercentage = (failedCards.length / totalCards) * 100;
 
     const queryClient = useQueryClient();
 
@@ -150,7 +163,7 @@ function Review() {
     ]);
 
     return (
-        <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center justify-between gap-4 pt-8 pb-4">
+        <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center justify-between py-4">
             {isPending && !isError && <p>loading</p>}
             {!isPending && isError && <p>error!</p>}
             {remainingCards.length === 0 && (
@@ -162,83 +175,136 @@ function Review() {
                     </AlertDescription>
                 </Alert>
             )}
+
             {currentCard && (
                 <>
-                    <div className="relative flex aspect-[3/4] w-4/6 max-w-xs">
-                        {remainingCards.length > 2 && (
-                            <Card className="pointer-events-none absolute inset-0 translate-x-3 translate-y-4"></Card>
-                        )}
-                        {remainingCards.length > 1 && (
-                            <Card className="pointer-events-none absolute inset-0 translate-x-1.5 translate-y-2"></Card>
-                        )}
+                    <div className="flex w-full flex-col items-center justify-center gap-8 px-8 md:px-0">
+                        {/*Progress bar*/}
+                        <div className="flex w-full max-w-lg items-center gap-4">
+                            <div
+                                className="text-muted-foreground flex hidden shrink-0 items-center justify-end gap-2 text-sm max-md:hidden"
+                                style={{
+                                    minWidth: `${String(totalCards).length * 2 + 5}ch`,
+                                }}
+                            >
+                                <CircleDashed className="size-4" />
+                                <span className="tabular-nums">
+                                    {reviewedCards} / {totalCards}
+                                </span>
+                            </div>
 
-                        <Card className="relative z-10 flex flex-1 flex-col pb-0">
-                            <CardHeader className="flex flex-row items-center justify-between text-xs">
-                                <DeckPathBreadcrumbs
-                                    path={currentCard.deck_path}
-                                    showFullPath={false}
-                                />
-                                {currentCard.overdue && (
-                                    <p className="text-destructive/90 flex flex-row items-center gap-2">
-                                        <CalendarX2 className="size-3.5" />
-                                        {new Date(
-                                            currentCard.next_review_date
-                                        ).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: '2-digit',
-                                            day: '2-digit',
-                                        })}
-                                    </p>
-                                )}
-                            </CardHeader>
-                            <CardContent className="scrollbar-hidden flex-1 overflow-y-auto">
-                                {activeCardSides?.map(
-                                    (content, index) =>
-                                        index < sidesVisible && (
-                                            <div key={index}>
-                                                {index !== 0 && (
-                                                    <Separator className="my-2" />
-                                                )}
-                                                <Markdown>{content}</Markdown>
-                                            </div>
-                                        )
-                                )}
+                            <div className="bg-muted-foreground/20 flex h-3 w-full items-center overflow-hidden rounded-full p-[2px]">
+                                <div className="flex h-full flex-1 gap-[2px] overflow-hidden rounded-full">
+                                    <div
+                                        className={cn(
+                                            'bg-success h-full rounded-full',
+                                            completedCards.length == 0
+                                                ? 'hidden'
+                                                : ''
+                                        )}
+                                        style={{
+                                            width: `${completedPercentage}%`,
+                                        }}
+                                    />
+                                    <div
+                                        className={cn(
+                                            'bg-error h-full rounded-full',
+                                            failedCards.length == 0
+                                                ? 'hidden'
+                                                : ''
+                                        )}
+                                        style={{
+                                            width: `${failedPercentage}%`,
+                                        }}
+                                    />
+                                    <div className="bg-muted h-full flex-1 rounded-full" />
+                                </div>
+                            </div>
+                        </div>
 
-                                <div className="from-card pointer-events-none sticky right-0 bottom-0 left-0 h-16 bg-gradient-to-t to-transparent"></div>
-                            </CardContent>
-                            <CardFooter className="p-0">
-                                {sidesVisible < activeCardSides.length && (
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                onClick={revealNext}
-                                                className="hover:from-accent/25 hover:to-card text-muted-foreground h-10 w-full bg-transparent p-6 text-xs transition-none hover:bg-transparent hover:bg-gradient-to-t hover:transition-all"
-                                            >
-                                                Next side
-                                                <ArrowBigDownDash />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <div>
-                                                {
-                                                    getShortcut(
-                                                        'reveal-next',
-                                                        ShortcutScope.Review
-                                                    ).description
-                                                }
-                                                <Kbd
-                                                    action="reveal-next"
-                                                    scope={ShortcutScope.Review}
-                                                    className="ml-2"
-                                                />
-                                            </div>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                )}
-                            </CardFooter>
-                        </Card>
+                        {/*Cards*/}
+                        <div className="relative mr-3 flex aspect-[3/4] w-full max-w-xs">
+                            {remainingCards.length > 2 && (
+                                <Card className="pointer-events-none absolute inset-0 translate-x-3 translate-y-4"></Card>
+                            )}
+                            {remainingCards.length > 1 && (
+                                <Card className="pointer-events-none absolute inset-0 translate-x-1.5 translate-y-2"></Card>
+                            )}
+
+                            <Card className="relative z-10 flex flex-1 flex-col pb-0">
+                                <CardHeader className="flex flex-row items-center justify-between text-xs">
+                                    <DeckPathBreadcrumbs
+                                        path={currentCard.deck_path}
+                                        showFullPath={false}
+                                    />
+                                    {currentCard.overdue && (
+                                        <p className="text-destructive/90 flex flex-row items-center gap-2">
+                                            <CalendarX2 className="size-3.5" />
+                                            {new Date(
+                                                currentCard.next_review_date
+                                            ).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: '2-digit',
+                                                day: '2-digit',
+                                            })}
+                                        </p>
+                                    )}
+                                </CardHeader>
+                                <CardContent className="scrollbar-hidden flex-1 overflow-y-auto">
+                                    {activeCardSides?.map(
+                                        (content, index) =>
+                                            index < sidesVisible && (
+                                                <div key={index}>
+                                                    {index !== 0 && (
+                                                        <Separator className="my-2" />
+                                                    )}
+                                                    <Markdown>
+                                                        {content}
+                                                    </Markdown>
+                                                </div>
+                                            )
+                                    )}
+
+                                    <div className="from-card pointer-events-none sticky right-0 bottom-0 left-0 h-16 bg-gradient-to-t to-transparent"></div>
+                                </CardContent>
+                                <CardFooter className="p-0">
+                                    {sidesVisible < activeCardSides.length && (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    onClick={revealNext}
+                                                    className="hover:from-accent/25 hover:to-card text-muted-foreground h-10 w-full bg-transparent p-6 text-xs transition-none hover:bg-transparent hover:bg-gradient-to-t hover:transition-all"
+                                                >
+                                                    Next side
+                                                    <ArrowBigDownDash />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <div>
+                                                    {
+                                                        getShortcut(
+                                                            'reveal-next',
+                                                            ShortcutScope.Review
+                                                        ).description
+                                                    }
+                                                    <Kbd
+                                                        action="reveal-next"
+                                                        scope={
+                                                            ShortcutScope.Review
+                                                        }
+                                                        className="ml-2"
+                                                    />
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                </CardFooter>
+                            </Card>
+                        </div>
                     </div>
+
+                    {/*Controls*/}
                     <div className="flex flex-col items-center gap-4">
                         <div className="flex items-center gap-4">
                             <div className="flex gap-2">
