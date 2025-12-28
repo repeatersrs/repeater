@@ -93,7 +93,10 @@ export function AppSidebar() {
                                 </Button>
                             </DropdownMenuTrigger>
                         </TooltipTrigger>
-                        <DropdownMenuContent align="start">
+                        <DropdownMenuContent
+                            align="start"
+                            className="w-[var(--radix-dropdown-menu-trigger-width)]"
+                        >
                             <DropdownMenuItem
                                 onClick={() => setCardDialogOpen(true)}
                             >
