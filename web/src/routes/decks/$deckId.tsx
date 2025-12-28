@@ -20,7 +20,6 @@ import { z } from 'zod';
 
 import CardInspectDialog from '@/components/card-inspect-dialog';
 import CardsGrid from '@/components/cards-grid';
-import DeckPathBreadcrumbs from '@/components/deck-path-breadcrumbs';
 import SaveFooter from '@/components/save-footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -328,7 +327,6 @@ function DeckPage() {
                                             {deck.data.name}
                                         </h1>
                                     )}
-
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button
@@ -427,12 +425,6 @@ function DeckPage() {
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </div>
-
-                                <DeckPathBreadcrumbs
-                                    path={deck.data.path}
-                                    showFullPath={true}
-                                    showBase={true}
-                                />
                             </div>
                         )
                     )}

@@ -7,7 +7,6 @@ import {
     CircleCheck,
     CalendarX2,
     ArrowBigDownDash,
-    CircleDashed,
 } from 'lucide-react';
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
@@ -79,11 +78,12 @@ function Review() {
             completedCards: response.data?.completed,
         }),
     });
+
     const totalCards =
         remainingCards.length + failedCards.length + completedCards.length || 1;
-    const reviewedCards = failedCards.length + completedCards.length;
     const completedPercentage = (completedCards.length / totalCards) * 100;
     const failedPercentage = (failedCards.length / totalCards) * 100;
+
 
     const queryClient = useQueryClient();
 
@@ -180,45 +180,29 @@ function Review() {
                 <>
                     <div className="flex w-full flex-col items-center justify-center gap-8 px-8 md:px-0">
                         {/*Progress bar*/}
-                        <div className="flex w-full max-w-lg items-center gap-4">
-                            <div
-                                className="text-muted-foreground flex hidden shrink-0 items-center justify-end gap-2 text-sm max-md:hidden"
-                                style={{
-                                    minWidth: `${String(totalCards).length * 2 + 5}ch`,
-                                }}
-                            >
-                                <CircleDashed className="size-4" />
-                                <span className="tabular-nums">
-                                    {reviewedCards} / {totalCards}
-                                </span>
-                            </div>
-
-                            <div className="bg-muted-foreground/20 flex h-3 w-full items-center overflow-hidden rounded-full p-[2px]">
-                                <div className="flex h-full flex-1 gap-[2px] overflow-hidden rounded-full">
-                                    <div
-                                        className={cn(
-                                            'bg-success h-full rounded-full',
-                                            completedCards.length == 0
-                                                ? 'hidden'
-                                                : ''
-                                        )}
-                                        style={{
-                                            width: `${completedPercentage}%`,
-                                        }}
-                                    />
-                                    <div
-                                        className={cn(
-                                            'bg-error h-full rounded-full',
-                                            failedCards.length == 0
-                                                ? 'hidden'
-                                                : ''
-                                        )}
-                                        style={{
-                                            width: `${failedPercentage}%`,
-                                        }}
-                                    />
-                                    <div className="bg-muted h-full flex-1 rounded-full" />
-                                </div>
+                        <div className="bg-muted-foreground/20 flex h-3 w-full max-w-lg items-center overflow-hidden rounded-full p-[2px]">
+                            <div className="flex h-full flex-1 gap-[2px] overflow-hidden rounded-full">
+                                <div
+                                    className={cn(
+                                        'bg-success h-full rounded-full',
+                                        completedCards.length == 0
+                                            ? 'hidden'
+                                            : ''
+                                    )}
+                                    style={{
+                                        width: `${completedPercentage}%`,
+                                    }}
+                                />
+                                <div
+                                    className={cn(
+                                        'bg-error h-full rounded-full',
+                                        failedCards.length == 0 ? 'hidden' : ''
+                                    )}
+                                    style={{
+                                        width: `${failedPercentage}%`,
+                                    }}
+                                />
+                                <div className="bg-muted h-full flex-1 rounded-full" />
                             </div>
                         </div>
 
