@@ -297,16 +297,6 @@ function DeckPage() {
         <div className="container mx-auto px-6 py-6">
             <Form {...deckForm}>
                 <div className="mb-6">
-                    {/* Back button */}
-                    <div className="mb-4">
-                        <Link to="/decks">
-                            <Button variant="ghost">
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                Back to Decks
-                            </Button>
-                        </Link>
-                    </div>
-
                     {/* Title and dropdown menu */}
                     {isDeckLoading ? (
                         <div className="mb-6 space-y-2">
