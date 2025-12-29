@@ -1,22 +1,22 @@
-import { ReactNode } from 'react';
+import { cn } from '@udecode/cn';
 
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 
-interface HeaderProps {
-    children?: ReactNode;
-}
-
-export default function Header({ children }: HeaderProps) {
+export default function Header({ className }: React.ComponentProps<'div'>) {
     const { isMobile, openMobile } = useSidebar();
 
     return (
-        <header className="relative mx-4 flex h-12 items-center justify-center border-b">
+        <header
+            className={cn(
+                className,
+                'relative mx-4 flex h-12 items-center justify-center border-b'
+            )}
+        >
             {isMobile && !openMobile && (
                 <div className="absolute left-0">
                     <SidebarTrigger />
                 </div>
             )}
-            {children}
         </header>
     );
 }
