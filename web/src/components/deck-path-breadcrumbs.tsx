@@ -15,25 +15,31 @@ interface DeckPathBreadcrumbsProps {
         [key: string]: string;
     }>;
     showFullPath: boolean;
+    showBase?: boolean;
 }
 
 export default function DeckPathBreadcrumbs({
     path,
     showFullPath,
+    showBase = false,
 }: DeckPathBreadcrumbsProps) {
     return (
         <Breadcrumb>
             <BreadcrumbList>
-                <BreadcrumbItem>
-                    <BreadcrumbLink
-                        className="relative flex flex-row items-center gap-2 after:absolute after:-inset-2"
-                        href="/decks"
-                    >
-                        <Folders className="size-4" />
-                        <span className="sr-only">Decks</span>
-                    </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
+                {showBase && (
+                    <>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink
+                                className="relative flex flex-row items-center gap-2 after:absolute after:-inset-2"
+                                href="/decks"
+                            >
+                                <Folders className="size-4" />
+                                <span className="sr-only">Decks</span>
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                    </>
+                )}
 
                 {path.map((d, i) => {
                     const isFirst = i === 0;

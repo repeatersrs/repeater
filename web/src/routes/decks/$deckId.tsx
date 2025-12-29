@@ -431,6 +431,7 @@ function DeckPage() {
                                 <DeckPathBreadcrumbs
                                     path={deck.data.path}
                                     showFullPath={true}
+                                    showBase={true}
                                 />
                             </div>
                         )
