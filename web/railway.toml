@@ -1,7 +1,7 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
-watchPatterns = ["web/**"]
+dockerfilePath = "web/Dockerfile"
+watchPatterns = ["web/**", "docs/openapi.yaml"]
 
 [deploy]
 healthcheckPath = "/"
