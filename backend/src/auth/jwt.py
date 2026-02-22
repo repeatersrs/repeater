@@ -16,30 +16,30 @@ REFRESH_TOKEN_EXPIRE_SECONDS = 60 * 60 * 24 * 10  # 10 days
 GUEST_REFRESH_TOKEN_EXPIRE_SECONDS = 60 * 60 * 24 * 30  # 30 days
 
 
-# TODO change the secure flag to True in production
 def get_access_token_cookie_kwargs(
     access_token: str, exp_delta_seconds: int = ACCESS_TOKEN_EXPIRE_SECONDS
 ) -> dict:
+    secure = getenv("RAILWAY_ENVIRONMENT") is not None
     return dict(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=secure,
+        samesite="none" if secure else "lax",
         max_age=exp_delta_seconds + 60,  # +1 minute buffer
     )
 
 
-# TODO change the secure flag to True in production
 def get_refresh_token_cookie_kwargs(
     refresh_token: str, exp_delta_seconds: int = REFRESH_TOKEN_EXPIRE_SECONDS
 ) -> dict:
+    secure = getenv("RAILWAY_ENVIRONMENT") is not None
     return dict(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=secure,
+        samesite="none" if secure else "lax",
         max_age=exp_delta_seconds + (24 * 60 * 60),  # +1 day buffer
     )
 
