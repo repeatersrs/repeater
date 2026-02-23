@@ -79,11 +79,6 @@ function Review() {
         }),
     });
 
-    const totalCards =
-        remainingCards.length + failedCards.length + completedCards.length || 1;
-    const completedPercentage = (completedCards.length / totalCards) * 100;
-    const failedPercentage = (failedCards.length / totalCards) * 100;
-
     const queryClient = useQueryClient();
 
     const [activeCardIndex, setActiveCardIndex] = useState(0);
@@ -178,33 +173,6 @@ function Review() {
             {currentCard && (
                 <>
                     <div className="flex h-full w-full flex-col items-center px-8 md:px-0">
-                        {/*Progress bar*/}
-                        <div className="bg-muted-foreground/20 flex h-3 w-full max-w-lg items-center overflow-hidden rounded-full p-[2px]">
-                            <div className="flex h-full flex-1 gap-[2px] overflow-hidden rounded-full">
-                                <div
-                                    className={cn(
-                                        'bg-success h-full rounded-full',
-                                        completedCards.length == 0
-                                            ? 'hidden'
-                                            : ''
-                                    )}
-                                    style={{
-                                        width: `${completedPercentage}%`,
-                                    }}
-                                />
-                                <div
-                                    className={cn(
-                                        'bg-error h-full rounded-full',
-                                        failedCards.length == 0 ? 'hidden' : ''
-                                    )}
-                                    style={{
-                                        width: `${failedPercentage}%`,
-                                    }}
-                                />
-                                <div className="bg-muted h-full flex-1 rounded-full" />
-                            </div>
-                        </div>
-
                         {/*Cards*/}
                         <div className="mb-32 flex h-full w-full flex-col items-center justify-center">
                             <div className="relative mr-3 flex aspect-[3/4] w-full max-w-sm">
