@@ -84,7 +84,6 @@ function Review() {
     const completedPercentage = (completedCards.length / totalCards) * 100;
     const failedPercentage = (failedCards.length / totalCards) * 100;
 
-
     const queryClient = useQueryClient();
 
     const [activeCardIndex, setActiveCardIndex] = useState(0);
@@ -96,14 +95,14 @@ function Review() {
         mutationFn: (feedback: 'ok' | 'skipped' | 'forgot') =>
             createReviewReviewsPost({
                 body: {
-                    card_id: currentCard!.id,
+                    card_id: currentCard.id,
                     feedback: feedback,
                 },
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['review-session'] });
             queryClient.invalidateQueries({
-                queryKey: ['reviews', currentCard!.id],
+                queryKey: ['reviews', currentCard.id],
             });
             queryClient.invalidateQueries({
                 queryKey: ['stats'],
