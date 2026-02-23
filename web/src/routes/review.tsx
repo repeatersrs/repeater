@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { cn } from '@udecode/cn';
 import {
     ChevronLeft,
     ChevronRight,
@@ -58,11 +57,7 @@ function Review() {
     const {
         isPending,
         isError,
-        data: {
-            remainingCards = [],
-            failedCards = [],
-            completedCards = [],
-        } = {},
+        data: { remainingCards = [] } = {},
     } = useQuery({
         queryKey: ['review-session'],
         queryFn: () =>
