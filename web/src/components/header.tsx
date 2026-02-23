@@ -79,6 +79,8 @@ export default function Header({ className }: React.ComponentProps<'div'>) {
                 <DeckPathBreadcrumbs
                     path={deck.data.path}
                     showFullPath={true}
+                    showDecksRoot={true}
+                    highlightLast={true}
                 />
             )}
 
