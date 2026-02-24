@@ -1,0 +1,15 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "plugins": ["typescript", "react"],
+    "categories": {
+        "correctness": "error"
+    },
+    "ignorePatterns": ["src/gen/**/*", "dist/**/*"],
+    "rules": {
+        "no-unused-vars": [
+            "error",
+            { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+        ]
+    },
+    "jsPlugins": ["@tanstack/eslint-plugin-query"]
+}
