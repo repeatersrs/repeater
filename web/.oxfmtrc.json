@@ -1,0 +1,16 @@
+{
+    "$schema": "./node_modules/oxfmt/configuration_schema.json",
+    "tabWidth": 4,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "sortTailwindcss": {},
+    "sortImports": {},
+    "printWidth": 80,
+    "ignorePatterns": [
+        ".next/",
+        "pnpm-lock.yaml",
+        "openapi.yaml",
+        "tsconfig.json",
+        "src/routeTree.gen.ts"
+    ]
+}

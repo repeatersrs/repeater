@@ -1,5 +1,0 @@
-.next/
-pnpm-lock.yaml
-openapi.yaml
-tsconfig.json
-src/routeTree.gen.ts

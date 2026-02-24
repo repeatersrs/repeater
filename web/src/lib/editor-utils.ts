@@ -1,7 +1,6 @@
-import type { Value, TElement } from 'platejs';
-
 import { BoldPlugin, ItalicPlugin } from '@platejs/basic-nodes/react';
 import { MarkdownPlugin } from '@platejs/markdown';
+import type { Value, TElement } from 'platejs';
 import { createPlateEditor } from 'platejs/react';
 
 /**

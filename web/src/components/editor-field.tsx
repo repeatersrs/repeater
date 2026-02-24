@@ -1,8 +1,7 @@
 'use client';
 
-import type { Value } from 'platejs';
-
 import { BoldPlugin, ItalicPlugin } from '@platejs/basic-nodes/react';
+import type { Value } from 'platejs';
 import { Plate, PlateContent, usePlateEditor } from 'platejs/react';
 import * as React from 'react';
 
@@ -10,8 +9,10 @@ import { FloatingToolbar } from '@/components/ui/floating-toolbar';
 import { MarkToolbarButton } from '@/components/ui/mark-toolbar-button';
 import { cn } from '@/lib/utils';
 
-export interface EditorFieldProps
-    extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'> {
+export interface EditorFieldProps extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    'onChange'
+> {
     value?: Value;
     onChange?: (value: Value) => void;
     placeholder?: string;

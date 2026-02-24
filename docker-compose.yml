@@ -69,8 +69,8 @@ services:
     volumes:
       - ./web/src:/app/src
       - ./web/public:/app/public
-      - ./web/.prettierignore:/app/.prettierignore
-      - ./web/.prettierrc.yml:/app/.prettierrc.yml
+      - ./web/.oxfmtrc.json:/app/.oxfmtrc.json
+      - ./web/.oxlintrc.json:/app/.oxlintrc.json
       - ./docs:/app/docs
 
     develop:
