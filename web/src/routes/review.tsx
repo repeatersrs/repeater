@@ -1,12 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { cn } from '@udecode/cn';
 import {
     ChevronLeft,
     ChevronRight,
     CircleCheck,
+    CircleDashed,
+    Calendar,
     CalendarX2,
-    ArrowBigDownDash,
+    ChevronsDown,
 } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
@@ -15,12 +19,7 @@ import Kbd from '@/components/kbd';
 import { useShortcutActions } from '@/components/shortcut-provider';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardHeader,
-    CardContent,
-    CardFooter,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import {
     Tooltip,
@@ -54,10 +53,11 @@ export const Route = createFileRoute('/review')({
 function Review() {
     usePageShortcuts(ShortcutScope.Review);
     const { registerAction, unregisterAction } = useShortcutActions();
+    const shouldReduceMotion = useReducedMotion();
     const {
         isPending,
         isError,
-        data: { remainingCards = [] } = {},
+        data: { remainingCards = [], failedCards = [], completedCards = [] } = {},
     } = useQuery({
         queryKey: ['review-session'],
         queryFn: () =>
@@ -75,6 +75,12 @@ function Review() {
     });
 
     const queryClient = useQueryClient();
+
+    const totalCards =
+        remainingCards.length + failedCards.length + completedCards.length;
+    const reviewedCards = completedCards.length + failedCards.length;
+    const completedPercentage = (completedCards.length / totalCards) * 100;
+    const failedPercentage = (failedCards.length / totalCards) * 100;
 
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [sidesVisible, setSidesVisible] = useState(1);
@@ -99,7 +105,6 @@ function Review() {
             });
             setSidesVisible(1);
         },
-        // TODO: implement error handling
     });
 
     const { mutate: mutateReview } = reviewCard;
@@ -152,7 +157,7 @@ function Review() {
     ]);
 
     return (
-        <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center justify-between py-4">
+        <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center">
             {isPending && !isError && <p>loading</p>}
             {!isPending && isError && <p>error!</p>}
             {remainingCards.length === 0 && (
@@ -166,53 +171,90 @@ function Review() {
             )}
 
             {currentCard && (
-                <>
-                    <div className="flex h-full w-full flex-col items-center px-8 md:px-0">
-                        {/*Cards*/}
-                        <div className="mb-32 flex h-full w-full flex-col items-center justify-center">
-                            <div className="relative mr-3 flex aspect-[3/4] w-full max-w-sm">
+                <div className="flex flex-1 flex-col items-center justify-center px-8 pb-12 md:px-0">
+                        {/* Progress */}
+                        <div className="mb-5 flex w-full max-w-sm items-center gap-3">
+                            <div className="bg-muted flex h-1.5 flex-1 overflow-hidden rounded-full">
+                                <div
+                                    className={cn(
+                                        'bg-success h-full rounded-full transition-[width] duration-300 ease-out',
+                                        completedCards.length === 0 && 'hidden'
+                                    )}
+                                    style={{
+                                        width: `${completedPercentage}%`,
+                                    }}
+                                />
+                                <div
+                                    className={cn(
+                                        'bg-error h-full rounded-full transition-[width] duration-300 ease-out',
+                                        failedCards.length === 0 && 'hidden'
+                                    )}
+                                    style={{ width: `${failedPercentage}%` }}
+                                />
+                            </div>
+                            <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                                {totalCards === reviewedCards ? (
+                                    <CircleCheck className="size-3.5" />
+                                ) : (
+                                    <CircleDashed className="size-3.5" />
+                                )}
+                                <span className="tabular-nums">
+                                    {reviewedCards} / {totalCards}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Card + metadata */}
+                        <div
+                            key={currentCard.id}
+                            className="flex w-full max-w-sm flex-col items-center"
+                        >
+                            {/* Card stack */}
+                            <div className="relative flex aspect-[3/4] w-full">
                                 {remainingCards.length > 2 && (
-                                    <Card className="pointer-events-none absolute inset-0 translate-x-3 translate-y-4"></Card>
+                                    <Card className="pointer-events-none absolute inset-0 translate-y-3 scale-[0.95] opacity-30" />
                                 )}
                                 {remainingCards.length > 1 && (
-                                    <Card className="pointer-events-none absolute inset-0 translate-x-1.5 translate-y-2"></Card>
+                                    <Card className="pointer-events-none absolute inset-0 translate-y-1.5 scale-[0.975] opacity-50" />
                                 )}
 
                                 <Card className="relative z-10 flex flex-1 flex-col pb-0">
-                                    <CardHeader className="flex flex-row items-center justify-between text-xs">
-                                        <DeckPathBreadcrumbs
-                                            path={currentCard.deck_path}
-                                            showFullPath={false}
-                                        />
-                                        {currentCard.overdue && (
-                                            <p className="text-destructive/90 flex flex-row items-center gap-2">
-                                                <CalendarX2 className="size-3.5" />
-                                                {new Date(
-                                                    currentCard.next_review_date
-                                                ).toLocaleDateString('en-US', {
-                                                    year: 'numeric',
-                                                    month: '2-digit',
-                                                    day: '2-digit',
-                                                })}
-                                            </p>
-                                        )}
-                                    </CardHeader>
-                                    <CardContent className="scrollbar-hidden flex-1 overflow-y-auto">
+                                    <CardContent className="scrollbar-hidden flex-1 overflow-y-auto pt-6">
                                         {activeCardSides?.map(
                                             (content, index) =>
                                                 index < sidesVisible && (
-                                                    <div key={index}>
+                                                    <motion.div
+                                                        key={`${currentCard.id}-side-${index}`}
+                                                        initial={
+                                                            index === 0 ||
+                                                            shouldReduceMotion
+                                                                ? false
+                                                                : {
+                                                                      opacity: 0,
+                                                                      y: 6,
+                                                                  }
+                                                        }
+                                                        animate={{
+                                                            opacity: 1,
+                                                            y: 0,
+                                                        }}
+                                                        transition={{
+                                                            duration: 0.2,
+                                                            ease: [
+                                                                0.25, 0.46,
+                                                                0.45, 0.94,
+                                                            ],
+                                                        }}
+                                                    >
                                                         {index !== 0 && (
-                                                            <Separator className="my-2" />
+                                                            <Separator className="my-3" />
                                                         )}
                                                         <Markdown>
                                                             {content}
                                                         </Markdown>
-                                                    </div>
+                                                    </motion.div>
                                                 )
                                         )}
-
-                                        <div className="from-card pointer-events-none sticky right-0 bottom-0 left-0 h-16 bg-gradient-to-t to-transparent"></div>
                                     </CardContent>
                                     <CardFooter className="p-0">
                                         {sidesVisible <
@@ -222,10 +264,10 @@ function Review() {
                                                     <Button
                                                         variant="ghost"
                                                         onClick={revealNext}
-                                                        className="hover:from-accent/25 hover:to-card text-muted-foreground h-10 w-full bg-transparent p-6 text-xs transition-none hover:bg-transparent hover:bg-gradient-to-t hover:transition-all"
+                                                        className="text-muted-foreground border-border/50 h-auto w-full rounded-none border-t border-dashed bg-transparent px-6 py-3 text-xs transition-colors hover:bg-accent/50"
                                                     >
-                                                        Next side
-                                                        <ArrowBigDownDash />
+                                                        Reveal
+                                                        <ChevronsDown className="size-3.5" />
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
@@ -250,22 +292,44 @@ function Review() {
                                     </CardFooter>
                                 </Card>
                             </div>
-                        </div>
-                    </div>
 
-                    {/*Controls*/}
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="flex gap-2">
+                            {/* Metadata */}
+                            <div className="mt-3 flex w-full items-center justify-between text-xs">
+                                <DeckPathBreadcrumbs
+                                    path={currentCard.deck_path}
+                                    showFullPath={false}
+                                />
+                                <p
+                                    className={`flex flex-row items-center gap-1.5 ${currentCard.overdue ? 'text-destructive/90' : 'text-muted-foreground'}`}
+                                >
+                                    {new Date(
+                                        currentCard.next_review_date
+                                    ).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                    })}
+                                    {currentCard.overdue ? (
+                                        <CalendarX2 className="size-3.5" />
+                                    ) : (
+                                        <Calendar className="size-3.5" />
+                                    )}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="mt-8 flex items-center gap-3">
+                            <div className="flex gap-1">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button
-                                            variant="outline"
+                                            variant="ghost"
                                             size="icon"
                                             onClick={prevCard}
                                             disabled={activeCardIndex === 0}
+                                            className="h-9 w-9"
                                         >
-                                            <ChevronLeft />
+                                            <ChevronLeft className="size-4" />
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -287,15 +351,16 @@ function Review() {
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button
-                                            variant="outline"
+                                            variant="ghost"
                                             size="icon"
                                             onClick={nextCard}
                                             disabled={
                                                 activeCardIndex >=
                                                 remainingCards.length - 1
                                             }
+                                            className="h-9 w-9"
                                         >
-                                            <ChevronRight />
+                                            <ChevronRight className="size-4" />
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -315,11 +380,15 @@ function Review() {
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
+                            <Separator
+                                orientation="vertical"
+                                className="!h-6"
+                            />
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
-                                        variant="secondary"
-                                        className="h-12 px-8"
+                                        variant="outline"
+                                        className="h-12 min-w-28 border-error/20 text-error/90 transition-colors hover:border-error/30 hover:bg-error/5 hover:text-error active:scale-[0.97]"
                                         onClick={() =>
                                             reviewCard.mutate('forgot')
                                         }
@@ -346,7 +415,8 @@ function Review() {
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
-                                        className="h-12 px-8"
+                                        variant="outline"
+                                        className="h-12 min-w-28 border-success/25 bg-success/5 text-success transition-colors hover:border-success/35 hover:bg-success/10 active:scale-[0.97]"
                                         onClick={() => reviewCard.mutate('ok')}
                                     >
                                         Remembered
@@ -370,7 +440,6 @@ function Review() {
                             </Tooltip>
                         </div>
                     </div>
-                </>
             )}
         </div>
     );
