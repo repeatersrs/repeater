@@ -10,6 +10,7 @@
         ".next/",
         "pnpm-lock.yaml",
         "openapi.yaml",
+        "../docs/openapi.yaml",
         "tsconfig.json",
         "src/routeTree.gen.ts"
     ]
