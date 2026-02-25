@@ -1,0 +1,74 @@
+{
+  "lsp": {
+    "oxlint": {
+      "initialization_options": {
+        "settings": {
+          "configPath": "web/.oxlintrc.json",
+          "run": "onType",
+          "fixKind": "safe_fix"
+        }
+      }
+    },
+    "oxfmt": {
+      "initialization_options": {
+        "settings": {
+          "fmt.configPath": "web/.oxfmtrc.json"
+        }
+      }
+    }
+  },
+  "languages": {
+    "TypeScript": {
+      "prettier": { "allowed": false },
+      "language_servers": ["oxfmt", "oxlint", "typescript-language-server", "!biome", "!vtsls"],
+      "formatter": [
+        { "language_server": { "name": "oxfmt" } },
+        { "code_action": "source.fixAll.oxc" }
+      ]
+    },
+    "TSX": {
+      "prettier": { "allowed": false },
+      "language_servers": ["oxfmt", "oxlint", "typescript-language-server", "!biome", "!vtsls"],
+      "formatter": [
+        { "language_server": { "name": "oxfmt" } },
+        { "code_action": "source.fixAll.oxc" }
+      ]
+    },
+    "JavaScript": {
+      "prettier": { "allowed": false },
+      "language_servers": ["oxfmt", "oxlint", "typescript-language-server", "!biome", "!vtsls"],
+      "formatter": [
+        { "language_server": { "name": "oxfmt" } },
+        { "code_action": "source.fixAll.oxc" }
+      ]
+    },
+    "JSX": {
+      "prettier": { "allowed": false },
+      "language_servers": ["oxfmt", "oxlint", "typescript-language-server", "!biome", "!vtsls"],
+      "formatter": [
+        { "language_server": { "name": "oxfmt" } },
+        { "code_action": "source.fixAll.oxc" }
+      ]
+    },
+    "JSON": {
+      "prettier": { "allowed": false },
+      "language_servers": ["oxfmt", "json-language-server", "!biome"],
+      "formatter": [
+        { "language_server": { "name": "oxfmt" } }
+      ]
+    },
+    "JSONC": {
+      "prettier": { "allowed": false },
+      "language_servers": ["oxfmt", "json-language-server", "!biome"],
+      "formatter": [
+        { "language_server": { "name": "oxfmt" } }
+      ]
+    },
+    "CSS": {
+      "prettier": { "allowed": false },
+      "formatter": [
+        { "language_server": { "name": "oxfmt" } }
+      ]
+    }
+  }
+}
