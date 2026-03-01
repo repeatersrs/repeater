@@ -15,12 +15,7 @@ import Kbd from '@/components/kbd';
 import { useShortcutActions } from '@/components/shortcut-provider';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardHeader,
-    CardContent,
-    CardFooter,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import {
     Tooltip,
@@ -152,7 +147,7 @@ function Review() {
     ]);
 
     return (
-        <div className="flex h-[calc(100dvh-4rem)] w-full flex-col items-center justify-between py-4">
+        <div className="flex min-h-[calc(100dvh-4rem)] w-full items-center justify-center overflow-y-auto p-4 md:p-6">
             {isPending && !isError && <p>loading</p>}
             {!isPending && isError && <p>error!</p>}
             {remainingCards.length === 0 && (
@@ -166,97 +161,90 @@ function Review() {
             )}
 
             {currentCard && (
-                <>
-                    <div className="flex h-full w-full flex-col items-center px-8 md:px-0">
-                        {/*Cards*/}
-                        <div className="mb-32 flex h-full w-full flex-col items-center justify-center">
-                            <div className="relative mr-3 flex aspect-[3/4] w-full max-w-sm">
-                                {remainingCards.length > 2 && (
-                                    <Card className="pointer-events-none absolute inset-0 translate-x-3 translate-y-4"></Card>
-                                )}
-                                {remainingCards.length > 1 && (
-                                    <Card className="pointer-events-none absolute inset-0 translate-x-1.5 translate-y-2"></Card>
-                                )}
-
-                                <Card className="relative z-10 flex flex-1 flex-col pb-0">
-                                    <CardHeader className="flex flex-row items-center justify-between text-xs">
-                                        <DeckPathBreadcrumbs
-                                            path={currentCard.deck_path}
-                                            showFullPath={false}
-                                        />
-                                        {currentCard.overdue && (
-                                            <p className="text-destructive/90 flex flex-row items-center gap-2">
-                                                <CalendarX2 className="size-3.5" />
-                                                {new Date(
-                                                    currentCard.next_review_date
-                                                ).toLocaleDateString('en-US', {
-                                                    year: 'numeric',
-                                                    month: '2-digit',
-                                                    day: '2-digit',
-                                                })}
-                                            </p>
-                                        )}
-                                    </CardHeader>
-                                    <CardContent className="scrollbar-hidden flex-1 overflow-y-auto">
-                                        {activeCardSides?.map(
-                                            (content, index) =>
-                                                index < sidesVisible && (
-                                                    <div key={index}>
-                                                        {index !== 0 && (
-                                                            <Separator className="my-2" />
-                                                        )}
-                                                        <Markdown>
-                                                            {content}
-                                                        </Markdown>
-                                                    </div>
-                                                )
-                                        )}
-
-                                        <div className="from-card pointer-events-none sticky right-0 bottom-0 left-0 h-16 bg-gradient-to-t to-transparent"></div>
-                                    </CardContent>
-                                    <CardFooter className="p-0">
-                                        {sidesVisible <
-                                            activeCardSides.length && (
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        onClick={revealNext}
-                                                        className="hover:from-accent/25 hover:to-card text-muted-foreground h-10 w-full bg-transparent p-6 text-xs transition-none hover:bg-transparent hover:bg-gradient-to-t hover:transition-all"
-                                                    >
-                                                        Next side
-                                                        <ArrowBigDownDash />
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <div>
-                                                        {
-                                                            getShortcut(
-                                                                'reveal-next',
-                                                                ShortcutScope.Review
-                                                            ).description
-                                                        }
-                                                        <Kbd
-                                                            action="reveal-next"
-                                                            scope={
-                                                                ShortcutScope.Review
-                                                            }
-                                                            className="ml-2"
-                                                        />
-                                                    </div>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        )}
-                                    </CardFooter>
-                                </Card>
-                            </div>
+                <div className="flex w-full max-w-5xl flex-col rounded-2xl border bg-card/60 shadow-sm backdrop-blur-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 text-xs md:px-6">
+                        <DeckPathBreadcrumbs
+                            path={currentCard.deck_path}
+                            showFullPath={false}
+                        />
+                        <div className="text-muted-foreground flex items-center gap-2">
+                            <span>
+                                Card {activeCardIndex + 1} of{' '}
+                                {remainingCards.length}
+                            </span>
+                            {currentCard.overdue && (
+                                <span className="text-destructive inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5">
+                                    <CalendarX2 className="size-3" />
+                                    Overdue ·{' '}
+                                    {new Date(
+                                        currentCard.next_review_date
+                                    ).toLocaleDateString('en-US', {
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                    })}
+                                </span>
+                            )}
                         </div>
                     </div>
 
-                    {/*Controls*/}
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="flex gap-2">
+                    <div className="flex flex-col p-4 md:p-6">
+                        <div className="mx-auto flex w-full max-w-xl">
+                            <Card className="flex w-full flex-col border-2 shadow-md shadow-black/5">
+                                <CardContent className="scrollbar-hidden max-h-[min(60dvh,34rem)] flex-1 overflow-y-auto pt-6">
+                                    {activeCardSides?.map(
+                                        (content, index) =>
+                                            index < sidesVisible && (
+                                                <div key={index}>
+                                                    {index !== 0 && (
+                                                        <Separator className="my-2" />
+                                                    )}
+                                                    <Markdown>{content}</Markdown>
+                                                </div>
+                                            )
+                                    )}
+
+                                    <div className="from-card pointer-events-none sticky right-0 bottom-0 left-0 h-16 bg-gradient-to-t to-transparent"></div>
+                                </CardContent>
+                                <CardFooter className="p-0">
+                                    {sidesVisible < activeCardSides.length && (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    onClick={revealNext}
+                                                    className="hover:from-accent/25 hover:to-card text-muted-foreground h-10 w-full bg-transparent p-6 text-xs transition-none hover:bg-transparent hover:bg-gradient-to-t hover:transition-all"
+                                                >
+                                                    Next side
+                                                    <ArrowBigDownDash />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <div>
+                                                    {
+                                                        getShortcut(
+                                                            'reveal-next',
+                                                            ShortcutScope.Review
+                                                        ).description
+                                                    }
+                                                    <Kbd
+                                                        action="reveal-next"
+                                                        scope={
+                                                            ShortcutScope.Review
+                                                        }
+                                                        className="ml-2"
+                                                    />
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                </CardFooter>
+                            </Card>
+                        </div>
+
+                        <Separator className="my-4 md:my-6" />
+
+                        <div className="flex flex-col items-stretch justify-between gap-3 md:flex-row md:items-center">
+                            <div className="flex justify-center gap-2 md:justify-start">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button
@@ -315,62 +303,63 @@ function Review() {
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="secondary"
-                                        className="h-12 px-8"
-                                        onClick={() =>
-                                            reviewCard.mutate('forgot')
-                                        }
-                                    >
-                                        Forgot
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div>
-                                        {
-                                            getShortcut(
-                                                'card-forgot',
-                                                ShortcutScope.Review
-                                            ).description
-                                        }
-                                        <Kbd
-                                            action="card-forgot"
-                                            scope={ShortcutScope.Review}
-                                            className="ml-2"
-                                        />
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        className="h-12 px-8"
-                                        onClick={() => reviewCard.mutate('ok')}
-                                    >
-                                        Remembered
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div>
-                                        {
-                                            getShortcut(
-                                                'card-ok',
-                                                ShortcutScope.Review
-                                            ).description
-                                        }
-                                        <Kbd
-                                            action="card-ok"
-                                            scope={ShortcutScope.Review}
-                                            className="ml-2"
-                                        />
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
+
+                            <div className="grid grid-cols-2 gap-2 md:flex md:gap-3">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="secondary"
+                                            className="h-12 px-6 md:px-8"
+                                            onClick={() => mutateReview('forgot')}
+                                        >
+                                            Forgot
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <div>
+                                            {
+                                                getShortcut(
+                                                    'card-forgot',
+                                                    ShortcutScope.Review
+                                                ).description
+                                            }
+                                            <Kbd
+                                                action="card-forgot"
+                                                scope={ShortcutScope.Review}
+                                                className="ml-2"
+                                            />
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            className="h-12 px-6 md:px-8"
+                                            onClick={() => mutateReview('ok')}
+                                        >
+                                            Remembered
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <div>
+                                            {
+                                                getShortcut(
+                                                    'card-ok',
+                                                    ShortcutScope.Review
+                                                ).description
+                                            }
+                                            <Kbd
+                                                action="card-ok"
+                                                scope={ShortcutScope.Review}
+                                                className="ml-2"
+                                            />
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
                         </div>
                     </div>
-                </>
+                </div>
             )}
         </div>
     );
