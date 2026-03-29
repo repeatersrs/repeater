@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft } from 'lucide-react';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
     MoreVertical,
     Pencil,
@@ -20,7 +19,6 @@ import { z } from 'zod';
 
 import CardInspectDialog from '@/components/card-inspect-dialog';
 import CardsGrid from '@/components/cards-grid';
-import DeckPathBreadcrumbs from '@/components/deck-path-breadcrumbs';
 import SaveFooter from '@/components/save-footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -274,18 +272,10 @@ function DeckPage() {
 
     if (isDeckError) {
         return (
-            <div className="container mx-auto px-6 py-6">
-                <div className="mb-6">
-                    <Link to="/decks">
-                        <Button variant="ghost" className="mb-4">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Decks
-                        </Button>
-                    </Link>
-                </div>
+            <div className="container mx-auto flex h-full w-full items-center justify-center px-6 py-6">
                 <div className="text-center">
-                    <h1 className="mb-4 text-2xl font-medium">
-                        Error Loading Deck
+                    <h1 className="mb-4 text-xl font-medium">
+                        Error loading deck. Try again.
                     </h1>
                     <p className="text-destructive">{deckError.message}</p>
                 </div>
@@ -328,7 +318,6 @@ function DeckPage() {
                                             {deck.data.name}
                                         </h1>
                                     )}
-
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button
@@ -427,12 +416,6 @@ function DeckPage() {
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </div>
-
-                                <DeckPathBreadcrumbs
-                                    path={deck.data.path}
-                                    showFullPath={true}
-                                    showBase={true}
-                                />
                             </div>
                         )
                     )}

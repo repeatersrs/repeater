@@ -15,18 +15,20 @@ interface DeckPathBreadcrumbsProps {
         [key: string]: string;
     }>;
     showFullPath: boolean;
-    showBase?: boolean;
+    showDecksRoot?: boolean;
+    highlightLast?: boolean;
 }
 
 export default function DeckPathBreadcrumbs({
     path,
     showFullPath,
-    showBase = false,
+    showDecksRoot = false,
+    highlightLast = false,
 }: DeckPathBreadcrumbsProps) {
     return (
         <Breadcrumb>
             <BreadcrumbList>
-                {showBase && (
+                {showDecksRoot && (
                     <>
                         <BreadcrumbItem>
                             <BreadcrumbLink
@@ -40,7 +42,6 @@ export default function DeckPathBreadcrumbs({
                         <BreadcrumbSeparator />
                     </>
                 )}
-
                 {path.map((d, i) => {
                     const isFirst = i === 0;
                     const isLast = i === path.length - 1;
@@ -60,7 +61,14 @@ export default function DeckPathBreadcrumbs({
                             ) : shouldShow ? (
                                 <>
                                     <BreadcrumbItem>
-                                        <BreadcrumbLink href={`/decks/${d.id}`}>
+                                        <BreadcrumbLink
+                                            href={`/decks/${d.id}`}
+                                            className={
+                                                isLast && highlightLast
+                                                    ? 'text-primary'
+                                                    : ''
+                                            }
+                                        >
                                             {d.name}
                                         </BreadcrumbLink>
                                     </BreadcrumbItem>

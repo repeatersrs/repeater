@@ -21,7 +21,7 @@ function RootComponent() {
         <AppProviders>
             <AppSidebar />
             <SidebarInset>
-                <Header className="md:hidden" />
+                <Header />
                 <Outlet />
             </SidebarInset>
             <Toaster />
