@@ -3,8 +3,6 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
     MoreVertical,
-    Pencil,
-    PencilOff,
     FileDown,
     Pause,
     Play,
@@ -19,7 +17,6 @@ import { z } from 'zod';
 
 import CardInspectDialog from '@/components/card-inspect-dialog';
 import CardsGrid from '@/components/cards-grid';
-import SaveFooter from '@/components/save-footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -84,7 +81,6 @@ function DeckPage() {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const apiUrl = import.meta.env.VITE_API_URL;
-    const [isEditing, setIsEditing] = useState(false);
 
     const {
         data: deck,
@@ -150,7 +146,6 @@ function DeckPage() {
             queryClient.invalidateQueries({ queryKey: ['decks', deckId] });
             queryClient.invalidateQueries({ queryKey: ['decks', 'tree'] });
             queryClient.invalidateQueries({ queryKey: ['cards', deckId] });
-            setIsEditing(false);
         },
         onError: (error) => {
             toast.error(
@@ -255,20 +250,13 @@ function DeckPage() {
         }
     }, [deck?.data, deckForm]);
 
-    function handleSave() {
-        deckForm.handleSubmit((data) => {
-            updateDeckMutation.mutate(data);
-        })();
+    function handleBlurSave() {
+        if (deckForm.formState.isDirty) {
+            deckForm.handleSubmit((data) => {
+                updateDeckMutation.mutate(data);
+            })();
+        }
     }
-
-    function handleCancel() {
-        deckForm.reset();
-        setIsEditing(false);
-    }
-
-    const {
-        formState: { isDirty },
-    } = deckForm;
 
     if (isDeckError) {
         return (
@@ -286,190 +274,146 @@ function DeckPage() {
     return (
         <div className="container mx-auto px-6 py-6">
             <Form {...deckForm}>
-                <div className="mb-6">
-                    {/* Title and dropdown menu */}
-                    {isDeckLoading ? (
-                        <div className="mb-6 space-y-2">
-                            <Skeleton className="h-8 w-64" />
-                            <Skeleton className="h-4 w-32" />
-                        </div>
-                    ) : (
-                        deck?.data && (
-                            <div className="mb-6 space-y-2">
-                                <div className="flex items-center gap-3">
-                                    {isEditing ? (
+                <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+                    {/* Left column - Title + Description */}
+                    <div className="lg:col-span-1">
+                        {isDeckLoading ? (
+                            <div className="space-y-2">
+                                <Skeleton className="h-10 w-64" />
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-3/4" />
+                            </div>
+                        ) : (
+                            deck?.data && (
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-1">
                                         <FormField
                                             control={deckForm.control}
                                             name="name"
                                             render={({ field }) => (
-                                                <FormItem className="max-w-xs flex-1">
+                                                <FormItem className="min-w-0 flex-1">
                                                     <FormControl>
                                                         <Input
-                                                            autoFocus={true}
                                                             {...field}
+                                                            onBlur={() => {
+                                                                field.onBlur();
+                                                                handleBlurSave();
+                                                            }}
+                                                            className="h-auto rounded-none border-none bg-transparent p-0 text-2xl font-semibold shadow-none focus-visible:ring-0 md:text-2xl"
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
                                         />
-                                    ) : (
-                                        <h1 className="text-3xl font-bold">
-                                            {deck.data.name}
-                                        </h1>
-                                    )}
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-8 w-8 p-0"
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 shrink-0 p-0"
+                                                >
+                                                    <MoreVertical className="h-4 w-4" />
+                                                    <span className="sr-only">
+                                                        Open menu
+                                                    </span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                side="right"
+                                                align="start"
+                                                className="w-48"
                                             >
-                                                <MoreVertical className="h-4 w-4" />
-                                                <span className="sr-only">
-                                                    Open menu
-                                                </span>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent
-                                            side="right"
-                                            align="start"
-                                            className="w-48"
-                                        >
-                                            <DropdownMenuItem
-                                                onClick={() =>
-                                                    setIsEditing(!isEditing)
-                                                }
-                                            >
-                                                {isEditing ? (
-                                                    <>
-                                                        <PencilOff className="mr-2 h-4 w-4" />
-                                                        Stop editing
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Pencil className="mr-2 h-4 w-4" />
-                                                        Edit
-                                                    </>
-                                                )}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() =>
-                                                    togglePauseDeckMutation.mutate(
-                                                        deck.data
-                                                    )
-                                                }
-                                            >
-                                                {deck.data.is_paused ? (
-                                                    <>
-                                                        <Play className="mr-2 h-4 w-4" />
-                                                        Resume
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Pause className="mr-2 h-4 w-4" />
-                                                        Pause
-                                                    </>
-                                                )}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() =>
-                                                    exportDeckMutation.mutate(
-                                                        deck.data
-                                                    )
-                                                }
-                                            >
-                                                <FileDown className="mr-2 h-4 w-4" />
-                                                Export
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem
-                                                onClick={() =>
-                                                    toggleArchiveDeckMutation.mutate(
-                                                        deck.data
-                                                    )
-                                                }
-                                            >
-                                                {deck.data.is_archived ? (
-                                                    <>
-                                                        <ArchiveRestore className="mr-2 h-4 w-4" />
-                                                        Unarchive
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Archive className="mr-2 h-4 w-4" />
-                                                        Archive
-                                                    </>
-                                                )}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                className="text-red-600"
-                                                onClick={() =>
-                                                    deleteDeckMutation.mutate(
-                                                        deck.data
-                                                    )
-                                                }
-                                            >
-                                                <Trash className="mr-2 h-4 w-4" />
-                                                Delete
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        togglePauseDeckMutation.mutate(
+                                                            deck.data
+                                                        )
+                                                    }
+                                                >
+                                                    {deck.data.is_paused ? (
+                                                        <>
+                                                            <Play className="mr-2 h-4 w-4" />
+                                                            Resume
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Pause className="mr-2 h-4 w-4" />
+                                                            Pause
+                                                        </>
+                                                    )}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        exportDeckMutation.mutate(
+                                                            deck.data
+                                                        )
+                                                    }
+                                                >
+                                                    <FileDown className="mr-2 h-4 w-4" />
+                                                    Export
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        toggleArchiveDeckMutation.mutate(
+                                                            deck.data
+                                                        )
+                                                    }
+                                                >
+                                                    {deck.data.is_archived ? (
+                                                        <>
+                                                            <ArchiveRestore className="mr-2 h-4 w-4" />
+                                                            Unarchive
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Archive className="mr-2 h-4 w-4" />
+                                                            Archive
+                                                        </>
+                                                    )}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    className="text-red-600"
+                                                    onClick={() =>
+                                                        deleteDeckMutation.mutate(
+                                                            deck.data
+                                                        )
+                                                    }
+                                                >
+                                                    <Trash className="mr-2 h-4 w-4" />
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                    <FormField
+                                        control={deckForm.control}
+                                        name="description"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <Textarea
+                                                        {...field}
+                                                        onBlur={() => {
+                                                            field.onBlur();
+                                                            handleBlurSave();
+                                                        }}
+                                                        placeholder="No description"
+                                                        className="text-muted-foreground min-h-0 resize-none rounded-none border-none bg-transparent p-0 leading-relaxed shadow-none focus-visible:ring-0"
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
-                            </div>
-                        )
-                    )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    {/* Left column - Description */}
-                    <div className="lg:col-span-1">
-                        <h2 className="mb-4 text-xl font-semibold">
-                            Description
-                        </h2>
-                        {isDeckLoading ? (
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-full" />
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </div>
-                        ) : isEditing ? (
-                            <FormField
-                                control={deckForm.control}
-                                name="description"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Textarea
-                                                {...field}
-                                                placeholder="Enter deck description..."
-                                                className="min-h-[100px]"
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        ) : (
-                            <div className="prose prose-neutral max-w-none">
-                                {deck?.data?.description ? (
-                                    <p className="text-muted-foreground leading-relaxed">
-                                        {deck.data.description}
-                                    </p>
-                                ) : (
-                                    <p className="text-muted-foreground italic">
-                                        No description provided
-                                    </p>
-                                )}
-                            </div>
+                            )
                         )}
                     </div>
 
                     {/* Right column - Statistics */}
                     <div className="lg:col-span-2">
-                        <h2 className="mb-4 text-xl font-semibold">
-                            Statistics
-                        </h2>
                         {isStatsLoading ? (
                             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                                 {[...Array(4)].map((_, i) => (
@@ -525,20 +469,9 @@ function DeckPage() {
                         )}
                     </div>
                 </div>
-
-                {/* Save Footer */}
-                {isEditing && (
-                    <SaveFooter
-                        onSave={handleSave}
-                        onCancel={handleCancel}
-                        isSaving={updateDeckMutation.isPending}
-                        isError={updateDeckMutation.isError}
-                        isDirty={isDirty}
-                    />
-                )}
             </Form>
-            <div>
-                <h1 className="mb-6 text-2xl font-medium">Cards</h1>
+            <div className="mt-10">
+                <h2 className="mb-6 text-xl font-semibold">Cards</h2>
                 <CardsGrid
                     cards={cards?.data}
                     isLoading={isCardsLoading}
