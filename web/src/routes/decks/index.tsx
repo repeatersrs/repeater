@@ -5,7 +5,6 @@ import { useState } from 'react';
 import CardInspectDialog from '@/components/card-inspect-dialog';
 import CardsGrid from '@/components/cards-grid';
 import DecksGrid from '@/components/decks-grid';
-import MobileAppBar from '@/components/mobile-app-bar';
 import {
     getDecksDecksGet,
     getCardsCardsGet,
@@ -80,78 +79,74 @@ function Decks() {
     }
 
     return (
-        <>
-            <MobileAppBar />
-            <div className="container mx-auto space-y-8 px-6 py-6">
-                <h1 className="mb-6 text-2xl font-medium">Decks</h1>
-                <div>
-                    <DecksGrid
-                        decks={decks?.data}
-                        isLoading={isDecksLoading}
-                        isError={isDecksError}
-                        error={decksError}
-                        onDeckClick={(deckId) => {
-                            navigate({
-                                to: '/decks/$deckId',
-                                params: { deckId },
-                            });
-                        }}
-                        onDeckCreated={() => {
-                            queryClient.invalidateQueries({
-                                queryKey: ['decks'],
-                            });
-                        }}
-                        showCreateButton={true}
-                    />
-                </div>
-
-                <div>
-                    <h1 className="mb-6 text-2xl font-medium">Cards</h1>
-                    <CardsGrid
-                        cards={cards?.data}
-                        isLoading={isCardsLoading}
-                        isError={isCardsError}
-                        error={cardsError}
-                        onCardClick={(cardIndex) => {
-                            setActiveCardIndex(cardIndex);
-                            setCardInspectDialogOpen(true);
-                        }}
-                        onCardMouseEnter={(cardId) => {
-                            prefetchCardHistory(cardId);
-                        }}
-                        onCardCreated={() => {
-                            queryClient.invalidateQueries({
-                                queryKey: ['cards'],
-                            });
-                        }}
-                        showCreateButton={true}
-                    />
-                </div>
-                {activeCard && (
-                    <CardInspectDialog
-                        card={activeCard}
-                        open={cardInspectDialogOpen}
-                        onOpenChange={setCardInspectDialogOpen}
-                        onUpdateSuccess={() => {
-                            queryClient.invalidateQueries({
-                                queryKey: ['cards'],
-                            });
-                        }}
-                        onDeleteSuccess={() => {
-                            queryClient.invalidateQueries({
-                                queryKey: ['cards'],
-                            });
-                        }}
-                        onNext={nextCard}
-                        onPrev={prevCard}
-                        hasNext={
-                            cards.data &&
-                            activeCardIndex < cards.data.length - 1
-                        }
-                        hasPrev={activeCardIndex !== 0}
-                    />
-                )}
+        <div className="container mx-auto space-y-8 px-6 py-6">
+            <h1 className="mb-6 text-2xl font-medium">Decks</h1>
+            <div>
+                <DecksGrid
+                    decks={decks?.data}
+                    isLoading={isDecksLoading}
+                    isError={isDecksError}
+                    error={decksError}
+                    onDeckClick={(deckId) => {
+                        navigate({
+                            to: '/decks/$deckId',
+                            params: { deckId },
+                        });
+                    }}
+                    onDeckCreated={() => {
+                        queryClient.invalidateQueries({
+                            queryKey: ['decks'],
+                        });
+                    }}
+                    showCreateButton={true}
+                />
             </div>
-        </>
+
+            <div>
+                <h1 className="mb-6 text-2xl font-medium">Cards</h1>
+                <CardsGrid
+                    cards={cards?.data}
+                    isLoading={isCardsLoading}
+                    isError={isCardsError}
+                    error={cardsError}
+                    onCardClick={(cardIndex) => {
+                        setActiveCardIndex(cardIndex);
+                        setCardInspectDialogOpen(true);
+                    }}
+                    onCardMouseEnter={(cardId) => {
+                        prefetchCardHistory(cardId);
+                    }}
+                    onCardCreated={() => {
+                        queryClient.invalidateQueries({
+                            queryKey: ['cards'],
+                        });
+                    }}
+                    showCreateButton={true}
+                />
+            </div>
+            {activeCard && (
+                <CardInspectDialog
+                    card={activeCard}
+                    open={cardInspectDialogOpen}
+                    onOpenChange={setCardInspectDialogOpen}
+                    onUpdateSuccess={() => {
+                        queryClient.invalidateQueries({
+                            queryKey: ['cards'],
+                        });
+                    }}
+                    onDeleteSuccess={() => {
+                        queryClient.invalidateQueries({
+                            queryKey: ['cards'],
+                        });
+                    }}
+                    onNext={nextCard}
+                    onPrev={prevCard}
+                    hasNext={
+                        cards.data && activeCardIndex < cards.data.length - 1
+                    }
+                    hasPrev={activeCardIndex !== 0}
+                />
+            )}
+        </div>
     );
 }

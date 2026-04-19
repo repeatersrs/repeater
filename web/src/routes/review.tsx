@@ -1,13 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import {
-    Calendar,
-    CalendarX2,
-    CircleCheck,
-    Folder,
-    Plus,
-    Repeat,
-} from 'lucide-react';
+import { Calendar, CalendarX2, CircleCheck, Folder, Plus } from 'lucide-react';
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
@@ -16,7 +9,6 @@ import Kbd from '@/components/kbd';
 import { useShortcutActions } from '@/components/shortcut-provider';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
     Tooltip,
     TooltipContent,
@@ -185,17 +177,6 @@ function Review() {
                 radius={1}
                 className="text-destructive/12 fixed"
             />
-
-            <div className="bg-sidebar border-sidebar-border relative z-10 flex h-12 shrink-0 items-center justify-center border-b md:hidden">
-                <SidebarTrigger className="absolute left-2" />
-                <Link
-                    to="/review"
-                    className="flex items-center gap-2 text-base font-semibold"
-                >
-                    <Repeat className="size-4" />
-                    <span>Repeater</span>
-                </Link>
-            </div>
 
             {isPending && !isError && (
                 <p className="text-muted-foreground m-auto">loading</p>
