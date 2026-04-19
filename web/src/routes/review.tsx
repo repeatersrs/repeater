@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { CalendarX2, CircleCheck, Folder, Plus } from 'lucide-react';
+import {
+    CalendarX2,
+    CircleCheck,
+    Folder,
+    Plus,
+    Repeat,
+} from 'lucide-react';
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
@@ -9,6 +15,7 @@ import Kbd from '@/components/kbd';
 import { useShortcutActions } from '@/components/shortcut-provider';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
     Tooltip,
     TooltipContent,
@@ -180,6 +187,19 @@ function Review() {
                 className="fixed text-destructive/12"
             />
 
+            {/* Mobile app bar — brand on the left, sidebar trigger on the
+                right. Hidden on md+, where the floating sidebar is visible. */}
+            <div className="bg-sidebar border-sidebar-border relative z-10 flex shrink-0 items-center justify-between border-b px-4 py-3 md:hidden">
+                <Link
+                    to="/review"
+                    className="flex items-center gap-2 text-base font-semibold"
+                >
+                    <Repeat className="size-4" />
+                    <span>Repeater</span>
+                </Link>
+                <SidebarTrigger className="-mr-2" />
+            </div>
+
             {isPending && !isError && (
                 <p className="m-auto text-muted-foreground">loading</p>
             )}
@@ -205,17 +225,18 @@ function Review() {
                         Floating panel with sidebar tokens (#FAFAFA bg /
                         #EBEBEB border), DONE + breakdown on the left,
                         TO GO number on the right, segmented bar flush at the
-                        bottom via overflow-clip. See Paper node 4Z9-0. */}
-                    <div className="relative z-10 shrink-0 p-2 pb-0">
+                        bottom via overflow-clip. See Paper node 4Z9-0
+                        (desktop) and 524-0 (mobile). */}
+                    <div className="relative z-10 shrink-0 p-3 pb-0 md:p-2">
                         <div className="bg-sidebar border-sidebar-border flex flex-col overflow-hidden border">
-                            <div className="flex items-end justify-between gap-8 px-6 pt-[18px] pb-[14px]">
+                            <div className="flex items-end justify-between gap-4 px-4 pt-[14px] pb-[12px] md:gap-8 md:px-6 md:pt-[18px] md:pb-[14px]">
                                 {/* Done */}
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-1.5 md:gap-2">
                                     <span className="text-muted-foreground text-[10px] leading-[14px] font-medium tracking-[0.08em] uppercase">
                                         Done
                                     </span>
-                                    <div className="flex items-baseline gap-3 tabular-nums">
-                                        <span className="text-foreground text-[36px] leading-none font-extrabold tracking-[-0.02em]">
+                                    <div className="flex items-baseline gap-2.5 tabular-nums md:gap-3">
+                                        <span className="text-foreground text-[32px] leading-none font-extrabold tracking-[-0.02em] md:text-[36px]">
                                             {reviewedCards}
                                         </span>
                                         {reviewedCards > 0 && (
@@ -238,11 +259,11 @@ function Review() {
                                 </div>
 
                                 {/* To go */}
-                                <div className="flex flex-col items-end gap-2">
+                                <div className="flex flex-col items-end gap-1.5 md:gap-2">
                                     <span className="text-muted-foreground/70 text-[10px] leading-[14px] font-medium tracking-[0.08em] uppercase">
                                         To go
                                     </span>
-                                    <span className="text-muted-foreground text-[36px] leading-none font-extrabold tracking-[-0.02em] tabular-nums">
+                                    <span className="text-muted-foreground text-[32px] leading-none font-extrabold tracking-[-0.02em] tabular-nums md:text-[36px]">
                                         {remainingCards.length}
                                     </span>
                                 </div>
@@ -272,7 +293,7 @@ function Review() {
                     </div>
 
                     {/* Card + caption */}
-                    <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-3.5 px-8">
+                    <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-3 px-6 md:gap-3.5 md:px-8">
                         <div className="relative w-full max-w-[380px]">
                             {/* Ghost stack — disabled for now, keep for future use.
                             {remainingCards.length > 2 && (
@@ -366,13 +387,14 @@ function Review() {
                         </div>
                     </div>
 
-                    {/* Controls */}
-                    <div className="relative z-10 flex shrink-0 items-center justify-center gap-3 py-6">
+                    {/* Controls — stretch edge-to-edge on mobile (flex-1
+                        buttons), sit at fixed widths and centered on md+. */}
+                    <div className="relative z-10 flex shrink-0 items-center gap-2.5 px-4 pt-3 pb-5 md:justify-center md:gap-3 md:px-0 md:py-6">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
                                     variant="secondary"
-                                    className="border-border h-11 border px-8"
+                                    className="border-border h-12 flex-1 border md:h-11 md:flex-none md:px-8"
                                     onClick={() =>
                                         reviewCard.mutate('forgot')
                                     }
@@ -399,7 +421,7 @@ function Review() {
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
-                                    className="h-11 px-8"
+                                    className="h-12 flex-1 md:h-11 md:flex-none md:px-8"
                                     onClick={() => reviewCard.mutate('ok')}
                                 >
                                     Remembered
