@@ -88,10 +88,15 @@ function Decks() {
                     isError={isDecksError}
                     error={decksError}
                     onDeckClick={(deckId) => {
-                        navigate({ to: '/decks/$deckId', params: { deckId } });
+                        navigate({
+                            to: '/decks/$deckId',
+                            params: { deckId },
+                        });
                     }}
                     onDeckCreated={() => {
-                        queryClient.invalidateQueries({ queryKey: ['decks'] });
+                        queryClient.invalidateQueries({
+                            queryKey: ['decks'],
+                        });
                     }}
                     showCreateButton={true}
                 />
@@ -112,7 +117,9 @@ function Decks() {
                         prefetchCardHistory(cardId);
                     }}
                     onCardCreated={() => {
-                        queryClient.invalidateQueries({ queryKey: ['cards'] });
+                        queryClient.invalidateQueries({
+                            queryKey: ['cards'],
+                        });
                     }}
                     showCreateButton={true}
                 />

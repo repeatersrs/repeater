@@ -17,6 +17,7 @@ import { z } from 'zod';
 
 import CardInspectDialog from '@/components/card-inspect-dialog';
 import CardsGrid from '@/components/cards-grid';
+import DeckPathBreadcrumbs from '@/components/deck-path-breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -286,7 +287,23 @@ function DeckPage() {
                         ) : (
                             deck?.data && (
                                 <div className="space-y-1">
-                                    <div className="flex items-center gap-1">
+                                    <div className="@container flex items-center gap-1">
+                                        {/* Gate on the row's own width (not the viewport) so deep
+                                            paths never push the title offscreen. */}
+                                        <div className="text-muted-foreground hidden max-w-[calc(100%-12rem)] min-w-0 overflow-hidden md:@[22rem]:block">
+                                            <DeckPathBreadcrumbs
+                                                path={deck.data.path.slice(
+                                                    0,
+                                                    -1
+                                                )}
+                                                showFullPath={false}
+                                                showDecksRoot
+                                                trailingSeparator
+                                                collapsed={
+                                                    deck.data.path.length > 3
+                                                }
+                                            />
+                                        </div>
                                         <FormField
                                             control={deckForm.control}
                                             name="name"
@@ -485,7 +502,9 @@ function DeckPage() {
                         prefetchCardHistory(cardId);
                     }}
                     onCardCreated={() => {
-                        queryClient.invalidateQueries({ queryKey: ['cards'] });
+                        queryClient.invalidateQueries({
+                            queryKey: ['cards'],
+                        });
                     }}
                     defaultDeckId={deckId}
                 />

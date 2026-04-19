@@ -70,7 +70,7 @@ export default function CardsGrid({
                 cards.map((card, cardIndex) => (
                     <Card
                         key={card.id}
-                        className="flex aspect-[3/4] cursor-pointer flex-col gap-1 px-4 py-0 transition-shadow hover:shadow-md"
+                        className="hover:border-foreground/30 flex aspect-[3/4] cursor-pointer flex-col gap-1 px-4 py-0 transition-colors"
                         onMouseEnter={() => onCardMouseEnter(card.id)}
                         onClick={() => onCardClick(cardIndex)}
                     >
