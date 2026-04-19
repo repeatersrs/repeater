@@ -28,7 +28,7 @@ export default function MobileAppBar() {
 
     return (
         <div className="bg-sidebar border-sidebar-border sticky top-0 z-10 flex h-12 shrink-0 items-center justify-center border-b md:hidden">
-            <SidebarTrigger className="absolute left-2" />
+            <SidebarTrigger className="text-muted-foreground absolute left-2" />
             <div className="min-w-0 truncate px-12">
                 {reviewMatch && (
                     <Link
