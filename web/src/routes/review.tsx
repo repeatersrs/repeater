@@ -201,34 +201,73 @@ function Review() {
 
             {currentCard && (
                 <>
-                    {/* Progress header — big count + segmented bar */}
-                    <div className="relative z-10 shrink-0">
-                        <div className="flex items-baseline gap-2 px-7 pt-5 pb-3">
-                            <span className="text-foreground text-[42px] leading-none font-extrabold tabular-nums">
-                                {reviewedCards}
-                            </span>
-                            <span className="text-muted-foreground text-xl tabular-nums">
-                                / {totalCards}
-                            </span>
-                        </div>
-                        <div className="flex h-[5px] w-full gap-[2px]">
-                            {completedCards.length > 0 && (
-                                <div
-                                    className="bg-success h-full"
-                                    style={{
-                                        width: `${completedPercentage}%`,
-                                    }}
-                                />
-                            )}
-                            {failedCards.length > 0 && (
-                                <div
-                                    className="bg-destructive h-full"
-                                    style={{
-                                        width: `${failedPercentage}%`,
-                                    }}
-                                />
-                            )}
-                            <div className="bg-muted h-full flex-1" />
+                    {/* Progress header — "Stats macro · with bg" panel.
+                        Floating panel with sidebar tokens (#FAFAFA bg /
+                        #EBEBEB border), DONE + breakdown on the left,
+                        TO GO number on the right, segmented bar flush at the
+                        bottom via overflow-clip. See Paper node 4Z9-0. */}
+                    <div className="relative z-10 shrink-0 p-2 pb-0">
+                        <div className="bg-sidebar border-sidebar-border flex flex-col overflow-hidden border">
+                            <div className="flex items-end justify-between gap-8 px-6 pt-[18px] pb-[14px]">
+                                {/* Done */}
+                                <div className="flex flex-col gap-2">
+                                    <span className="text-muted-foreground text-[10px] leading-[14px] font-medium tracking-[0.08em] uppercase">
+                                        Done
+                                    </span>
+                                    <div className="flex items-baseline gap-3 tabular-nums">
+                                        <span className="text-foreground text-[36px] leading-none font-extrabold tracking-[-0.02em]">
+                                            {reviewedCards}
+                                        </span>
+                                        {reviewedCards > 0 && (
+                                            <div className="flex items-center gap-2 text-xs font-medium tabular-nums">
+                                                <span className="text-success">
+                                                    {completedCards.length} ok
+                                                </span>
+                                                <span
+                                                    aria-hidden
+                                                    className="text-muted-foreground/40"
+                                                >
+                                                    ·
+                                                </span>
+                                                <span className="text-destructive">
+                                                    {failedCards.length} forgot
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* To go */}
+                                <div className="flex flex-col items-end gap-2">
+                                    <span className="text-muted-foreground/70 text-[10px] leading-[14px] font-medium tracking-[0.08em] uppercase">
+                                        To go
+                                    </span>
+                                    <span className="text-muted-foreground text-[36px] leading-none font-extrabold tracking-[-0.02em] tabular-nums">
+                                        {remainingCards.length}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Segmented bar flush at the bottom of the panel */}
+                            <div className="flex h-[6px] w-full gap-[2px]">
+                                {completedCards.length > 0 && (
+                                    <div
+                                        className="bg-success h-full"
+                                        style={{
+                                            width: `${completedPercentage}%`,
+                                        }}
+                                    />
+                                )}
+                                {failedCards.length > 0 && (
+                                    <div
+                                        className="bg-destructive h-full"
+                                        style={{
+                                            width: `${failedPercentage}%`,
+                                        }}
+                                    />
+                                )}
+                                <div className="bg-muted h-full flex-1" />
+                            </div>
                         </div>
                     </div>
 
