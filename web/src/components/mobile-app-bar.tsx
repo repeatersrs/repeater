@@ -17,12 +17,14 @@ export default function MobileAppBar({
     return (
         <div
             className={cn(
-                'bg-sidebar border-sidebar-border sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b px-4 py-3 md:hidden',
+                'bg-sidebar border-sidebar-border sticky top-0 z-10 flex h-12 shrink-0 items-center justify-center border-b md:hidden',
                 className
             )}
         >
-            <SidebarTrigger className="-ml-2" />
-            {children && <div className="min-w-0 flex-1">{children}</div>}
+            <SidebarTrigger className="absolute left-2" />
+            {children && (
+                <div className="min-w-0 truncate px-12">{children}</div>
+            )}
         </div>
     );
 }

@@ -186,8 +186,8 @@ function Review() {
                 className="text-destructive/12 fixed"
             />
 
-            <div className="bg-sidebar border-sidebar-border relative z-10 flex shrink-0 items-center gap-3 border-b px-4 py-3 md:hidden">
-                <SidebarTrigger className="-ml-2" />
+            <div className="bg-sidebar border-sidebar-border relative z-10 flex h-12 shrink-0 items-center justify-center border-b md:hidden">
+                <SidebarTrigger className="absolute left-2" />
                 <Link
                     to="/review"
                     className="flex items-center gap-2 text-base font-semibold"

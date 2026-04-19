@@ -64,46 +64,48 @@ function AdminDashboard() {
         <>
             <MobileAppBar />
             <div className="container mx-auto space-y-8 px-6 py-6">
-            <div>
-                <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                <p className="text-muted-foreground">
-                    Manage users and system settings
-                </p>
-            </div>
-
-            {/* Users table */}
-            <div>
-                <div className="mb-6 flex items-center justify-between">
-                    <h2 className="text-2xl font-medium">Users</h2>
-                    <div className="flex items-center space-x-2">
-                        <Switch
-                            id="show-guests"
-                            checked={showGuests}
-                            onCheckedChange={setShowGuests}
-                        />
-                        <Label htmlFor="show-guests">Show guests</Label>
-                    </div>
+                <div>
+                    <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+                    <p className="text-muted-foreground">
+                        Manage users and system settings
+                    </p>
                 </div>
 
-                {/* TODO Add Skeleton */}
-                {isUsersLoading && <p>Loading users...</p>}
-                {isUsersError && (
-                    <p className="text-destructive">{usersError?.message}</p>
-                )}
-
-                {!isUsersLoading && !isUsersError && usersData?.data && (
-                    <div>
-                        <DataTable
-                            columns={columns}
-                            data={usersData.data.items}
-                            pagination={pagination}
-                            pages={usersData.data.pages}
-                            manualPagination={true}
-                            onPaginationChange={setPagination}
-                        />
+                {/* Users table */}
+                <div>
+                    <div className="mb-6 flex items-center justify-between">
+                        <h2 className="text-2xl font-medium">Users</h2>
+                        <div className="flex items-center space-x-2">
+                            <Switch
+                                id="show-guests"
+                                checked={showGuests}
+                                onCheckedChange={setShowGuests}
+                            />
+                            <Label htmlFor="show-guests">Show guests</Label>
+                        </div>
                     </div>
-                )}
-            </div>
+
+                    {/* TODO Add Skeleton */}
+                    {isUsersLoading && <p>Loading users...</p>}
+                    {isUsersError && (
+                        <p className="text-destructive">
+                            {usersError?.message}
+                        </p>
+                    )}
+
+                    {!isUsersLoading && !isUsersError && usersData?.data && (
+                        <div>
+                            <DataTable
+                                columns={columns}
+                                data={usersData.data.items}
+                                pagination={pagination}
+                                pages={usersData.data.pages}
+                                manualPagination={true}
+                                onPaginationChange={setPagination}
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );
