@@ -17,6 +17,8 @@ import { z } from 'zod';
 
 import CardInspectDialog from '@/components/card-inspect-dialog';
 import CardsGrid from '@/components/cards-grid';
+import DeckPathBreadcrumbs from '@/components/deck-path-breadcrumbs';
+import MobileAppBar from '@/components/mobile-app-bar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -260,20 +262,36 @@ function DeckPage() {
 
     if (isDeckError) {
         return (
-            <div className="container mx-auto flex h-full w-full items-center justify-center px-6 py-6">
-                <div className="text-center">
-                    <h1 className="mb-4 text-xl font-medium">
-                        Error loading deck. Try again.
-                    </h1>
-                    <p className="text-destructive">{deckError.message}</p>
+            <>
+                <MobileAppBar />
+                <div className="container mx-auto flex h-full w-full items-center justify-center px-6 py-6">
+                    <div className="text-center">
+                        <h1 className="mb-4 text-xl font-medium">
+                            Error loading deck. Try again.
+                        </h1>
+                        <p className="text-destructive">
+                            {deckError.message}
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </>
         );
     }
 
     return (
-        <div className="container mx-auto px-6 py-6">
-            <Form {...deckForm}>
+        <>
+            <MobileAppBar>
+                {deck?.data && (
+                    <DeckPathBreadcrumbs
+                        path={deck.data.path}
+                        showFullPath={false}
+                        showDecksRoot
+                        highlightLast
+                    />
+                )}
+            </MobileAppBar>
+            <div className="container mx-auto px-6 py-6">
+                <Form {...deckForm}>
                 <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
                     {/* Left column - Title + Description */}
                     <div className="lg:col-span-1">
@@ -287,6 +305,19 @@ function DeckPage() {
                             deck?.data && (
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-1">
+                                        {deck.data.path.length > 1 && (
+                                            <div className="text-muted-foreground hidden md:flex">
+                                                <DeckPathBreadcrumbs
+                                                    path={deck.data.path.slice(
+                                                        0,
+                                                        -1
+                                                    )}
+                                                    showFullPath
+                                                    showDecksRoot
+                                                    trailingSeparator
+                                                />
+                                            </div>
+                                        )}
                                         <FormField
                                             control={deckForm.control}
                                             name="name"
@@ -491,29 +522,31 @@ function DeckPage() {
                 />
             </div>
 
-            {activeCard && (
-                <CardInspectDialog
-                    card={activeCard}
-                    open={cardInspectDialogOpen}
-                    onOpenChange={setCardInspectDialogOpen}
-                    onUpdateSuccess={() => {
-                        queryClient.invalidateQueries({
-                            queryKey: ['cards'],
-                        });
-                    }}
-                    onDeleteSuccess={() => {
-                        queryClient.invalidateQueries({
-                            queryKey: ['cards'],
-                        });
-                    }}
-                    onNext={nextCard}
-                    onPrev={prevCard}
-                    hasNext={
-                        cards.data && activeCardIndex < cards.data.length - 1
-                    }
-                    hasPrev={activeCardIndex !== 0}
-                />
-            )}
-        </div>
+                {activeCard && (
+                    <CardInspectDialog
+                        card={activeCard}
+                        open={cardInspectDialogOpen}
+                        onOpenChange={setCardInspectDialogOpen}
+                        onUpdateSuccess={() => {
+                            queryClient.invalidateQueries({
+                                queryKey: ['cards'],
+                            });
+                        }}
+                        onDeleteSuccess={() => {
+                            queryClient.invalidateQueries({
+                                queryKey: ['cards'],
+                            });
+                        }}
+                        onNext={nextCard}
+                        onPrev={prevCard}
+                        hasNext={
+                            cards.data &&
+                            activeCardIndex < cards.data.length - 1
+                        }
+                        hasPrev={activeCardIndex !== 0}
+                    />
+                )}
+            </div>
+        </>
     );
 }

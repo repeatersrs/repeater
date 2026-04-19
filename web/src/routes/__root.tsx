@@ -3,7 +3,6 @@ import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 import { AppProviders } from '@/components/app-providers';
-import Header from '@/components/header';
 import { AppSidebar } from '@/components/nav/app-sidebar';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
@@ -21,7 +20,6 @@ function RootComponent() {
         <AppProviders>
             <AppSidebar />
             <SidebarInset>
-                <Header />
                 <Outlet />
             </SidebarInset>
             <Toaster />

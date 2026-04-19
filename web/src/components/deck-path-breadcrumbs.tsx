@@ -17,6 +17,9 @@ interface DeckPathBreadcrumbsProps {
     showFullPath: boolean;
     showDecksRoot?: boolean;
     highlightLast?: boolean;
+    /** Render a chevron after the last crumb so another element (e.g. an
+     * editable title) can act as the final segment. */
+    trailingSeparator?: boolean;
 }
 
 export default function DeckPathBreadcrumbs({
@@ -24,6 +27,7 @@ export default function DeckPathBreadcrumbs({
     showFullPath,
     showDecksRoot = false,
     highlightLast = false,
+    trailingSeparator = false,
 }: DeckPathBreadcrumbsProps) {
     return (
         <Breadcrumb>
@@ -72,7 +76,9 @@ export default function DeckPathBreadcrumbs({
                                             {d.name}
                                         </BreadcrumbLink>
                                     </BreadcrumbItem>
-                                    {!isLast && <BreadcrumbSeparator />}
+                                    {(!isLast || trailingSeparator) && (
+                                        <BreadcrumbSeparator />
+                                    )}
                                 </>
                             ) : null}
                         </React.Fragment>

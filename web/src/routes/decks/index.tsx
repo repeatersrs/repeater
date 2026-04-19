@@ -5,6 +5,7 @@ import { useState } from 'react';
 import CardInspectDialog from '@/components/card-inspect-dialog';
 import CardsGrid from '@/components/cards-grid';
 import DecksGrid from '@/components/decks-grid';
+import MobileAppBar from '@/components/mobile-app-bar';
 import {
     getDecksDecksGet,
     getCardsCardsGet,
@@ -79,7 +80,9 @@ function Decks() {
     }
 
     return (
-        <div className="container mx-auto space-y-8 px-6 py-6">
+        <>
+            <MobileAppBar />
+            <div className="container mx-auto space-y-8 px-6 py-6">
             <h1 className="mb-6 text-2xl font-medium">Decks</h1>
             <div>
                 <DecksGrid
@@ -140,6 +143,7 @@ function Decks() {
                     hasPrev={activeCardIndex !== 0}
                 />
             )}
-        </div>
+            </div>
+        </>
     );
 }

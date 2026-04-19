@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 
 import { columns } from '@/components/admin-columns';
+import MobileAppBar from '@/components/mobile-app-bar';
 import { DataTable } from '@/components/table/data-table';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -60,7 +61,9 @@ function AdminDashboard() {
     });
 
     return (
-        <div className="container mx-auto space-y-8 px-6 py-6">
+        <>
+            <MobileAppBar />
+            <div className="container mx-auto space-y-8 px-6 py-6">
             <div>
                 <h1 className="text-3xl font-bold">Admin Dashboard</h1>
                 <p className="text-muted-foreground">
@@ -101,6 +104,7 @@ function AdminDashboard() {
                     </div>
                 )}
             </div>
-        </div>
+            </div>
+        </>
     );
 }

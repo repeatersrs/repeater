@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { ActivityHeatmap, HeatmapData } from '@/components/activity-heatmap';
 import MetricCard from '@/components/metric-card';
+import MobileAppBar from '@/components/mobile-app-bar';
 import { Card, CardContent } from '@/components/ui/card';
 import { getUserStatisticsStatsGet, getUserInfoMeGet } from '@/gen';
 import { useMe } from '@/hooks/use-me';
@@ -57,7 +58,9 @@ function Profile() {
     }
 
     return (
-        <div className="container mx-auto px-6 py-6">
+        <>
+            <MobileAppBar />
+            <div className="container mx-auto px-6 py-6">
             <div className="space-y-6">
                 <div>
                     <h1 className="text-3xl font-bold">Profile dashboard</h1>
@@ -206,6 +209,7 @@ function Profile() {
                     )}
                 </div>
             </div>
-        </div>
+            </div>
+        </>
     );
 }
