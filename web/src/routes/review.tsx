@@ -28,8 +28,8 @@ import {
     getReviewSessionReviewSessionGet,
 } from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
-import { cn } from '@/lib/utils';
 import { createActions, getShortcut } from '@/lib/shortcuts';
+import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/review')({
     loader: async ({ context: { queryClient } }) => {
@@ -183,7 +183,7 @@ function Review() {
             <DotField
                 spacing={14}
                 radius={1}
-                className="fixed text-destructive/12"
+                className="text-destructive/12 fixed"
             />
 
             <div className="bg-sidebar border-sidebar-border relative z-10 flex shrink-0 items-center justify-between border-b px-4 py-3 md:hidden">
@@ -198,10 +198,10 @@ function Review() {
             </div>
 
             {isPending && !isError && (
-                <p className="m-auto text-muted-foreground">loading</p>
+                <p className="text-muted-foreground m-auto">loading</p>
             )}
             {!isPending && isError && (
-                <p className="m-auto text-destructive">error!</p>
+                <p className="text-destructive m-auto">error!</p>
             )}
 
             {!isPending && remainingCards.length === 0 && (
@@ -352,9 +352,7 @@ function Review() {
                                     className="hover:text-foreground flex min-w-0 items-center gap-1.5 transition-colors"
                                 >
                                     <Folder className="size-3.5 shrink-0" />
-                                    <span className="truncate">
-                                        {deckName}
-                                    </span>
+                                    <span className="truncate">{deckName}</span>
                                 </Link>
                             )}
                             {reviewDate && (
@@ -383,9 +381,7 @@ function Review() {
                                 <Button
                                     variant="secondary"
                                     className="border-border h-12 flex-1 border md:h-11 md:flex-none md:px-8"
-                                    onClick={() =>
-                                        reviewCard.mutate('forgot')
-                                    }
+                                    onClick={() => reviewCard.mutate('forgot')}
                                 >
                                     Forgot
                                 </Button>
