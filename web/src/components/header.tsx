@@ -22,9 +22,7 @@ export default function Header({ className }: React.ComponentProps<'div'>) {
         enabled: !!deckMatch,
     });
 
-    // Sketch v3: Review page renders its own progress header inline.
-    // This guard must come after all hook calls to keep hook order stable
-    // across route changes.
+    // Review page renders its own progress header inline.
     if (reviewMatch) {
         return null;
     }

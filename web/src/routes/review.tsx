@@ -179,18 +179,13 @@ function Review() {
 
     return (
         <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden rounded-sm">
-            {/* Programmatic dot field — individual SVG circles so future
-                effects (ripple on click, cursor proximity, etc.) can target
-                each dot as its own DOM element. Fixed to the viewport so
-                the pattern continues underneath the floating sidebar. */}
+            {/* Fixed so the dots continue underneath the floating sidebar. */}
             <DotField
                 spacing={14}
                 radius={1}
                 className="fixed text-destructive/12"
             />
 
-            {/* Mobile app bar — brand on the left, sidebar trigger on the
-                right. Hidden on md+, where the floating sidebar is visible. */}
             <div className="bg-sidebar border-sidebar-border relative z-10 flex shrink-0 items-center justify-between border-b px-4 py-3 md:hidden">
                 <Link
                     to="/review"
@@ -223,16 +218,10 @@ function Review() {
 
             {currentCard && (
                 <>
-                    {/* Progress header — "Stats macro · with bg" panel.
-                        Floating panel with sidebar tokens (#FAFAFA bg /
-                        #EBEBEB border), DONE + breakdown on the left,
-                        TO GO number on the right, segmented bar flush at the
-                        bottom via overflow-clip. See Paper node 4Z9-0
-                        (desktop) and 524-0 (mobile). */}
+                    {/* Progress header */}
                     <div className="relative z-10 shrink-0 p-3 pb-0 md:p-2 md:pl-0">
                         <div className="bg-sidebar border-sidebar-border flex flex-col overflow-hidden border">
                             <div className="flex items-end justify-between gap-4 px-4 pt-[14px] pb-[12px] md:gap-8 md:px-6 md:pt-[18px] md:pb-[14px]">
-                                {/* Done */}
                                 <div className="flex flex-col gap-1.5 md:gap-2">
                                     <span className="text-muted-foreground text-[10px] leading-[14px] font-medium tracking-[0.08em] uppercase">
                                         Done
@@ -260,7 +249,6 @@ function Review() {
                                     </div>
                                 </div>
 
-                                {/* To go */}
                                 <div className="flex flex-col items-end gap-1.5 md:gap-2">
                                     <span className="text-muted-foreground/70 text-[10px] leading-[14px] font-medium tracking-[0.08em] uppercase">
                                         To go
@@ -271,7 +259,6 @@ function Review() {
                                 </div>
                             </div>
 
-                            {/* Segmented bar flush at the bottom of the panel */}
                             <div className="flex h-[6px] w-full gap-[2px]">
                                 {completedCards.length > 0 && (
                                     <div
@@ -294,10 +281,9 @@ function Review() {
                         </div>
                     </div>
 
-                    {/* Card + caption */}
                     <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-3 px-6 md:gap-3.5 md:px-8">
                         <div className="relative w-full max-w-[380px]">
-                            {/* Ghost stack — disabled for now, keep for future use.
+                            {/* Ghost card stack — re-enable when desired.
                             {remainingCards.length > 2 && (
                                 <div
                                     aria-hidden
@@ -361,7 +347,7 @@ function Review() {
                         </div>
 
                         <div className="text-muted-foreground flex w-full max-w-[380px] items-center justify-between gap-4 text-xs">
-                            {deckId ? (
+                            {deckId && (
                                 <Link
                                     to="/decks/$deckId"
                                     params={{ deckId }}
@@ -372,13 +358,6 @@ function Review() {
                                         {deckName}
                                     </span>
                                 </Link>
-                            ) : (
-                                <span className="flex min-w-0 items-center gap-1.5">
-                                    <Folder className="size-3.5 shrink-0" />
-                                    <span className="truncate">
-                                        {deckName}
-                                    </span>
-                                </span>
                             )}
                             {reviewDate && (
                                 <span
@@ -400,8 +379,6 @@ function Review() {
                         </div>
                     </div>
 
-                    {/* Controls — stretch edge-to-edge on mobile (flex-1
-                        buttons), sit at fixed widths and centered on md+. */}
                     <div className="relative z-10 flex shrink-0 items-center gap-2.5 px-4 pt-3 pb-5 md:justify-center md:gap-3 md:px-0 md:py-6">
                         <Tooltip>
                             <TooltipTrigger asChild>

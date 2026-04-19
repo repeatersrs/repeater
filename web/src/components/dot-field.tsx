@@ -3,24 +3,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * A decorative grid of individual dots, rendered as SVG `<circle>` nodes so
- * each dot is a real DOM element. This makes it cheap today (SVG renders a
- * flat list of circles on the GPU) but future-ready for per-dot interactions —
- * ripples from a click, proximity to the cursor, scroll-parallax, etc.
- *
- * Tune the field with `spacing` (grid pitch, px) and `radius` (dot size, px).
- * Color is driven off `currentColor` so Tailwind text utilities control it
- * (e.g. `text-destructive/8`).
+ * Decorative grid of dots rendered as individual SVG `<circle>` nodes so each
+ * dot is addressable for per-dot effects (ripple, cursor proximity, etc.).
+ * Color follows `currentColor`.
  */
 export interface DotFieldProps extends React.HTMLAttributes<HTMLDivElement> {
-    /** Grid pitch in px. Lower = tighter. */
     spacing?: number;
-    /** Dot radius in px. */
     radius?: number;
-    /**
-     * Optional inset (px) for the first/last dot from the container edges.
-     * Defaults to `spacing / 2` so dots sit in the middle of each cell.
-     */
     inset?: number;
 }
 
