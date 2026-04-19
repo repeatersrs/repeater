@@ -283,7 +283,6 @@ function Review() {
 
                     <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-3 px-6 md:gap-3.5 md:px-8">
                         <div className="relative w-full max-w-[380px]">
-                            {/* Ghost card stack — re-enable when desired.
                             {remainingCards.length > 2 && (
                                 <div
                                     aria-hidden
@@ -296,7 +295,6 @@ function Review() {
                                     className="bg-card border-border pointer-events-none absolute inset-0 translate-x-[2px] translate-y-[2.5px] rounded-sm border"
                                 />
                             )}
-                            */}
 
                             <div className="bg-card border-border relative flex flex-col overflow-hidden rounded-sm border">
                                 <div className="scrollbar-hidden max-h-[60dvh] overflow-y-auto">
