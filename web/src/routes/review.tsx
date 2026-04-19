@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
+    Calendar,
     CalendarX2,
     CircleCheck,
     Folder,
@@ -164,13 +165,14 @@ function Review() {
         currentCard?.deck_path?.[currentCard.deck_path.length - 1];
     const deckName = currentDeck?.name ?? '';
     const deckId = currentDeck?.id;
-    const overdueDate = currentCard?.overdue
+    const reviewDate = currentCard?.next_review_date
         ? new Date(currentCard.next_review_date).toLocaleDateString('en-US', {
               year: 'numeric',
               month: '2-digit',
               day: '2-digit',
           })
         : null;
+    const isOverdue = !!currentCard?.overdue;
 
     const hasMoreSides = sidesVisible < activeCardSides.length;
     const canRevealShortcut = getShortcut('reveal-next', ShortcutScope.Review);
@@ -227,7 +229,7 @@ function Review() {
                         TO GO number on the right, segmented bar flush at the
                         bottom via overflow-clip. See Paper node 4Z9-0
                         (desktop) and 524-0 (mobile). */}
-                    <div className="relative z-10 shrink-0 p-3 pb-0 md:p-2">
+                    <div className="relative z-10 shrink-0 p-3 pb-0 md:p-2 md:pl-0">
                         <div className="bg-sidebar border-sidebar-border flex flex-col overflow-hidden border">
                             <div className="flex items-end justify-between gap-4 px-4 pt-[14px] pb-[12px] md:gap-8 md:px-6 md:pt-[18px] md:pb-[14px]">
                                 {/* Done */}
@@ -378,10 +380,21 @@ function Review() {
                                     </span>
                                 </span>
                             )}
-                            {overdueDate && (
-                                <span className="text-destructive flex shrink-0 items-center gap-1.5 tabular-nums">
-                                    <CalendarX2 className="size-3.5" />
-                                    {overdueDate}
+                            {reviewDate && (
+                                <span
+                                    className={cn(
+                                        'flex shrink-0 items-center gap-1.5 tabular-nums',
+                                        isOverdue
+                                            ? 'text-destructive'
+                                            : 'text-muted-foreground'
+                                    )}
+                                >
+                                    {reviewDate}
+                                    {isOverdue ? (
+                                        <CalendarX2 className="size-3.5" />
+                                    ) : (
+                                        <Calendar className="size-3.5" />
+                                    )}
                                 </span>
                             )}
                         </div>
