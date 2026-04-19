@@ -32,7 +32,8 @@ set_up_logger()
 
 frontend_url = getenv("FRONTEND_URL")
 assert frontend_url, "FRONTEND_URL must be set"
-origins = [frontend_url]
+extra_origins = getenv("EXTRA_FRONTEND_URLS", "")
+origins = [frontend_url] + [o.strip() for o in extra_origins.split(",") if o.strip()]
 
 
 # Add an admin user on startup

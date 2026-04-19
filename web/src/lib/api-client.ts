@@ -1,10 +1,11 @@
 import { refreshTokenAuthRefreshPost } from '@/gen';
 import { client } from '@/gen/client.gen';
+import { apiUrl } from '@/lib/api-url';
 
 let isRefreshing = false;
 
 client.setConfig({
-    baseUrl: import.meta.env.VITE_API_URL,
+    baseUrl: apiUrl,
 });
 
 client.interceptors.response.use(

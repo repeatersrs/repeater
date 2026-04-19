@@ -1,17 +1,16 @@
 import React from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import { apiUrl } from '@/lib/api-url';
 
 type Props = {
     children?: React.ReactNode;
 };
 
 export default function GoogleLogin({ children }: Props) {
-    const apiURL = import.meta.env.VITE_API_URL;
+    if (!apiUrl) return <Skeleton className="h-8 w-36 rounded-md" />;
 
-    if (!apiURL) return <Skeleton className="h-8 w-36 rounded-md" />;
-
-    const googleOAuthURL = new URL('/oauth/login', apiURL).toString();
+    const googleOAuthURL = new URL('/oauth/login', apiUrl).toString();
 
     return (
         <a

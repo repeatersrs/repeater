@@ -46,6 +46,7 @@ import {
     updateDeckDecksDeckIdPatch,
     deleteDeckDecksDeckIdDelete,
 } from '@/gen';
+import { apiUrl } from '@/lib/api-url';
 import { formatDateForDisplay, getErrorMessage } from '@/lib/utils';
 
 export const Route = createFileRoute('/decks/$deckId')({
@@ -80,7 +81,6 @@ function DeckPage() {
     const { deckId } = Route.useParams();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const apiUrl = import.meta.env.VITE_API_URL;
 
     const {
         data: deck,

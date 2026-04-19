@@ -36,7 +36,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/repeater
       - SECRET_KEY=abc123
-      - FRONTEND_URL=http://localhost:3000
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - EXTRA_FRONTEND_URLS=${EXTRA_FRONTEND_URLS:-}
       - ADMIN_PASSWORD=password
 
     develop:
@@ -87,9 +88,6 @@ services:
 
         - action: rebuild
           path: ./web/pnpm-lock.yaml
-
-    environment:
-      - VITE_API_URL=http://localhost:8000
 
   db:
     image: postgres:17
