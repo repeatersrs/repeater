@@ -31,7 +31,7 @@ import {
     redoReviewReviewsReviewIdRedoPost,
     undoReviewReviewsReviewIdUndoPost,
 } from '@/gen';
-import type { ReviewOut, ReviewSessionCard, ReviewSessionOut } from '@/gen';
+import type { ReviewSessionOut } from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
 import { createActions, getShortcut } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
@@ -54,12 +54,6 @@ export const Route = createFileRoute('/review')({
 
 type ReviewFeedback = 'ok' | 'skipped' | 'forgot';
 type ReviewSessionQueryData = { data?: ReviewSessionOut };
-type ReviewHistoryEntry = {
-    review: ReviewOut;
-    card: ReviewSessionCard;
-    cardIndex: number;
-    feedback: ReviewFeedback;
-};
 
 function Review() {
     usePageShortcuts(ShortcutScope.Review);
@@ -92,8 +86,8 @@ function Review() {
 
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [sidesVisible, setSidesVisible] = useState(1);
-    const [undoStack, setUndoStack] = useState<ReviewHistoryEntry[]>([]);
-    const [redoStack, setRedoStack] = useState<ReviewHistoryEntry[]>([]);
+    const [undoReviewIds, setUndoReviewIds] = useState<string[]>([]);
+    const [redoReviewIds, setRedoReviewIds] = useState<string[]>([]);
     const currentCard = remainingCards[activeCardIndex];
     const activeCardSides = currentCard?.content.split('---') || [];
 
@@ -134,7 +128,7 @@ function Review() {
                 (old) => {
                     const session = old?.data;
                     const reviewedCard = session?.remaining.find(
-                        (card: ReviewSessionCard) => card.id === cardId
+                        (card) => card.id === cardId
                     );
 
                     if (!old || !session || !reviewedCard) {
@@ -161,15 +155,6 @@ function Review() {
                 }
             );
 
-            const session = previousSession?.data;
-            const reviewedCardIndex =
-                session?.remaining.findIndex((card) => card.id === cardId) ??
-                -1;
-            const reviewedCard =
-                reviewedCardIndex >= 0
-                    ? session?.remaining[reviewedCardIndex]
-                    : undefined;
-
             setActiveCardIndex((index) =>
                 index >= remainingCards.length - 1
                     ? Math.max(index - 1, 0)
@@ -177,7 +162,7 @@ function Review() {
             );
             setSidesVisible(1);
 
-            return { previousSession, reviewedCard, reviewedCardIndex };
+            return { previousSession };
         },
         onError: (_error, _variables, context) => {
             if (context?.previousSession) {
@@ -187,23 +172,14 @@ function Review() {
                 );
             }
         },
-        onSuccess: (response, variables, context) => {
-            const review = response.data;
-            const card = context.reviewedCard;
-            if (!review || !card) {
+        onSuccess: (response) => {
+            const reviewId = response.data?.id;
+            if (!reviewId) {
                 return;
             }
 
-            setUndoStack((stack) => [
-                ...stack,
-                {
-                    review,
-                    card,
-                    cardIndex: context.reviewedCardIndex,
-                    feedback: variables.feedback,
-                },
-            ]);
-            setRedoStack([]);
+            setUndoReviewIds((ids) => [...ids, reviewId]);
+            setRedoReviewIds([]);
         },
         onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({ queryKey: ['review-session'] });
@@ -219,6 +195,7 @@ function Review() {
 
     const invalidateReviewData = useCallback(
         (cardId?: string) => {
+            queryClient.invalidateQueries({ queryKey: ['review-session'] });
             if (cardId) {
                 queryClient.invalidateQueries({
                     queryKey: ['reviews', cardId],
@@ -231,111 +208,30 @@ function Review() {
         [queryClient]
     );
 
-    const restoreReviewedCard = useCallback(
-        (entry: ReviewHistoryEntry) => {
-            queryClient.setQueryData<ReviewSessionQueryData>(
-                ['review-session'],
-                (old) => {
-                    const session = old?.data;
-                    if (!old || !session) return old;
-
-                    const remaining = session.remaining.filter(
-                        (card) => card.id !== entry.card.id
-                    );
-                    const insertAt = Math.min(
-                        Math.max(entry.cardIndex, 0),
-                        remaining.length
-                    );
-
-                    return {
-                        ...old,
-                        data: {
-                            ...session,
-                            remaining: [
-                                ...remaining.slice(0, insertAt),
-                                entry.card,
-                                ...remaining.slice(insertAt),
-                            ],
-                            completed: session.completed.filter(
-                                (card) => card.id !== entry.card.id
-                            ),
-                            failed: session.failed.filter(
-                                (card) => card.id !== entry.card.id
-                            ),
-                        },
-                    };
-                }
-            );
-        },
-        [queryClient]
-    );
-
-    const applyReviewedCard = useCallback(
-        (entry: ReviewHistoryEntry) => {
-            queryClient.setQueryData<ReviewSessionQueryData>(
-                ['review-session'],
-                (old) => {
-                    const session = old?.data;
-                    if (!old || !session) return old;
-
-                    return {
-                        ...old,
-                        data: {
-                            ...session,
-                            remaining: session.remaining.filter(
-                                (card) => card.id !== entry.card.id
-                            ),
-                            completed:
-                                entry.feedback === 'ok'
-                                    ? [...session.completed, entry.card]
-                                    : session.completed.filter(
-                                          (card) => card.id !== entry.card.id
-                                      ),
-                            failed:
-                                entry.feedback === 'forgot'
-                                    ? [...session.failed, entry.card]
-                                    : session.failed.filter(
-                                          (card) => card.id !== entry.card.id
-                                      ),
-                        },
-                    };
-                }
-            );
-        },
-        [queryClient]
-    );
-
     const undoReview = useMutation({
-        mutationFn: (entry: ReviewHistoryEntry) =>
+        mutationFn: (reviewId: string) =>
             undoReviewReviewsReviewIdUndoPost({
-                path: { review_id: entry.review.id },
+                path: { review_id: reviewId },
             }),
-        onSuccess: (_response, entry) => {
-            restoreReviewedCard(entry);
-            setUndoStack((stack) => stack.slice(0, -1));
-            setRedoStack((stack) => [...stack, entry]);
-            setActiveCardIndex(Math.max(entry.cardIndex, 0));
+        onSuccess: (response, reviewId) => {
+            setUndoReviewIds((ids) => ids.slice(0, -1));
+            setRedoReviewIds((ids) => [...ids, reviewId]);
+            setActiveCardIndex(0);
             setSidesVisible(1);
-            invalidateReviewData(entry.review.card_id);
+            invalidateReviewData(response.data?.card_id);
         },
     });
 
     const redoReview = useMutation({
-        mutationFn: (entry: ReviewHistoryEntry) =>
+        mutationFn: (reviewId: string) =>
             redoReviewReviewsReviewIdRedoPost({
-                path: { review_id: entry.review.id },
+                path: { review_id: reviewId },
             }),
-        onSuccess: (_response, entry) => {
-            applyReviewedCard(entry);
-            setRedoStack((stack) => stack.slice(0, -1));
-            setUndoStack((stack) => [...stack, entry]);
-            setActiveCardIndex((index) =>
-                index >= remainingCards.length - 1
-                    ? Math.max(index - 1, 0)
-                    : index
-            );
+        onSuccess: (response, reviewId) => {
+            setRedoReviewIds((ids) => ids.slice(0, -1));
+            setUndoReviewIds((ids) => [...ids, reviewId]);
             setSidesVisible(1);
-            invalidateReviewData(entry.review.card_id);
+            invalidateReviewData(response.data?.card_id);
         },
     });
 
@@ -349,28 +245,28 @@ function Review() {
     );
 
     const undoLastReview = useCallback(() => {
-        const entry = undoStack.at(-1);
+        const reviewId = undoReviewIds.at(-1);
         if (
-            entry &&
+            reviewId &&
             !reviewCard.isPending &&
             !undoReview.isPending &&
             !redoReview.isPending
         ) {
-            undoReview.mutate(entry);
+            undoReview.mutate(reviewId);
         }
-    }, [redoReview.isPending, reviewCard.isPending, undoReview, undoStack]);
+    }, [redoReview.isPending, reviewCard.isPending, undoReview, undoReviewIds]);
 
     const redoLastReview = useCallback(() => {
-        const entry = redoStack.at(-1);
+        const reviewId = redoReviewIds.at(-1);
         if (
-            entry &&
+            reviewId &&
             !reviewCard.isPending &&
             !undoReview.isPending &&
             !redoReview.isPending
         ) {
-            redoReview.mutate(entry);
+            redoReview.mutate(reviewId);
         }
-    }, [redoReview, redoStack, reviewCard.isPending, undoReview.isPending]);
+    }, [redoReview, redoReviewIds, reviewCard.isPending, undoReview.isPending]);
 
     const nextCard = useCallback(() => {
         if (activeCardIndex < remainingCards.length - 1) {
@@ -443,9 +339,13 @@ function Review() {
     const canGoPrev = activeCardIndex > 0;
     const canGoNext = activeCardIndex < remainingCards.length - 1;
     const canUndo =
-        undoStack.length > 0 && !reviewCard.isPending && !undoReview.isPending;
+        undoReviewIds.length > 0 &&
+        !reviewCard.isPending &&
+        !undoReview.isPending;
     const canRedo =
-        redoStack.length > 0 && !reviewCard.isPending && !redoReview.isPending;
+        redoReviewIds.length > 0 &&
+        !reviewCard.isPending &&
+        !redoReview.isPending;
     const canRevealShortcut = getShortcut('reveal-next', ShortcutScope.Review);
     const undoTooltip = canUndo ? 'Undo last review' : 'Nothing to undo yet';
     const previousTooltip = canGoPrev

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import or_
+from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session, contains_eager
 
 from src.auth.jwt import get_current_user
@@ -35,10 +35,21 @@ def get_review_session(
         .distinct()
         .subquery()
     )
+    cards_undone_today = (
+        db_session.query(
+            Review.card_id,
+            func.max(Review.undone_at).label("last_undone_at"),
+        )
+        .filter(Review.user_id == user.id)
+        .filter(Review.undone_at >= today_start)
+        .group_by(Review.card_id)
+        .subquery()
+    )
 
     query = (
         db_session.query(Card)
         .join(Deck)
+        .outerjoin(cards_undone_today, cards_undone_today.c.card_id == Card.id)
         .filter(Deck.user_id == user.id)
         .options(contains_eager(Card.deck))
         .filter(
@@ -46,6 +57,12 @@ def get_review_session(
                 Card.due_date <= today_end,
                 Card.id.in_(db_session.query(cards_reviewed_today.c.card_id)),
             )
+        )
+        .order_by(
+            case((cards_undone_today.c.last_undone_at.is_(None), 1), else_=0),
+            cards_undone_today.c.last_undone_at.desc(),
+            Card.due_date,
+            Card.created_at,
         )
     )
 
