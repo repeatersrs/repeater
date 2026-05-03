@@ -761,6 +761,140 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /review-session/undo:
+    post:
+      tags:
+      - review_session
+      summary: Undo Review Session
+      operationId: undo_review_session_review_session_undo_post
+      parameters:
+      - name: deck_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Deck Id
+      - name: user_tz
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: User Tz
+      - name: exclude_paused
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Exclude Paused
+      - name: exclude_archived
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Exclude Archived
+      - name: access_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewSessionOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /review-session/redo:
+    post:
+      tags:
+      - review_session
+      summary: Redo Review Session
+      operationId: redo_review_session_review_session_redo_post
+      parameters:
+      - name: deck_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Deck Id
+      - name: user_tz
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: User Tz
+      - name: exclude_paused
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Exclude Paused
+      - name: exclude_archived
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Exclude Archived
+      - name: access_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewSessionOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /reviews:
     post:
       tags:
@@ -1053,10 +1187,10 @@ components:
         content:
           type: string
           title: Content
-        next_review_date:
+        due_date:
           type: string
           format: date-time
-          title: Next Review Date
+          title: Due Date
         overdue:
           type: boolean
           title: Overdue
@@ -1075,7 +1209,7 @@ components:
       - deck_name
       - deck_path
       - content
-      - next_review_date
+      - due_date
       - overdue
       - created_at
       - updated_at
@@ -1466,10 +1600,10 @@ components:
         content:
           type: string
           title: Content
-        next_review_date:
+        due_date:
           type: string
           format: date-time
-          title: Next Review Date
+          title: Due Date
         overdue:
           type: boolean
           title: Overdue
@@ -1493,7 +1627,7 @@ components:
       - deck_name
       - deck_path
       - content
-      - next_review_date
+      - due_date
       - overdue
       - todays_reviews
       - created_at
@@ -1520,12 +1654,20 @@ components:
             $ref: '#/components/schemas/ReviewSessionCard'
           type: array
           title: Failed
+        can_undo:
+          type: boolean
+          title: Can Undo
+        can_redo:
+          type: boolean
+          title: Can Redo
       type: object
       required:
       - date
       - remaining
       - completed
       - failed
+      - can_undo
+      - can_redo
       title: ReviewSessionOut
     StatisticsOut:
       properties:

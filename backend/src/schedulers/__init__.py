@@ -11,10 +11,10 @@ class ScheduleResult:
     interval: int
     ease_factor: float
     repetitions: int
-    next_review_date: datetime
+    due_date: datetime
 
     def __post_init__(self):
-        self.next_review_date = to_start_of_day(self.next_review_date)
+        self.due_date = to_start_of_day(self.due_date)
 
 
 class Scheduler(ABC):

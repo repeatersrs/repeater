@@ -32,10 +32,16 @@ def create_review(
 ):
     card = Card.get_user_card(review_req.card_id, user.id, db_session)
     last_review = (
-        Review.filter_by(db_session, card_id=card.id)
+        Review.filter_by(db_session, card_id=card.id, undone_at=None)
         .order_by(Review.reviewed_at.desc())
         .first()
     )
+
+    # If the user reviewed after undoing, discard the redo tail.
+    db_session.query(Review).filter(
+        Review.user_id == user.id,
+        Review.undone_at.is_not(None),
+    ).delete(synchronize_session=False)
 
     repetitions = SCHEDULE_DEFAULT_REPETITIONS
     ease_factor = SCHEDULE_DEFAULT_EASE_FACTOR
@@ -50,7 +56,8 @@ def create_review(
         review_req.feedback, repetitions, ease_factor, interval
     )
 
-    card.next_review_date = schedule_result.next_review_date
+    previous_due_date = card.due_date
+    card.due_date = schedule_result.due_date
     card.save(db_session)
 
     review = Review(
@@ -63,6 +70,8 @@ def create_review(
         interval=schedule_result.interval,
         repetitions=schedule_result.repetitions,
         ease_factor="{:.2f}".format(schedule_result.ease_factor),
+        previous_due_date=previous_due_date,
+        due_date=schedule_result.due_date,
     )
     review.save(db_session)
     return review
@@ -76,7 +85,7 @@ def get_review_history(
 ):
     card = Card.get_user_card(card_id, user.id, db_session)
     return (
-        Review.filter_by(db_session, card_id=card.id)
+        Review.filter_by(db_session, card_id=card.id, undone_at=None)
         .order_by(Review.reviewed_at.desc())
         .all()
     )

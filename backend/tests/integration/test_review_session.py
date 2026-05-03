@@ -54,6 +54,29 @@ async def test_review_session_with_reviews(user_client):
     )
 
 
+async def test_undone_reviews_return_to_front_of_remaining(user_client):
+    deck = await create_deck(user_client)
+    deck_id = deck.json()["id"]
+    first = await create_card(user_client, deck_id, "Card 1")
+    second = await create_card(user_client, deck_id, "Card 2")
+    first_id = first.json()["id"]
+    second_id = second.json()["id"]
+
+    await create_review(user_client, first_id, ReviewFeedback.OK)
+    await create_review(user_client, second_id, ReviewFeedback.OK)
+
+    await user_client.post("/review-session/undo")
+
+    session = await user_client.get("/review-session")
+    assert session.json()["remaining"][0]["id"] == second_id
+
+    await user_client.post("/review-session/undo")
+
+    session = await user_client.get("/review-session")
+    remaining_ids = [card["id"] for card in session.json()["remaining"]]
+    assert remaining_ids[:2] == [first_id, second_id]
+
+
 async def test_review_session_failed_then_completed(user_client):
     """Test that a card moves from failed to completed after correct review."""
     deck = await create_deck(user_client)

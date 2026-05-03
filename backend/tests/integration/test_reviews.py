@@ -5,6 +5,7 @@ from src.db.models import Card, Review, ReviewFeedback
 from src.main import app
 from src.schedulers.basic import BasicScheduler
 from tests.asserts import is_utc_isoformat_string, is_uuid_string
+from tests.util import create_card, create_deck, create_review
 
 
 async def test_create_review(db_session, user, user_client):
@@ -54,13 +55,11 @@ async def test_create_review(db_session, user, user_client):
 
     reviewed_at = res.json()["reviewed_at"]
     interval = res.json()["interval"]
-    next_review_date = datetime.fromisoformat(reviewed_at).date() + timedelta(
-        days=interval
-    )
+    due_date = datetime.fromisoformat(reviewed_at).date() + timedelta(days=interval)
 
     card = Card.get(db_session, card_id)
     assert card is not None
-    assert card.next_review_date.date() == next_review_date
+    assert card.due_date.date() == due_date
 
     # 2nd review
     res = await user_client.post(
@@ -90,13 +89,11 @@ async def test_create_review(db_session, user, user_client):
 
     reviewed_at = res.json()["reviewed_at"]
     interval = res.json()["interval"]
-    next_review_date = datetime.fromisoformat(reviewed_at).date() + timedelta(
-        days=interval
-    )
+    due_date = datetime.fromisoformat(reviewed_at).date() + timedelta(days=interval)
 
     card = Card.get(db_session, card_id)
     assert card is not None
-    assert card.next_review_date.date() == next_review_date
+    assert card.due_date.date() == due_date
     assert len(Review.all(db_session)) == 2
 
     app.dependency_overrides.clear()
@@ -177,13 +174,11 @@ async def test_create_review_skipped(db_session, user, user_client):
 
     reviewed_at = res.json()["reviewed_at"]
     interval = res.json()["interval"]
-    next_review_date = datetime.fromisoformat(reviewed_at).date() + timedelta(
-        days=interval
-    )
+    due_date = datetime.fromisoformat(reviewed_at).date() + timedelta(days=interval)
 
     card = Card.get(db_session, card_id)
     assert card is not None
-    assert card.next_review_date.date() == next_review_date
+    assert card.due_date.date() == due_date
 
     app.dependency_overrides.clear()
 
@@ -234,13 +229,11 @@ async def test_create_review_forgot(db_session, user, user_client):
 
     reviewed_at = res.json()["reviewed_at"]
     interval = res.json()["interval"]
-    next_review_date = datetime.fromisoformat(reviewed_at).date() + timedelta(
-        days=interval
-    )
+    due_date = datetime.fromisoformat(reviewed_at).date() + timedelta(days=interval)
 
     card = Card.get(db_session, card_id)
     assert card is not None
-    assert card.next_review_date.date() == next_review_date
+    assert card.due_date.date() == due_date
 
     app.dependency_overrides.clear()
 
@@ -312,3 +305,105 @@ async def test_get_review_history(user, user_client):
             "failed": True,
         },
     ]
+
+
+async def test_session_undo_latest_review_restores_card_and_hides_review(
+    db_session, user_client
+):
+    deck = await create_deck(user_client)
+    card = await create_card(user_client, deck.json()["id"])
+    card_id = card.json()["id"]
+    original_due_date = Card.get(db_session, card_id).due_date
+
+    review = await create_review(user_client, card_id, ReviewFeedback.OK)
+    review_id = review.json()["id"]
+
+    res = await user_client.post("/review-session/undo")
+    assert res.status_code == 200
+
+    db_session.refresh(Card.get(db_session, card_id))
+    assert Card.get(db_session, card_id).due_date == original_due_date
+
+    history = await user_client.get(f"/reviews/{card_id}")
+    assert history.json() == []
+
+    undone_review = Review.get(db_session, review_id)
+    assert undone_review.undone_at is not None
+
+
+async def test_session_undo_review_without_previous_due_date_returns_409(
+    db_session, user_client
+):
+    deck = await create_deck(user_client)
+    card = await create_card(user_client, deck.json()["id"])
+    card_id = card.json()["id"]
+
+    review = await create_review(user_client, card_id, ReviewFeedback.OK)
+    review_id = review.json()["id"]
+    reviewed_due_date = Card.get(db_session, card_id).due_date
+
+    review_model = Review.get(db_session, review_id)
+    review_model.previous_due_date = None
+    db_session.commit()
+
+    res = await user_client.post("/review-session/undo")
+    assert res.status_code == 409
+
+    card_model = Card.get(db_session, card_id)
+    db_session.refresh(card_model)
+    assert card_model.due_date == reviewed_due_date
+    assert Review.get(db_session, review_id).undone_at is None
+
+
+async def test_session_undo_returns_409_when_nothing_to_undo(user_client):
+    res = await user_client.post("/review-session/undo")
+    assert res.status_code == 409
+
+
+async def test_redo_must_follow_session_history_order(db_session, user_client):
+    deck = await create_deck(user_client)
+    card = await create_card(user_client, deck.json()["id"])
+    card_id = card.json()["id"]
+
+    first = await create_review(user_client, card_id, ReviewFeedback.FORGOT)
+    second = await create_review(user_client, card_id, ReviewFeedback.OK)
+    first_id = first.json()["id"]
+    second_id = second.json()["id"]
+
+    await user_client.post("/review-session/undo")
+    await user_client.post("/review-session/undo")
+
+    res = await user_client.post("/review-session/redo")
+    assert res.status_code == 200
+    assert Review.get(db_session, first_id).undone_at is None
+    assert Review.get(db_session, second_id).undone_at is not None
+
+    res = await user_client.post("/review-session/redo")
+    assert res.status_code == 200
+    assert Review.get(db_session, second_id).undone_at is None
+
+
+async def test_new_review_after_undo_discards_redo_tail(db_session, user_client):
+    deck = await create_deck(user_client)
+    card = await create_card(user_client, deck.json()["id"])
+    card_id = card.json()["id"]
+
+    undone = await create_review(user_client, card_id, ReviewFeedback.FORGOT)
+    undone_id = undone.json()["id"]
+    await user_client.post("/review-session/undo")
+
+    replacement = await create_review(user_client, card_id, ReviewFeedback.OK)
+    assert replacement.status_code == 201
+    assert Review.get(db_session, undone_id) is None
+
+    res = await user_client.post("/review-session/redo")
+    assert res.status_code == 409
+
+
+async def test_other_user_cannot_undo_review(admin_client, user_client):
+    deck = await create_deck(admin_client)
+    card = await create_card(admin_client, deck.json()["id"])
+    await create_review(admin_client, card.json()["id"], ReviewFeedback.OK)
+
+    res = await user_client.post("/review-session/undo")
+    assert res.status_code == 409
