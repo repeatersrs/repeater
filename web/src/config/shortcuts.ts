@@ -54,6 +54,18 @@ export const SHORTCUT_CONFIG: ShortcutConfig[] = [
         scope: ShortcutScope.Review,
     },
     {
+        key: 'u',
+        action: 'review-undo',
+        description: 'Undo last review',
+        scope: ShortcutScope.Review,
+    },
+    {
+        key: 'shift+u',
+        action: 'review-redo',
+        description: 'Redo last undone review',
+        scope: ShortcutScope.Review,
+    },
+    {
         key: 'arrowleft',
         action: 'card-prev',
         description: 'Go to the previous card',

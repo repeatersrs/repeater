@@ -8,6 +8,8 @@ import {
     CircleCheck,
     Folder,
     Plus,
+    Redo2,
+    Undo2,
 } from 'lucide-react';
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
@@ -26,8 +28,10 @@ import { ShortcutScope } from '@/config/shortcuts';
 import {
     createReviewReviewsPost,
     getReviewSessionReviewSessionGet,
+    redoReviewReviewsReviewIdRedoPost,
+    undoReviewReviewsReviewIdUndoPost,
 } from '@/gen';
-import type { ReviewSessionCard, ReviewSessionOut } from '@/gen';
+import type { ReviewOut, ReviewSessionCard, ReviewSessionOut } from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
 import { createActions, getShortcut } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
@@ -50,6 +54,12 @@ export const Route = createFileRoute('/review')({
 
 type ReviewFeedback = 'ok' | 'skipped' | 'forgot';
 type ReviewSessionQueryData = { data?: ReviewSessionOut };
+type ReviewHistoryEntry = {
+    review: ReviewOut;
+    card: ReviewSessionCard;
+    cardIndex: number;
+    feedback: ReviewFeedback;
+};
 
 function Review() {
     usePageShortcuts(ShortcutScope.Review);
@@ -82,6 +92,8 @@ function Review() {
 
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [sidesVisible, setSidesVisible] = useState(1);
+    const [undoStack, setUndoStack] = useState<ReviewHistoryEntry[]>([]);
+    const [redoStack, setRedoStack] = useState<ReviewHistoryEntry[]>([]);
     const currentCard = remainingCards[activeCardIndex];
     const activeCardSides = currentCard?.content.split('---') || [];
 
@@ -149,6 +161,15 @@ function Review() {
                 }
             );
 
+            const session = previousSession?.data;
+            const reviewedCardIndex =
+                session?.remaining.findIndex((card) => card.id === cardId) ??
+                -1;
+            const reviewedCard =
+                reviewedCardIndex >= 0
+                    ? session?.remaining[reviewedCardIndex]
+                    : undefined;
+
             setActiveCardIndex((index) =>
                 index >= remainingCards.length - 1
                     ? Math.max(index - 1, 0)
@@ -156,7 +177,7 @@ function Review() {
             );
             setSidesVisible(1);
 
-            return { previousSession };
+            return { previousSession, reviewedCard, reviewedCardIndex };
         },
         onError: (_error, _variables, context) => {
             if (context?.previousSession) {
@@ -165,6 +186,24 @@ function Review() {
                     context.previousSession
                 );
             }
+        },
+        onSuccess: (response, variables, context) => {
+            const review = response.data;
+            const card = context.reviewedCard;
+            if (!review || !card) {
+                return;
+            }
+
+            setUndoStack((stack) => [
+                ...stack,
+                {
+                    review,
+                    card,
+                    cardIndex: context.reviewedCardIndex,
+                    feedback: variables.feedback,
+                },
+            ]);
+            setRedoStack([]);
         },
         onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({ queryKey: ['review-session'] });
@@ -178,14 +217,150 @@ function Review() {
         // TODO: implement error handling
     });
 
+    const invalidateReviewData = useCallback(
+        (cardId?: string) => {
+            if (cardId) {
+                queryClient.invalidateQueries({
+                    queryKey: ['reviews', cardId],
+                });
+            }
+            queryClient.invalidateQueries({
+                queryKey: ['stats'],
+            });
+        },
+        [queryClient]
+    );
+
+    const restoreReviewedCard = useCallback(
+        (entry: ReviewHistoryEntry) => {
+            queryClient.setQueryData<ReviewSessionQueryData>(
+                ['review-session'],
+                (old) => {
+                    const session = old?.data;
+                    if (!old || !session) return old;
+
+                    const remaining = session.remaining.filter(
+                        (card) => card.id !== entry.card.id
+                    );
+                    const insertAt = Math.min(
+                        Math.max(entry.cardIndex, 0),
+                        remaining.length
+                    );
+
+                    return {
+                        ...old,
+                        data: {
+                            ...session,
+                            remaining: [
+                                ...remaining.slice(0, insertAt),
+                                entry.card,
+                                ...remaining.slice(insertAt),
+                            ],
+                            completed: session.completed.filter(
+                                (card) => card.id !== entry.card.id
+                            ),
+                            failed: session.failed.filter(
+                                (card) => card.id !== entry.card.id
+                            ),
+                        },
+                    };
+                }
+            );
+        },
+        [queryClient]
+    );
+
+    const applyReviewedCard = useCallback(
+        (entry: ReviewHistoryEntry) => {
+            queryClient.setQueryData<ReviewSessionQueryData>(
+                ['review-session'],
+                (old) => {
+                    const session = old?.data;
+                    if (!old || !session) return old;
+
+                    return {
+                        ...old,
+                        data: {
+                            ...session,
+                            remaining: session.remaining.filter(
+                                (card) => card.id !== entry.card.id
+                            ),
+                            completed:
+                                entry.feedback === 'ok'
+                                    ? [...session.completed, entry.card]
+                                    : session.completed.filter(
+                                          (card) => card.id !== entry.card.id
+                                      ),
+                            failed:
+                                entry.feedback === 'forgot'
+                                    ? [...session.failed, entry.card]
+                                    : session.failed.filter(
+                                          (card) => card.id !== entry.card.id
+                                      ),
+                        },
+                    };
+                }
+            );
+        },
+        [queryClient]
+    );
+
+    const undoReview = useMutation({
+        mutationFn: (entry: ReviewHistoryEntry) =>
+            undoReviewReviewsReviewIdUndoPost({
+                path: { review_id: entry.review.id },
+            }),
+        onSuccess: (_response, entry) => {
+            restoreReviewedCard(entry);
+            setUndoStack((stack) => stack.slice(0, -1));
+            setRedoStack((stack) => [...stack, entry]);
+            setActiveCardIndex(Math.max(entry.cardIndex, 0));
+            setSidesVisible(1);
+            invalidateReviewData(entry.review.card_id);
+        },
+    });
+
+    const redoReview = useMutation({
+        mutationFn: (entry: ReviewHistoryEntry) =>
+            redoReviewReviewsReviewIdRedoPost({
+                path: { review_id: entry.review.id },
+            }),
+        onSuccess: (_response, entry) => {
+            applyReviewedCard(entry);
+            setRedoStack((stack) => stack.slice(0, -1));
+            setUndoStack((stack) => [...stack, entry]);
+            setActiveCardIndex((index) =>
+                index >= remainingCards.length - 1
+                    ? Math.max(index - 1, 0)
+                    : index
+            );
+            setSidesVisible(1);
+            invalidateReviewData(entry.review.card_id);
+        },
+    });
+
     const mutateReview = useCallback(
         (feedback: ReviewFeedback) => {
-            if (currentCard) {
+            if (currentCard && !reviewCard.isPending) {
                 reviewCard.mutate({ cardId: currentCard.id, feedback });
             }
         },
         [currentCard, reviewCard]
     );
+
+    const undoLastReview = useCallback(() => {
+        const entry = undoStack.at(-1);
+        if (entry && !undoReview.isPending && !redoReview.isPending) {
+            undoReview.mutate(entry);
+        }
+    }, [redoReview.isPending, undoReview, undoStack]);
+
+    const redoLastReview = useCallback(() => {
+        const entry = redoStack.at(-1);
+        if (entry && !undoReview.isPending && !redoReview.isPending) {
+            redoReview.mutate(entry);
+        }
+    }, [redoReview, redoStack, undoReview.isPending]);
 
     const nextCard = useCallback(() => {
         if (activeCardIndex < remainingCards.length - 1) {
@@ -215,6 +390,8 @@ function Review() {
             'card-forgot': () => mutateReview('forgot'),
             'card-ok': () => mutateReview('ok'),
             'reveal-next': revealNext,
+            'review-undo': undoLastReview,
+            'review-redo': redoLastReview,
             'card-prev': prevCard,
             'card-next': nextCard,
         });
@@ -233,6 +410,8 @@ function Review() {
         unregisterAction,
         mutateReview,
         revealNext,
+        undoLastReview,
+        redoLastReview,
         prevCard,
         nextCard,
     ]);
@@ -253,6 +432,8 @@ function Review() {
     const hasMoreSides = sidesVisible < activeCardSides.length;
     const canGoPrev = activeCardIndex > 0;
     const canGoNext = activeCardIndex < remainingCards.length - 1;
+    const canUndo = undoStack.length > 0 && !undoReview.isPending;
+    const canRedo = redoStack.length > 0 && !redoReview.isPending;
     const canRevealShortcut = getShortcut('reveal-next', ShortcutScope.Review);
 
     return (
@@ -270,6 +451,53 @@ function Review() {
             {!isPending && isError && (
                 <p className="text-destructive m-auto">error!</p>
             )}
+
+            <div className="absolute top-3 right-3 z-20 flex gap-2 md:top-2">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="bg-background/80 size-9 backdrop-blur"
+                            onClick={undoLastReview}
+                            disabled={!canUndo}
+                            aria-label="Undo last review"
+                        >
+                            <Undo2 className="size-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        Undo last review
+                        <Kbd
+                            action="review-undo"
+                            scope={ShortcutScope.Review}
+                            className="ml-2"
+                        />
+                    </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="bg-background/80 size-9 backdrop-blur"
+                            onClick={redoLastReview}
+                            disabled={!canRedo}
+                            aria-label="Redo review"
+                        >
+                            <Redo2 className="size-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        Redo review
+                        <Kbd
+                            action="review-redo"
+                            scope={ShortcutScope.Review}
+                            className="ml-2"
+                        />
+                    </TooltipContent>
+                </Tooltip>
+            </div>
 
             {!isPending && remainingCards.length === 0 && (
                 <div className="m-auto">
@@ -471,6 +699,7 @@ function Review() {
                                     variant="secondary"
                                     className="border-border h-12 flex-1 border md:h-11 md:flex-none md:px-8"
                                     onClick={() => mutateReview('forgot')}
+                                    disabled={reviewCard.isPending}
                                 >
                                     Forgot
                                 </Button>
@@ -496,6 +725,7 @@ function Review() {
                                 <Button
                                     className="h-12 flex-1 md:h-11 md:flex-none md:px-8"
                                     onClick={() => mutateReview('ok')}
+                                    disabled={reviewCard.isPending}
                                 >
                                     Remembered
                                 </Button>
