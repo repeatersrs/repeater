@@ -1,6 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Calendar, CalendarX2, CircleCheck, Folder, Plus } from 'lucide-react';
+import {
+    ArrowLeft,
+    ArrowRight,
+    Calendar,
+    CalendarX2,
+    CircleCheck,
+    Folder,
+    Plus,
+} from 'lucide-react';
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
@@ -243,6 +251,8 @@ function Review() {
     const isOverdue = !!currentCard?.overdue;
 
     const hasMoreSides = sidesVisible < activeCardSides.length;
+    const canGoPrev = activeCardIndex > 0;
+    const canGoNext = activeCardIndex < remainingCards.length - 1;
     const canRevealShortcut = getShortcut('reveal-next', ShortcutScope.Review);
 
     return (
@@ -432,7 +442,29 @@ function Review() {
                         </div>
                     </div>
 
-                    <div className="relative z-10 flex shrink-0 items-center gap-2.5 px-4 pt-3 pb-5 md:justify-center md:gap-3 md:px-0 md:py-6">
+                    <div className="relative z-10 flex shrink-0 items-center justify-center gap-2.5 px-4 pt-3 pb-5 md:gap-3 md:px-0 md:py-6">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="hidden md:inline-flex md:size-11"
+                                    onClick={prevCard}
+                                    disabled={!canGoPrev}
+                                    aria-label="Previous card"
+                                >
+                                    <ArrowLeft className="size-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                Previous card
+                                <Kbd
+                                    action="card-prev"
+                                    scope={ShortcutScope.Review}
+                                    className="ml-2"
+                                />
+                            </TooltipContent>
+                        </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
@@ -482,6 +514,28 @@ function Review() {
                                         className="ml-2"
                                     />
                                 </div>
+                            </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="hidden md:inline-flex md:size-11"
+                                    onClick={nextCard}
+                                    disabled={!canGoNext}
+                                    aria-label="Next card"
+                                >
+                                    <ArrowRight className="size-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                Next card
+                                <Kbd
+                                    action="card-next"
+                                    scope={ShortcutScope.Review}
+                                    className="ml-2"
+                                />
                             </TooltipContent>
                         </Tooltip>
                     </div>
