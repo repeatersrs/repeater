@@ -435,6 +435,14 @@ function Review() {
     const canUndo = undoStack.length > 0 && !undoReview.isPending;
     const canRedo = redoStack.length > 0 && !redoReview.isPending;
     const canRevealShortcut = getShortcut('reveal-next', ShortcutScope.Review);
+    const undoTooltip = canUndo ? 'Undo last review' : 'Nothing to undo yet';
+    const previousTooltip = canGoPrev
+        ? 'Previous card'
+        : 'You’re already on the first card';
+    const nextTooltip = canGoNext
+        ? 'Next card'
+        : 'You’re already on the last card';
+    const redoTooltip = canRedo ? 'Redo review' : 'Nothing to redo right now';
 
     return (
         <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden rounded-sm">
@@ -451,53 +459,6 @@ function Review() {
             {!isPending && isError && (
                 <p className="text-destructive m-auto">error!</p>
             )}
-
-            <div className="absolute top-3 right-3 z-20 flex gap-2 md:top-2">
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="bg-background/80 size-9 backdrop-blur"
-                            onClick={undoLastReview}
-                            disabled={!canUndo}
-                            aria-label="Undo last review"
-                        >
-                            <Undo2 className="size-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        Undo last review
-                        <Kbd
-                            action="review-undo"
-                            scope={ShortcutScope.Review}
-                            className="ml-2"
-                        />
-                    </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="bg-background/80 size-9 backdrop-blur"
-                            onClick={redoLastReview}
-                            disabled={!canRedo}
-                            aria-label="Redo review"
-                        >
-                            <Redo2 className="size-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        Redo review
-                        <Kbd
-                            action="review-redo"
-                            scope={ShortcutScope.Review}
-                            className="ml-2"
-                        />
-                    </TooltipContent>
-                </Tooltip>
-            </div>
 
             {!isPending && remainingCards.length === 0 && (
                 <div className="m-auto">
@@ -670,104 +631,224 @@ function Review() {
                         </div>
                     </div>
 
-                    <div className="relative z-10 flex shrink-0 items-center justify-center gap-2.5 px-4 pt-3 pb-5 md:gap-3 md:px-0 md:py-6">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="hidden md:inline-flex md:size-11"
-                                    onClick={prevCard}
-                                    disabled={!canGoPrev}
-                                    aria-label="Previous card"
-                                >
-                                    <ArrowLeft className="size-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                Previous card
-                                <Kbd
-                                    action="card-prev"
-                                    scope={ShortcutScope.Review}
-                                    className="ml-2"
-                                />
-                            </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="secondary"
-                                    className="border-border h-12 flex-1 border md:h-11 md:flex-none md:px-8"
-                                    onClick={() => mutateReview('forgot')}
-                                    disabled={reviewCard.isPending}
-                                >
-                                    Forgot
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <div>
-                                    {
-                                        getShortcut(
-                                            'card-forgot',
-                                            ShortcutScope.Review
-                                        ).description
-                                    }
-                                    <Kbd
-                                        action="card-forgot"
-                                        scope={ShortcutScope.Review}
-                                        className="ml-2"
-                                    />
-                                </div>
-                            </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    className="h-12 flex-1 md:h-11 md:flex-none md:px-8"
-                                    onClick={() => mutateReview('ok')}
-                                    disabled={reviewCard.isPending}
-                                >
-                                    Remembered
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <div>
-                                    {
-                                        getShortcut(
-                                            'card-ok',
-                                            ShortcutScope.Review
-                                        ).description
-                                    }
-                                    <Kbd
-                                        action="card-ok"
-                                        scope={ShortcutScope.Review}
-                                        className="ml-2"
-                                    />
-                                </div>
-                            </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="hidden md:inline-flex md:size-11"
-                                    onClick={nextCard}
-                                    disabled={!canGoNext}
-                                    aria-label="Next card"
-                                >
-                                    <ArrowRight className="size-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                Next card
-                                <Kbd
-                                    action="card-next"
-                                    scope={ShortcutScope.Review}
-                                    className="ml-2"
-                                />
-                            </TooltipContent>
-                        </Tooltip>
+                    <div className="relative z-10 flex shrink-0 flex-col gap-2.5 px-4 pt-3 pb-5 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:gap-3 md:px-0 md:py-6">
+                        <div className="order-1 grid grid-cols-4 gap-2.5 md:order-none md:flex md:justify-end md:gap-3">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span className="inline-flex">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-10 w-full md:size-11"
+                                            onClick={undoLastReview}
+                                            disabled={!canUndo}
+                                            aria-label="Undo last review"
+                                        >
+                                            <Undo2 className="size-4" />
+                                        </Button>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {undoTooltip}
+                                    {canUndo && (
+                                        <Kbd
+                                            action="review-undo"
+                                            scope={ShortcutScope.Review}
+                                            className="ml-2"
+                                        />
+                                    )}
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span className="inline-flex">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-10 w-full md:size-11"
+                                            onClick={prevCard}
+                                            disabled={!canGoPrev}
+                                            aria-label="Previous card"
+                                        >
+                                            <ArrowLeft className="size-4" />
+                                        </Button>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {previousTooltip}
+                                    {canGoPrev && (
+                                        <Kbd
+                                            action="card-prev"
+                                            scope={ShortcutScope.Review}
+                                            className="ml-2"
+                                        />
+                                    )}
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span className="inline-flex md:hidden">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-10 w-full"
+                                            onClick={nextCard}
+                                            disabled={!canGoNext}
+                                            aria-label="Next card"
+                                        >
+                                            <ArrowRight className="size-4" />
+                                        </Button>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {nextTooltip}
+                                    {canGoNext && (
+                                        <Kbd
+                                            action="card-next"
+                                            scope={ShortcutScope.Review}
+                                            className="ml-2"
+                                        />
+                                    )}
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span className="inline-flex md:hidden">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-10 w-full"
+                                            onClick={redoLastReview}
+                                            disabled={!canRedo}
+                                            aria-label="Redo review"
+                                        >
+                                            <Redo2 className="size-4" />
+                                        </Button>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {redoTooltip}
+                                    {canRedo && (
+                                        <Kbd
+                                            action="review-redo"
+                                            scope={ShortcutScope.Review}
+                                            className="ml-2"
+                                        />
+                                    )}
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
+
+                        <div className="order-2 flex min-w-0 justify-center gap-2.5 md:order-none md:gap-3">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="secondary"
+                                        className="border-border h-12 min-w-0 flex-1 border px-5 md:h-11 md:w-32 md:flex-none md:px-8"
+                                        onClick={() => mutateReview('forgot')}
+                                        disabled={reviewCard.isPending}
+                                    >
+                                        Forgot
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <div>
+                                        {
+                                            getShortcut(
+                                                'card-forgot',
+                                                ShortcutScope.Review
+                                            ).description
+                                        }
+                                        <Kbd
+                                            action="card-forgot"
+                                            scope={ShortcutScope.Review}
+                                            className="ml-2"
+                                        />
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        className="h-12 min-w-0 flex-1 px-5 md:h-11 md:w-32 md:flex-none md:px-8"
+                                        onClick={() => mutateReview('ok')}
+                                        disabled={reviewCard.isPending}
+                                    >
+                                        Remembered
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <div>
+                                        {
+                                            getShortcut(
+                                                'card-ok',
+                                                ShortcutScope.Review
+                                            ).description
+                                        }
+                                        <Kbd
+                                            action="card-ok"
+                                            scope={ShortcutScope.Review}
+                                            className="ml-2"
+                                        />
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
+
+                        <div className="order-3 hidden justify-start gap-2.5 md:order-none md:flex md:gap-3">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span className="inline-flex">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="size-11"
+                                            onClick={nextCard}
+                                            disabled={!canGoNext}
+                                            aria-label="Next card"
+                                        >
+                                            <ArrowRight className="size-4" />
+                                        </Button>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {nextTooltip}
+                                    {canGoNext && (
+                                        <Kbd
+                                            action="card-next"
+                                            scope={ShortcutScope.Review}
+                                            className="ml-2"
+                                        />
+                                    )}
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span className="inline-flex">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="size-11"
+                                            onClick={redoLastReview}
+                                            disabled={!canRedo}
+                                            aria-label="Redo review"
+                                        >
+                                            <Redo2 className="size-4" />
+                                        </Button>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {redoTooltip}
+                                    {canRedo && (
+                                        <Kbd
+                                            action="review-redo"
+                                            scope={ShortcutScope.Review}
+                                            className="ml-2"
+                                        />
+                                    )}
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
                     </div>
                 </>
             )}
