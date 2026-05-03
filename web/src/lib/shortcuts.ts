@@ -18,9 +18,14 @@ export function getShortcutsForScope(scope: ShortcutScope) {
 }
 
 export function getShortcut(action: string, scope: ShortcutScope) {
-    const shortcut = SHORTCUT_CONFIG.find(
-        (item) => item.action === action && item.scope === scope
-    );
+    const shortcut =
+        SHORTCUT_CONFIG.find(
+            (item) =>
+                item.action === action && item.scope === scope && item.primary
+        ) ??
+        SHORTCUT_CONFIG.find(
+            (item) => item.action === action && item.scope === scope
+        );
     if (shortcut === undefined) {
         throw new Error(`Unknown action ${action} or scope ${scope}`);
     }

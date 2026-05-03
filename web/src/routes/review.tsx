@@ -196,8 +196,11 @@ function Review() {
     const revealNext = useCallback(() => {
         if (sidesVisible < activeCardSides.length) {
             setSidesVisible((prev) => prev + 1);
+            return;
         }
-    }, [activeCardSides.length, sidesVisible]);
+
+        mutateReview('ok');
+    }, [activeCardSides.length, mutateReview, sidesVisible]);
 
     useEffect(() => {
         const actions = createActions({

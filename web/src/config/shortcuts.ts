@@ -1,4 +1,5 @@
 export enum ShortcutScope {
+    Global = 'global',
     Decks = 'decks',
     Cards = 'cards',
     Profile = 'profile',
@@ -9,14 +10,36 @@ export interface ShortcutConfig {
     action: string;
     description: string;
     scope: ShortcutScope;
+    primary?: boolean;
 }
 
 export const SHORTCUT_CONFIG: ShortcutConfig[] = [
+    {
+        key: 'c',
+        action: 'create-card',
+        description: 'Create card',
+        scope: ShortcutScope.Global,
+        primary: true,
+    },
+    {
+        key: 'f',
+        action: 'card-forgot',
+        description: 'Mark card as forgotten',
+        scope: ShortcutScope.Review,
+        primary: true,
+    },
     {
         key: 'j',
         action: 'card-forgot',
         description: 'Mark card as forgotten',
         scope: ShortcutScope.Review,
+    },
+    {
+        key: 'r',
+        action: 'card-ok',
+        description: 'Mark card as remembered',
+        scope: ShortcutScope.Review,
+        primary: true,
     },
     {
         key: 'l',

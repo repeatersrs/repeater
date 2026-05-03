@@ -1,12 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from '@tanstack/react-router';
 import { Brain, UserLock, Repeat, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import CardCreationDialog from '@/components/card-creation-dialog';
 import DeckCreationDialog from '@/components/deck-creation-dialog';
 import NavDecks from '@/components/nav/nav-decks';
 import { NavProfile } from '@/components/nav/nav-profile';
+import { useShortcutActions } from '@/components/shortcut-provider';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -31,7 +32,10 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ShortcutScope } from '@/config/shortcuts';
 import { useMe } from '@/hooks/use-me';
+import { usePageShortcuts } from '@/hooks/use-shortcuts';
+import { createActions } from '@/lib/shortcuts';
 
 const pages = [
     { href: '/review', label: 'Review', icon: <Brain /> },
@@ -39,6 +43,8 @@ const pages = [
 ];
 
 export function AppSidebar() {
+    usePageShortcuts(ShortcutScope.Global);
+    const { registerAction, unregisterAction } = useShortcutActions();
     const queryClient = useQueryClient();
     const location = useLocation();
     const pathname = location.pathname;
@@ -47,6 +53,22 @@ export function AppSidebar() {
     const [deckDialogOpen, setDeckDialogOpen] = useState(false);
 
     const { setOpenMobile, state, isMobile } = useSidebar();
+
+    useEffect(() => {
+        const actions = createActions({
+            'create-card': () => setCardDialogOpen(true),
+        });
+
+        Object.entries(actions).forEach(([action, handler]) => {
+            registerAction(action, handler);
+        });
+
+        return () => {
+            Object.keys(actions).forEach((action) => {
+                unregisterAction(action);
+            });
+        };
+    }, [registerAction, unregisterAction]);
 
     const visiblePages = pages.filter((page) => {
         if (!page.roles) return true;
