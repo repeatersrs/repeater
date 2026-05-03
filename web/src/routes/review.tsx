@@ -241,8 +241,8 @@ function Review() {
         currentCard?.deck_path?.[currentCard.deck_path.length - 1];
     const deckName = currentDeck?.name ?? '';
     const deckId = currentDeck?.id;
-    const reviewDate = currentCard?.next_review_date
-        ? new Date(currentCard.next_review_date).toLocaleDateString('en-US', {
+    const reviewDate = currentCard?.due_date
+        ? new Date(currentCard.due_date).toLocaleDateString('en-US', {
               year: 'numeric',
               month: '2-digit',
               day: '2-digit',

@@ -43,7 +43,7 @@ def get_review_session(
         .options(contains_eager(Card.deck))
         .filter(
             or_(
-                Card.next_review_date <= today_end,
+                Card.due_date <= today_end,
                 Card.id.in_(db_session.query(cards_reviewed_today.c.card_id)),
             )
         )

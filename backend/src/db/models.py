@@ -202,7 +202,7 @@ class Card(Base, BaseMixin):
         (UUID(as_uuid=True)), ForeignKey("decks.id"), nullable=False
     )
     content = mapped_column(String)
-    next_review_date = mapped_column(
+    due_date = mapped_column(
         DateTime(timezone=True),
         default=lambda: to_start_of_day(datetime.now(timezone.utc)),
         nullable=False,
@@ -242,8 +242,8 @@ class Review(Base, BaseMixin):
     ease_factor = mapped_column(
         Float, default=SCHEDULE_DEFAULT_EASE_FACTOR, nullable=False
     )
-    previous_next_review_date = mapped_column(DateTime(timezone=True), nullable=True)
-    next_review_date = mapped_column(DateTime(timezone=True), nullable=True)
+    previous_due_date = mapped_column(DateTime(timezone=True), nullable=True)
+    due_date = mapped_column(DateTime(timezone=True), nullable=True)
     undone_at = mapped_column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User", back_populates="reviews")

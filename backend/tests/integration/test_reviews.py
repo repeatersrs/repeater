@@ -55,13 +55,11 @@ async def test_create_review(db_session, user, user_client):
 
     reviewed_at = res.json()["reviewed_at"]
     interval = res.json()["interval"]
-    next_review_date = datetime.fromisoformat(reviewed_at).date() + timedelta(
-        days=interval
-    )
+    due_date = datetime.fromisoformat(reviewed_at).date() + timedelta(days=interval)
 
     card = Card.get(db_session, card_id)
     assert card is not None
-    assert card.next_review_date.date() == next_review_date
+    assert card.due_date.date() == due_date
 
     # 2nd review
     res = await user_client.post(
@@ -91,13 +89,11 @@ async def test_create_review(db_session, user, user_client):
 
     reviewed_at = res.json()["reviewed_at"]
     interval = res.json()["interval"]
-    next_review_date = datetime.fromisoformat(reviewed_at).date() + timedelta(
-        days=interval
-    )
+    due_date = datetime.fromisoformat(reviewed_at).date() + timedelta(days=interval)
 
     card = Card.get(db_session, card_id)
     assert card is not None
-    assert card.next_review_date.date() == next_review_date
+    assert card.due_date.date() == due_date
     assert len(Review.all(db_session)) == 2
 
     app.dependency_overrides.clear()
@@ -178,13 +174,11 @@ async def test_create_review_skipped(db_session, user, user_client):
 
     reviewed_at = res.json()["reviewed_at"]
     interval = res.json()["interval"]
-    next_review_date = datetime.fromisoformat(reviewed_at).date() + timedelta(
-        days=interval
-    )
+    due_date = datetime.fromisoformat(reviewed_at).date() + timedelta(days=interval)
 
     card = Card.get(db_session, card_id)
     assert card is not None
-    assert card.next_review_date.date() == next_review_date
+    assert card.due_date.date() == due_date
 
     app.dependency_overrides.clear()
 
@@ -235,13 +229,11 @@ async def test_create_review_forgot(db_session, user, user_client):
 
     reviewed_at = res.json()["reviewed_at"]
     interval = res.json()["interval"]
-    next_review_date = datetime.fromisoformat(reviewed_at).date() + timedelta(
-        days=interval
-    )
+    due_date = datetime.fromisoformat(reviewed_at).date() + timedelta(days=interval)
 
     card = Card.get(db_session, card_id)
     assert card is not None
-    assert card.next_review_date.date() == next_review_date
+    assert card.due_date.date() == due_date
 
     app.dependency_overrides.clear()
 
@@ -321,7 +313,7 @@ async def test_undo_latest_review_restores_card_and_hides_review(
     deck = await create_deck(user_client)
     card = await create_card(user_client, deck.json()["id"])
     card_id = card.json()["id"]
-    original_next_review_date = Card.get(db_session, card_id).next_review_date
+    original_due_date = Card.get(db_session, card_id).due_date
 
     review = await create_review(user_client, card_id, ReviewFeedback.OK)
     review_id = review.json()["id"]
@@ -330,7 +322,7 @@ async def test_undo_latest_review_restores_card_and_hides_review(
     assert res.status_code == 200
 
     db_session.refresh(Card.get(db_session, card_id))
-    assert Card.get(db_session, card_id).next_review_date == original_next_review_date
+    assert Card.get(db_session, card_id).due_date == original_due_date
 
     history = await user_client.get(f"/reviews/{card_id}")
     assert history.json() == []

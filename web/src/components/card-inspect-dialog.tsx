@@ -371,9 +371,7 @@ export default function CardInspectDialog({
                                         <span className="font-medium">
                                             Next review:
                                         </span>{' '}
-                                        {formatDateForDisplay(
-                                            card.next_review_date
-                                        )}
+                                        {formatDateForDisplay(card.due_date)}
                                     </p>
                                 </div>
                             </div>

@@ -21,7 +21,7 @@ async def test_create_card_returns_card(db_session, user, user_client):
         "deck_name": "deck",
         "deck_path": ANY,
         "content": "Test card",
-        "next_review_date": is_utc_isoformat_string(),
+        "due_date": is_utc_isoformat_string(),
         "overdue": False,
         "created_at": is_utc_isoformat_string(),
         "updated_at": is_utc_isoformat_string(),
@@ -62,7 +62,7 @@ async def test_get_cards(user, user_client):
             "deck_name": "deck",
             "deck_path": ANY,
             "content": "Test card 5",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -73,7 +73,7 @@ async def test_get_cards(user, user_client):
             "deck_name": "deck",
             "deck_path": ANY,
             "content": "Test card 4",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -84,7 +84,7 @@ async def test_get_cards(user, user_client):
             "deck_name": "deck",
             "deck_path": ANY,
             "content": "Test card 3",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -95,7 +95,7 @@ async def test_get_cards(user, user_client):
             "deck_name": "deck",
             "deck_path": ANY,
             "content": "Test card 2",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -106,7 +106,7 @@ async def test_get_cards(user, user_client):
             "deck_name": "deck",
             "deck_path": ANY,
             "content": "Test card 1",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -134,7 +134,7 @@ async def test_get_cards_by_deck(db_session, user, user_client):
             "deck_name": "deck",
             "deck_path": ANY,
             "content": "Test card",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -164,7 +164,7 @@ async def test_get_due_cards(db_session, user, user_client):
             "deck_name": "deck",
             "deck_path": ANY,
             "content": "Test card 1",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -175,7 +175,7 @@ async def test_get_due_cards(db_session, user, user_client):
             "deck_name": "deck",
             "deck_path": ANY,
             "content": "Test card 2",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -184,7 +184,7 @@ async def test_get_due_cards(db_session, user, user_client):
 
     # Move first card up 1 day, no longer due
     card = Card.get(db_session, card_1_id)
-    card.next_review_date = datetime.now(timezone.utc) + timedelta(days=1)
+    card.due_date = datetime.now(timezone.utc) + timedelta(days=1)
     card.save(db_session)
 
     res = await user_client.get("/cards", params={"only_due": True})
@@ -195,7 +195,7 @@ async def test_get_due_cards(db_session, user, user_client):
             "deck_name": "deck",
             "deck_path": ANY,
             "content": "Test card 2",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -204,7 +204,7 @@ async def test_get_due_cards(db_session, user, user_client):
 
     # Move second card up, nothing is due
     card = Card.get(db_session, card_2_id)
-    card.next_review_date = datetime.now(timezone.utc) + timedelta(days=1)
+    card.due_date = datetime.now(timezone.utc) + timedelta(days=1)
     card.save(db_session)
 
     res = await user_client.get("/cards", params={"only_due": True})
@@ -228,7 +228,7 @@ async def test_get_overdue_cards(ignore_jwt_expiration, db_session, user, user_c
             "deck_name": "deck",
             "deck_path": ANY,
             "content": "Test card",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -245,7 +245,7 @@ async def test_get_overdue_cards(ignore_jwt_expiration, db_session, user, user_c
                 "deck_name": "deck",
                 "deck_path": ANY,
                 "content": "Test card",
-                "next_review_date": is_utc_isoformat_string(),
+                "due_date": is_utc_isoformat_string(),
                 "overdue": True,
                 "created_at": is_utc_isoformat_string(),
                 "updated_at": is_utc_isoformat_string(),
@@ -271,7 +271,7 @@ async def test_update_card(user, user_client):
         "deck_name": "deck",
         "deck_path": ANY,
         "content": "Updated card",
-        "next_review_date": is_utc_isoformat_string(),
+        "due_date": is_utc_isoformat_string(),
         "overdue": False,
         "created_at": is_utc_isoformat_string(),
         "updated_at": is_utc_isoformat_string(),
@@ -328,7 +328,7 @@ async def test_get_due_cards_exclude_archived_decks(db_session, user, user_clien
             "deck_name": "deck 2",
             "deck_path": ANY,
             "content": "Test card 2",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),
@@ -359,7 +359,7 @@ async def test_get_due_cards_exclude_paused_decks(db_session, user, user_client)
             "deck_name": "deck 2",
             "deck_path": ANY,
             "content": "Test card 2",
-            "next_review_date": is_utc_isoformat_string(),
+            "due_date": is_utc_isoformat_string(),
             "overdue": False,
             "created_at": is_utc_isoformat_string(),
             "updated_at": is_utc_isoformat_string(),

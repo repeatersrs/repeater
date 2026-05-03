@@ -14,7 +14,7 @@ class ReviewSessionCard(BaseModel):
     deck_name: str
     deck_path: List[Dict[str, str]]
     content: str
-    next_review_date: datetime
+    due_date: datetime
     overdue: bool
     todays_reviews: List[ReviewOut]
     created_at: datetime
@@ -27,7 +27,7 @@ class ReviewSessionCard(BaseModel):
             **card.__dict__,
             deck_name=card.deck.name,
             deck_path=card.deck.path,
-            overdue=now >= card.next_review_date + timedelta(hours=24),
+            overdue=now >= card.due_date + timedelta(hours=24),
             todays_reviews=[
                 ReviewOut.model_validate(review, from_attributes=True)
                 for review in todays_reviews

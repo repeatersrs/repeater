@@ -19,7 +19,7 @@ class CardOut(BaseModel):
     deck_name: str
     deck_path: List[Dict[str, str]]
     content: str
-    next_review_date: datetime
+    due_date: datetime
     overdue: bool
     created_at: datetime
     updated_at: datetime
@@ -31,7 +31,7 @@ class CardOut(BaseModel):
             **card.__dict__,
             deck_name=card.deck.name,
             deck_path=card.deck.path,
-            overdue=now >= card.next_review_date + timedelta(hours=24),
+            overdue=now >= card.due_date + timedelta(hours=24),
         )
 
 

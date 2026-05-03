@@ -17,7 +17,7 @@ class BasicScheduler(Scheduler):
                 interval=interval,
                 ease_factor=ease_factor,
                 repetitions=repetitions,
-                next_review_date=datetime.now(timezone.utc) + timedelta(days=1),
+                due_date=datetime.now(timezone.utc) + timedelta(days=1),
             )
 
         if feedback == ReviewFeedback.FORGOT:
@@ -25,7 +25,7 @@ class BasicScheduler(Scheduler):
                 interval=1,
                 ease_factor=max(1.3, ease_factor - 0.2),
                 repetitions=0,
-                next_review_date=datetime.now(timezone.utc) + timedelta(days=1),
+                due_date=datetime.now(timezone.utc) + timedelta(days=1),
             )
 
         if feedback == ReviewFeedback.OK:
@@ -45,5 +45,5 @@ class BasicScheduler(Scheduler):
             interval=interval,
             ease_factor=ease_factor,
             repetitions=repetitions,
-            next_review_date=datetime.now(timezone.utc) + timedelta(days=interval),
+            due_date=datetime.now(timezone.utc) + timedelta(days=interval),
         )

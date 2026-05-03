@@ -58,8 +58,8 @@ def create_review(
         review_req.feedback, repetitions, ease_factor, interval
     )
 
-    previous_next_review_date = card.next_review_date
-    card.next_review_date = schedule_result.next_review_date
+    previous_due_date = card.due_date
+    card.due_date = schedule_result.due_date
     card.save(db_session)
 
     review = Review(
@@ -72,8 +72,8 @@ def create_review(
         interval=schedule_result.interval,
         repetitions=schedule_result.repetitions,
         ease_factor="{:.2f}".format(schedule_result.ease_factor),
-        previous_next_review_date=previous_next_review_date,
-        next_review_date=schedule_result.next_review_date,
+        previous_due_date=previous_due_date,
+        due_date=schedule_result.due_date,
     )
     review.save(db_session)
     return review
@@ -116,7 +116,7 @@ def undo_review(
         )
 
     card = Card.get_user_card(review.card_id, user.id, db_session)
-    card.next_review_date = review.previous_next_review_date
+    card.due_date = review.previous_due_date
     review.undone_at = datetime.now(timezone.utc)
     db_session.commit()
     db_session.refresh(review)
@@ -154,7 +154,7 @@ def redo_review(
         )
 
     card = Card.get_user_card(review.card_id, user.id, db_session)
-    card.next_review_date = review.next_review_date
+    card.due_date = review.due_date
     review.undone_at = None
     db_session.commit()
     db_session.refresh(review)
