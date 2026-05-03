@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session, contains_eager
 
@@ -13,19 +13,97 @@ from src.schemas.review_session import ReviewSessionCard, ReviewSessionOut
 router = APIRouter(prefix="/review-session", tags=["review_session"])
 
 
-@router.get("", response_model=ReviewSessionOut)
-def get_review_session(
-    deck_id: UUID | None = None,
-    user_tz: str
-    | None = None,  # TODO: Accept user timezone to allow local midnight as cut-off for review day
-    exclude_paused: bool = True,
-    exclude_archived: bool = True,
-    user: User = Depends(get_current_user),
-    db_session: Session = Depends(get_db),
-):
+def get_today_bounds():
     now = datetime.now(timezone.utc)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_end = now.replace(hour=23, minute=59, second=59, microsecond=9999)
+    return today_start, today_end
+
+
+def apply_session_filters(
+    query,
+    deck_id: UUID | None,
+    exclude_paused: bool,
+    exclude_archived: bool,
+):
+    if deck_id:
+        query = query.filter(Deck.id == deck_id)
+
+    if exclude_paused:
+        query = query.filter(Deck.is_paused.is_(False))
+
+    if exclude_archived:
+        query = query.filter(Deck.is_archived.is_(False))
+
+    return query
+
+
+def get_session_reviews_query(
+    db_session: Session,
+    user: User,
+    today_start: datetime,
+    deck_id: UUID | None,
+    exclude_paused: bool,
+    exclude_archived: bool,
+):
+    query = (
+        db_session.query(Review)
+        .join(Card, Review.card_id == Card.id)
+        .join(Deck, Card.deck_id == Deck.id)
+        .filter(Review.user_id == user.id)
+        .filter(Review.reviewed_at >= today_start)
+    )
+    return apply_session_filters(query, deck_id, exclude_paused, exclude_archived)
+
+
+def get_undo_review(
+    db_session: Session,
+    user: User,
+    today_start: datetime,
+    deck_id: UUID | None,
+    exclude_paused: bool,
+    exclude_archived: bool,
+):
+    review = (
+        get_session_reviews_query(
+            db_session, user, today_start, deck_id, exclude_paused, exclude_archived
+        )
+        .filter(Review.undone_at.is_(None))
+        .order_by(Review.reviewed_at.desc())
+        .first()
+    )
+
+    if review is None or review.previous_due_date is None:
+        return None
+    return review
+
+
+def get_redo_review(
+    db_session: Session,
+    user: User,
+    today_start: datetime,
+    deck_id: UUID | None,
+    exclude_paused: bool,
+    exclude_archived: bool,
+):
+    return (
+        get_session_reviews_query(
+            db_session, user, today_start, deck_id, exclude_paused, exclude_archived
+        )
+        .filter(Review.undone_at.is_not(None))
+        .order_by(Review.undone_at.desc())
+        .first()
+    )
+
+
+def build_review_session(
+    user: User,
+    db_session: Session,
+    deck_id: UUID | None = None,
+    exclude_paused: bool = True,
+    exclude_archived: bool = True,
+):
+    today_start, today_end = get_today_bounds()
 
     cards_reviewed_today = (
         db_session.query(Review)
@@ -65,18 +143,9 @@ def get_review_session(
             Card.created_at,
         )
     )
-
-    if deck_id:
-        query = query.filter(Deck.id == deck_id)
-
-    if exclude_paused:
-        query = query.filter(Deck.is_paused == False)
-
-    if exclude_archived:
-        query = query.filter(Deck.is_archived == False)
+    query = apply_session_filters(query, deck_id, exclude_paused, exclude_archived)
 
     cards = query.all()
-
     card_ids = [card.id for card in cards]
 
     todays_reviews = []
@@ -113,5 +182,79 @@ def get_review_session(
             failed.append(review_session_card)
 
     return ReviewSessionOut(
-        date=today_start, remaining=remaining, completed=completed, failed=failed
+        date=today_start,
+        remaining=remaining,
+        completed=completed,
+        failed=failed,
+        can_undo=get_undo_review(
+            db_session, user, today_start, deck_id, exclude_paused, exclude_archived
+        )
+        is not None,
+        can_redo=get_redo_review(
+            db_session, user, today_start, deck_id, exclude_paused, exclude_archived
+        )
+        is not None,
     )
+
+
+@router.get("", response_model=ReviewSessionOut)
+def get_review_session(
+    deck_id: UUID | None = None,
+    user_tz: str
+    | None = None,  # TODO: Accept user timezone to allow local midnight as cut-off for review day
+    exclude_paused: bool = True,
+    exclude_archived: bool = True,
+    user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_db),
+):
+    return build_review_session(user, db_session, deck_id, exclude_paused, exclude_archived)
+
+
+@router.post("/undo", response_model=ReviewSessionOut)
+def undo_review_session(
+    deck_id: UUID | None = None,
+    user_tz: str
+    | None = None,  # TODO: Accept user timezone to allow local midnight as cut-off for review day
+    exclude_paused: bool = True,
+    exclude_archived: bool = True,
+    user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_db),
+):
+    today_start, _ = get_today_bounds()
+    review = get_undo_review(
+        db_session, user, today_start, deck_id, exclude_paused, exclude_archived
+    )
+    if review is None:
+        raise HTTPException(status_code=409, detail="Nothing to undo")
+
+    card = Card.get_user_card(review.card_id, user.id, db_session)
+    card.due_date = review.previous_due_date
+    review.undone_at = datetime.now(timezone.utc)
+    db_session.commit()
+
+    return build_review_session(user, db_session, deck_id, exclude_paused, exclude_archived)
+
+
+@router.post("/redo", response_model=ReviewSessionOut)
+def redo_review_session(
+    deck_id: UUID | None = None,
+    user_tz: str
+    | None = None,  # TODO: Accept user timezone to allow local midnight as cut-off for review day
+    exclude_paused: bool = True,
+    exclude_archived: bool = True,
+    user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_db),
+):
+    today_start, _ = get_today_bounds()
+    review = get_redo_review(
+        db_session, user, today_start, deck_id, exclude_paused, exclude_archived
+    )
+    if review is None:
+        raise HTTPException(status_code=409, detail="Nothing to redo")
+
+    card = Card.get_user_card(review.card_id, user.id, db_session)
+    card.due_date = review.due_date
+    review.undone_at = None
+    db_session.commit()
+
+    return build_review_session(user, db_session, deck_id, exclude_paused, exclude_archived)

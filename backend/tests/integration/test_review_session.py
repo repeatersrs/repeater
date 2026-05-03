@@ -62,15 +62,15 @@ async def test_undone_reviews_return_to_front_of_remaining(user_client):
     first_id = first.json()["id"]
     second_id = second.json()["id"]
 
-    first_review = await create_review(user_client, first_id, ReviewFeedback.OK)
-    second_review = await create_review(user_client, second_id, ReviewFeedback.OK)
+    await create_review(user_client, first_id, ReviewFeedback.OK)
+    await create_review(user_client, second_id, ReviewFeedback.OK)
 
-    await user_client.post(f"/reviews/{second_review.json()['id']}/undo")
+    await user_client.post("/review-session/undo")
 
     session = await user_client.get("/review-session")
     assert session.json()["remaining"][0]["id"] == second_id
 
-    await user_client.post(f"/reviews/{first_review.json()['id']}/undo")
+    await user_client.post("/review-session/undo")
 
     session = await user_client.get("/review-session")
     remaining_ids = [card["id"] for card in session.json()["remaining"]]

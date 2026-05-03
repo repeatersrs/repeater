@@ -761,6 +761,140 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /review-session/undo:
+    post:
+      tags:
+      - review_session
+      summary: Undo Review Session
+      operationId: undo_review_session_review_session_undo_post
+      parameters:
+      - name: deck_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Deck Id
+      - name: user_tz
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: User Tz
+      - name: exclude_paused
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Exclude Paused
+      - name: exclude_archived
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Exclude Archived
+      - name: access_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewSessionOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /review-session/redo:
+    post:
+      tags:
+      - review_session
+      summary: Redo Review Session
+      operationId: redo_review_session_review_session_redo_post
+      parameters:
+      - name: deck_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Deck Id
+      - name: user_tz
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: User Tz
+      - name: exclude_paused
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Exclude Paused
+      - name: exclude_archived
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+          title: Exclude Archived
+      - name: access_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Access Token
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewSessionOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /reviews:
     post:
       tags:
@@ -843,92 +977,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/ReviewOut'
                 title: Response Get Review History Reviews  Card Id  Get
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /reviews/{review_id}/undo:
-    post:
-      tags:
-      - reviews
-      summary: Undo Review
-      operationId: undo_review_reviews__review_id__undo_post
-      parameters:
-      - name: review_id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-          title: Review Id
-      - name: access_token
-        in: cookie
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Access Token
-      - name: refresh_token
-        in: cookie
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Refresh Token
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReviewOut'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /reviews/{review_id}/redo:
-    post:
-      tags:
-      - reviews
-      summary: Redo Review
-      operationId: redo_review_reviews__review_id__redo_post
-      parameters:
-      - name: review_id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-          title: Review Id
-      - name: access_token
-        in: cookie
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Access Token
-      - name: refresh_token
-        in: cookie
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Refresh Token
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReviewOut'
         '422':
           description: Validation Error
           content:
@@ -1606,12 +1654,20 @@ components:
             $ref: '#/components/schemas/ReviewSessionCard'
           type: array
           title: Failed
+        can_undo:
+          type: boolean
+          title: Can Undo
+        can_redo:
+          type: boolean
+          title: Can Redo
       type: object
       required:
       - date
       - remaining
       - completed
       - failed
+      - can_undo
+      - can_redo
       title: ReviewSessionOut
     StatisticsOut:
       properties:

@@ -28,8 +28,8 @@ import { ShortcutScope } from '@/config/shortcuts';
 import {
     createReviewReviewsPost,
     getReviewSessionReviewSessionGet,
-    redoReviewReviewsReviewIdRedoPost,
-    undoReviewReviewsReviewIdUndoPost,
+    redoReviewSessionReviewSessionRedoPost,
+    undoReviewSessionReviewSessionUndoPost,
 } from '@/gen';
 import type { ReviewSessionOut } from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
@@ -65,6 +65,8 @@ function Review() {
             remainingCards = [],
             failedCards = [],
             completedCards = [],
+            canUndoSession = false,
+            canRedoSession = false,
         } = {},
     } = useQuery({
         queryKey: ['review-session'],
@@ -79,6 +81,8 @@ function Review() {
             remainingCards: response.data?.remaining,
             failedCards: response.data?.failed,
             completedCards: response.data?.completed,
+            canUndoSession: response.data?.can_undo,
+            canRedoSession: response.data?.can_redo,
         }),
     });
 
@@ -86,8 +90,6 @@ function Review() {
 
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [sidesVisible, setSidesVisible] = useState(1);
-    const [undoReviewIds, setUndoReviewIds] = useState<string[]>([]);
-    const [redoReviewIds, setRedoReviewIds] = useState<string[]>([]);
     const currentCard = remainingCards[activeCardIndex];
     const activeCardSides = currentCard?.content.split('---') || [];
 
@@ -172,15 +174,6 @@ function Review() {
                 );
             }
         },
-        onSuccess: (response) => {
-            const reviewId = response.data?.id;
-            if (!reviewId) {
-                return;
-            }
-
-            setUndoReviewIds((ids) => [...ids, reviewId]);
-            setRedoReviewIds([]);
-        },
         onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({ queryKey: ['review-session'] });
             queryClient.invalidateQueries({
@@ -193,45 +186,40 @@ function Review() {
         // TODO: implement error handling
     });
 
-    const invalidateReviewData = useCallback(
-        (cardId?: string) => {
-            queryClient.invalidateQueries({ queryKey: ['review-session'] });
-            if (cardId) {
-                queryClient.invalidateQueries({
-                    queryKey: ['reviews', cardId],
-                });
-            }
-            queryClient.invalidateQueries({
-                queryKey: ['stats'],
-            });
-        },
-        [queryClient]
-    );
+    const invalidateReviewData = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ['reviews'] });
+        queryClient.invalidateQueries({ queryKey: ['stats'] });
+    }, [queryClient]);
 
     const undoReview = useMutation({
-        mutationFn: (reviewId: string) =>
-            undoReviewReviewsReviewIdUndoPost({
-                path: { review_id: reviewId },
+        mutationFn: () =>
+            undoReviewSessionReviewSessionUndoPost({
+                query: {
+                    exclude_paused: true,
+                    exclude_archived: true,
+                },
             }),
-        onSuccess: (response, reviewId) => {
-            setUndoReviewIds((ids) => ids.slice(0, -1));
-            setRedoReviewIds((ids) => [...ids, reviewId]);
+        onSuccess: (response) => {
+            queryClient.setQueryData(['review-session'], response);
             setActiveCardIndex(0);
             setSidesVisible(1);
-            invalidateReviewData(response.data?.card_id);
+            invalidateReviewData();
         },
     });
 
     const redoReview = useMutation({
-        mutationFn: (reviewId: string) =>
-            redoReviewReviewsReviewIdRedoPost({
-                path: { review_id: reviewId },
+        mutationFn: () =>
+            redoReviewSessionReviewSessionRedoPost({
+                query: {
+                    exclude_paused: true,
+                    exclude_archived: true,
+                },
             }),
-        onSuccess: (response, reviewId) => {
-            setRedoReviewIds((ids) => ids.slice(0, -1));
-            setUndoReviewIds((ids) => [...ids, reviewId]);
+        onSuccess: (response) => {
+            queryClient.setQueryData(['review-session'], response);
+            setActiveCardIndex(0);
             setSidesVisible(1);
-            invalidateReviewData(response.data?.card_id);
+            invalidateReviewData();
         },
     });
 
@@ -245,28 +233,26 @@ function Review() {
     );
 
     const undoLastReview = useCallback(() => {
-        const reviewId = undoReviewIds.at(-1);
         if (
-            reviewId &&
+            canUndoSession &&
             !reviewCard.isPending &&
             !undoReview.isPending &&
             !redoReview.isPending
         ) {
-            undoReview.mutate(reviewId);
+            undoReview.mutate();
         }
-    }, [redoReview.isPending, reviewCard.isPending, undoReview, undoReviewIds]);
+    }, [canUndoSession, redoReview.isPending, reviewCard.isPending, undoReview]);
 
     const redoLastReview = useCallback(() => {
-        const reviewId = redoReviewIds.at(-1);
         if (
-            reviewId &&
+            canRedoSession &&
             !reviewCard.isPending &&
             !undoReview.isPending &&
             !redoReview.isPending
         ) {
-            redoReview.mutate(reviewId);
+            redoReview.mutate();
         }
-    }, [redoReview, redoReviewIds, reviewCard.isPending, undoReview.isPending]);
+    }, [canRedoSession, redoReview, reviewCard.isPending, undoReview.isPending]);
 
     const nextCard = useCallback(() => {
         if (activeCardIndex < remainingCards.length - 1) {
@@ -339,13 +325,9 @@ function Review() {
     const canGoPrev = activeCardIndex > 0;
     const canGoNext = activeCardIndex < remainingCards.length - 1;
     const canUndo =
-        undoReviewIds.length > 0 &&
-        !reviewCard.isPending &&
-        !undoReview.isPending;
+        canUndoSession && !reviewCard.isPending && !undoReview.isPending;
     const canRedo =
-        redoReviewIds.length > 0 &&
-        !reviewCard.isPending &&
-        !redoReview.isPending;
+        canRedoSession && !reviewCard.isPending && !redoReview.isPending;
     const canRevealShortcut = getShortcut('reveal-next', ShortcutScope.Review);
     const undoTooltip = canUndo ? 'Undo last review' : 'Nothing to undo yet';
     const previousTooltip = canGoPrev

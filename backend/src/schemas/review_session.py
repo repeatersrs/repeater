@@ -40,3 +40,5 @@ class ReviewSessionOut(BaseModel):
     remaining: List[ReviewSessionCard]
     completed: List[ReviewSessionCard]
     failed: List[ReviewSessionCard]
+    can_undo: bool
+    can_redo: bool
