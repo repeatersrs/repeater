@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from src.auth.jwt import get_current_user
 from src.db import get_db
-from src.db.models import Deck, User
+from src.db.models import Deck, Review, User
 from src.schemas.statistics import DeckStatistics, StatisticsOut
 from src.statistics import (
     calculate_daily_reviews,
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/stats", tags=["statistics"])
 async def get_user_statistics(
     user: User = Depends(get_current_user), db_session: Session = Depends(get_db)
 ):
-    user_reviews = user.reviews
+    user_reviews = Review.filter_by(db_session, user_id=user.id, undone_at=None).all()
     user_decks = user.decks
 
     today = datetime.now(timezone.utc)
@@ -60,5 +60,5 @@ async def get_user_deck_statistics(
     db_session: Session = Depends(get_db),
 ):
     deck = Deck.filter_by(db_session, id=deck_id, user_id=user.id).one()
-    user_reviews = user.reviews
+    user_reviews = Review.filter_by(db_session, user_id=user.id, undone_at=None).all()
     return get_deck_statistics(deck, user_reviews)

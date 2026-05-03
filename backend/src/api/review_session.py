@@ -30,6 +30,7 @@ def get_review_session(
     cards_reviewed_today = (
         db_session.query(Review)
         .filter(Review.user_id == user.id)
+        .filter(Review.undone_at.is_(None))
         .filter(Review.reviewed_at >= today_start)
         .distinct()
         .subquery()
@@ -66,6 +67,7 @@ def get_review_session(
         todays_reviews = (
             db_session.query(Review)
             .filter(Review.user_id == user.id)
+            .filter(Review.undone_at.is_(None))
             .filter(Review.card_id.in_(card_ids))
             .filter(Review.reviewed_at >= today_start)
             .order_by(Review.reviewed_at)

@@ -5,6 +5,7 @@ from src.db.models import Card, Review, ReviewFeedback
 from src.main import app
 from src.schedulers.basic import BasicScheduler
 from tests.asserts import is_utc_isoformat_string, is_uuid_string
+from tests.util import create_card, create_deck, create_review
 
 
 async def test_create_review(db_session, user, user_client):
@@ -312,3 +313,90 @@ async def test_get_review_history(user, user_client):
             "failed": True,
         },
     ]
+
+
+async def test_undo_latest_review_restores_card_and_hides_review(
+    db_session, user_client
+):
+    deck = await create_deck(user_client)
+    card = await create_card(user_client, deck.json()["id"])
+    card_id = card.json()["id"]
+    original_next_review_date = Card.get(db_session, card_id).next_review_date
+
+    review = await create_review(user_client, card_id, ReviewFeedback.OK)
+    review_id = review.json()["id"]
+
+    res = await user_client.post(f"/reviews/{review_id}/undo")
+    assert res.status_code == 200
+
+    db_session.refresh(Card.get(db_session, card_id))
+    assert Card.get(db_session, card_id).next_review_date == original_next_review_date
+
+    history = await user_client.get(f"/reviews/{card_id}")
+    assert history.json() == []
+
+    undone_review = Review.get(db_session, review_id)
+    assert undone_review.undone_at is not None
+
+
+async def test_undo_non_latest_review_returns_409(user_client):
+    deck = await create_deck(user_client)
+    card = await create_card(user_client, deck.json()["id"])
+    card_id = card.json()["id"]
+
+    first = await create_review(user_client, card_id, ReviewFeedback.FORGOT)
+    await create_review(user_client, card_id, ReviewFeedback.OK)
+
+    res = await user_client.post(f"/reviews/{first.json()['id']}/undo")
+    assert res.status_code == 409
+
+
+async def test_redo_must_follow_card_history_order(db_session, user_client):
+    deck = await create_deck(user_client)
+    card = await create_card(user_client, deck.json()["id"])
+    card_id = card.json()["id"]
+
+    first = await create_review(user_client, card_id, ReviewFeedback.FORGOT)
+    second = await create_review(user_client, card_id, ReviewFeedback.OK)
+    first_id = first.json()["id"]
+    second_id = second.json()["id"]
+
+    await user_client.post(f"/reviews/{second_id}/undo")
+    await user_client.post(f"/reviews/{first_id}/undo")
+
+    res = await user_client.post(f"/reviews/{second_id}/redo")
+    assert res.status_code == 409
+
+    res = await user_client.post(f"/reviews/{first_id}/redo")
+    assert res.status_code == 200
+    res = await user_client.post(f"/reviews/{second_id}/redo")
+    assert res.status_code == 200
+
+    assert Review.get(db_session, first_id).undone_at is None
+    assert Review.get(db_session, second_id).undone_at is None
+
+
+async def test_new_review_after_undo_discards_redo_tail(db_session, user_client):
+    deck = await create_deck(user_client)
+    card = await create_card(user_client, deck.json()["id"])
+    card_id = card.json()["id"]
+
+    undone = await create_review(user_client, card_id, ReviewFeedback.FORGOT)
+    undone_id = undone.json()["id"]
+    await user_client.post(f"/reviews/{undone_id}/undo")
+
+    replacement = await create_review(user_client, card_id, ReviewFeedback.OK)
+    assert replacement.status_code == 201
+    assert Review.get(db_session, undone_id) is None
+
+    res = await user_client.post(f"/reviews/{undone_id}/redo")
+    assert res.status_code == 404
+
+
+async def test_other_user_cannot_undo_review(admin_client, user_client):
+    deck = await create_deck(admin_client)
+    card = await create_card(admin_client, deck.json()["id"])
+    review = await create_review(admin_client, card.json()["id"], ReviewFeedback.OK)
+
+    res = await user_client.post(f"/reviews/{review.json()['id']}/undo")
+    assert res.status_code == 404

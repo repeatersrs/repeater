@@ -1,7 +1,8 @@
+from datetime import datetime, timezone
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.auth.jwt import get_current_user
@@ -32,10 +33,17 @@ def create_review(
 ):
     card = Card.get_user_card(review_req.card_id, user.id, db_session)
     last_review = (
-        Review.filter_by(db_session, card_id=card.id)
+        Review.filter_by(db_session, card_id=card.id, undone_at=None)
         .order_by(Review.reviewed_at.desc())
         .first()
     )
+
+    # If the user reviewed after undoing, discard the redo tail for this card.
+    db_session.query(Review).filter(
+        Review.card_id == card.id,
+        Review.user_id == user.id,
+        Review.undone_at.is_not(None),
+    ).delete(synchronize_session=False)
 
     repetitions = SCHEDULE_DEFAULT_REPETITIONS
     ease_factor = SCHEDULE_DEFAULT_EASE_FACTOR
@@ -50,6 +58,7 @@ def create_review(
         review_req.feedback, repetitions, ease_factor, interval
     )
 
+    previous_next_review_date = card.next_review_date
     card.next_review_date = schedule_result.next_review_date
     card.save(db_session)
 
@@ -63,6 +72,8 @@ def create_review(
         interval=schedule_result.interval,
         repetitions=schedule_result.repetitions,
         ease_factor="{:.2f}".format(schedule_result.ease_factor),
+        previous_next_review_date=previous_next_review_date,
+        next_review_date=schedule_result.next_review_date,
     )
     review.save(db_session)
     return review
@@ -76,7 +87,75 @@ def get_review_history(
 ):
     card = Card.get_user_card(card_id, user.id, db_session)
     return (
-        Review.filter_by(db_session, card_id=card.id)
+        Review.filter_by(db_session, card_id=card.id, undone_at=None)
         .order_by(Review.reviewed_at.desc())
         .all()
     )
+
+
+@router.post("/{review_id}/undo", response_model=ReviewOut)
+def undo_review(
+    review_id: UUID,
+    user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_db),
+):
+    review = Review.filter_by(db_session, id=review_id, user_id=user.id).one()
+    if review.undone_at is not None:
+        raise HTTPException(status_code=409, detail="Review is already undone")
+
+    latest_active_review = (
+        Review.filter_by(
+            db_session, card_id=review.card_id, user_id=user.id, undone_at=None
+        )
+        .order_by(Review.reviewed_at.desc())
+        .first()
+    )
+    if latest_active_review is None or latest_active_review.id != review.id:
+        raise HTTPException(
+            status_code=409, detail="Only the latest review can be undone"
+        )
+
+    card = Card.get_user_card(review.card_id, user.id, db_session)
+    card.next_review_date = review.previous_next_review_date
+    review.undone_at = datetime.now(timezone.utc)
+    db_session.commit()
+    db_session.refresh(review)
+    return review
+
+
+@router.post("/{review_id}/redo", response_model=ReviewOut)
+def redo_review(
+    review_id: UUID,
+    user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_db),
+):
+    review = Review.filter_by(db_session, id=review_id, user_id=user.id).one()
+    if review.undone_at is None:
+        raise HTTPException(status_code=409, detail="Review is not undone")
+
+    latest_active_review = (
+        Review.filter_by(
+            db_session, card_id=review.card_id, user_id=user.id, undone_at=None
+        )
+        .order_by(Review.reviewed_at.desc())
+        .first()
+    )
+    undone_query = Review.filter_by(
+        db_session, card_id=review.card_id, user_id=user.id
+    ).filter(Review.undone_at.is_not(None))
+    if latest_active_review:
+        undone_query = undone_query.filter(
+            Review.reviewed_at > latest_active_review.reviewed_at
+        )
+    next_redo_review = undone_query.order_by(Review.reviewed_at.asc()).first()
+    if next_redo_review is None or next_redo_review.id != review.id:
+        raise HTTPException(
+            status_code=409, detail="Review is not next in redo history"
+        )
+
+    card = Card.get_user_card(review.card_id, user.id, db_session)
+    card.next_review_date = review.next_review_date
+    review.undone_at = None
+    db_session.commit()
+    db_session.refresh(review)
+    return review

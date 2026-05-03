@@ -242,6 +242,9 @@ class Review(Base, BaseMixin):
     ease_factor = mapped_column(
         Float, default=SCHEDULE_DEFAULT_EASE_FACTOR, nullable=False
     )
+    previous_next_review_date = mapped_column(DateTime(timezone=True), nullable=True)
+    next_review_date = mapped_column(DateTime(timezone=True), nullable=True)
+    undone_at = mapped_column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User", back_populates="reviews")
 
