@@ -14,6 +14,7 @@ import {
 import { useCallback, useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
+import CardInspectDialog from '@/components/card-inspect-dialog';
 import { DotField } from '@/components/dot-field';
 import Kbd from '@/components/kbd';
 import { useShortcutActions } from '@/components/shortcut-provider';
@@ -90,6 +91,7 @@ function Review() {
 
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [sidesVisible, setSidesVisible] = useState(1);
+    const [cardInspectDialogOpen, setCardInspectDialogOpen] = useState(false);
     const currentCard = remainingCards[activeCardIndex];
     const activeCardSides = currentCard?.content.split('---') || [];
 
@@ -283,6 +285,12 @@ function Review() {
         mutateReview('ok');
     }, [activeCardSides.length, mutateReview, sidesVisible]);
 
+    const openCurrentCard = useCallback(() => {
+        if (currentCard) {
+            setCardInspectDialogOpen(true);
+        }
+    }, [currentCard]);
+
     useEffect(() => {
         const actions = createActions({
             'card-forgot': () => mutateReview('forgot'),
@@ -292,6 +300,7 @@ function Review() {
             'review-redo': redoLastReview,
             'card-prev': prevCard,
             'card-next': nextCard,
+            'card-edit': openCurrentCard,
         });
 
         Object.entries(actions).forEach(([action, handler]) => {
@@ -312,6 +321,7 @@ function Review() {
         redoLastReview,
         prevCard,
         nextCard,
+        openCurrentCard,
     ]);
 
     const currentDeck =
@@ -750,6 +760,25 @@ function Review() {
                             </Tooltip>
                         </div>
                     </div>
+
+                    <CardInspectDialog
+                        card={currentCard}
+                        open={cardInspectDialogOpen}
+                        onOpenChange={setCardInspectDialogOpen}
+                        onUpdateSuccess={() => {
+                            queryClient.invalidateQueries({
+                                queryKey: ['review-session'],
+                            });
+                        }}
+                        onDeleteSuccess={() => {
+                            queryClient.invalidateQueries({
+                                queryKey: ['review-session'],
+                            });
+                        }}
+                        onNext={null}
+                        onPrev={null}
+                        shortcutsEnabled={false}
+                    />
                 </>
             )}
         </div>

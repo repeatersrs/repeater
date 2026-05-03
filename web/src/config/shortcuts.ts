@@ -54,6 +54,13 @@ export const SHORTCUT_CONFIG: ShortcutConfig[] = [
         scope: ShortcutScope.Review,
     },
     {
+        key: 'e',
+        action: 'card-edit',
+        description: 'Edit current card',
+        scope: ShortcutScope.Review,
+        primary: true,
+    },
+    {
         key: 'z',
         action: 'review-undo',
         description: 'Undo last review',

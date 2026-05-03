@@ -70,10 +70,11 @@ interface CardInspectDialogProps {
     onDeleteSuccess?: () => void;
     onUpdateError?: (error: string) => void;
     onDeleteError?: (error: string) => void;
-    onNext?: () => void;
-    onPrev?: () => void;
+    onNext?: (() => void) | null;
+    onPrev?: (() => void) | null;
     hasNext?: boolean;
     hasPrev?: boolean;
+    shortcutsEnabled?: boolean;
 }
 
 export default function CardInspectDialog({
@@ -89,14 +90,15 @@ export default function CardInspectDialog({
     onPrev,
     hasNext,
     hasPrev,
+    shortcutsEnabled = true,
 }: CardInspectDialogProps) {
-    usePageShortcuts(ShortcutScope.Cards);
     const { registerAction, unregisterAction } = useShortcutActions();
     const [resetKey, setResetKey] = useState(0);
 
     const [internalOpen, setInternalOpen] = useState(false);
     const isOpen = open ?? internalOpen;
     const setIsOpen = onOpenChange ?? setInternalOpen;
+    usePageShortcuts(ShortcutScope.Cards, shortcutsEnabled && isOpen);
 
     const { data: decks } = useQuery({
         queryKey: ['decks'],
@@ -187,6 +189,10 @@ export default function CardInspectDialog({
     } = cardForm;
 
     useEffect(() => {
+        if (!shortcutsEnabled || !isOpen) {
+            return;
+        }
+
         const actions = createActions({
             'card-prev': () => onPrev?.(),
             'card-next': () => onNext?.(),
@@ -201,7 +207,14 @@ export default function CardInspectDialog({
                 unregisterAction(action);
             });
         };
-    }, [onNext, onPrev, registerAction, unregisterAction]);
+    }, [
+        isOpen,
+        onNext,
+        onPrev,
+        registerAction,
+        shortcutsEnabled,
+        unregisterAction,
+    ]);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -213,62 +226,68 @@ export default function CardInspectDialog({
                 <DialogHeader>
                     <div className="flex items-center justify-between">
                         <DialogTitle>Inspect Card</DialogTitle>
-                        <div className="flex gap-1">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={onPrev}
-                                        disabled={!hasPrev}
-                                    >
-                                        <ChevronLeft />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div>
-                                        {
-                                            getShortcut(
-                                                'card-prev',
-                                                ShortcutScope.Cards
-                                            ).description
-                                        }
-                                        <Kbd
-                                            action="card-prev"
-                                            scope={ShortcutScope.Cards}
-                                            className="ml-2"
-                                        />
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={onNext}
-                                        disabled={!hasNext}
-                                    >
-                                        <ChevronRight />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div>
-                                        {
-                                            getShortcut(
-                                                'card-next',
-                                                ShortcutScope.Cards
-                                            ).description
-                                        }
-                                        <Kbd
-                                            action="card-next"
-                                            scope={ShortcutScope.Cards}
-                                            className="ml-2"
-                                        />
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
+                        {(onPrev || onNext) && (
+                            <div className="flex gap-1">
+                                {onPrev && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={onPrev}
+                                                disabled={!hasPrev}
+                                            >
+                                                <ChevronLeft />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <div>
+                                                {
+                                                    getShortcut(
+                                                        'card-prev',
+                                                        ShortcutScope.Cards
+                                                    ).description
+                                                }
+                                                <Kbd
+                                                    action="card-prev"
+                                                    scope={ShortcutScope.Cards}
+                                                    className="ml-2"
+                                                />
+                                            </div>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                                {onNext && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={onNext}
+                                                disabled={!hasNext}
+                                            >
+                                                <ChevronRight />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <div>
+                                                {
+                                                    getShortcut(
+                                                        'card-next',
+                                                        ShortcutScope.Cards
+                                                    ).description
+                                                }
+                                                <Kbd
+                                                    action="card-next"
+                                                    scope={ShortcutScope.Cards}
+                                                    className="ml-2"
+                                                />
+                                            </div>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto">
