@@ -340,19 +340,27 @@ function Review() {
     const hasMoreSides = sidesVisible < activeCardSides.length;
     const canGoPrev = activeCardIndex > 0;
     const canGoNext = activeCardIndex < remainingCards.length - 1;
-    const canUndo =
-        canUndoSession && !reviewCard.isPending && !undoReview.isPending;
-    const canRedo =
-        canRedoSession && !reviewCard.isPending && !redoReview.isPending;
+    const reviewControlsBusy =
+        reviewCard.isPending || undoReview.isPending || redoReview.isPending;
+    const canUndo = canUndoSession && !reviewControlsBusy;
+    const canRedo = canRedoSession && !reviewControlsBusy;
     const canRevealShortcut = getShortcut('reveal-next', ShortcutScope.Review);
-    const undoTooltip = canUndo ? 'Undo last review' : 'Nothing to undo yet';
+    const undoTooltip = reviewControlsBusy
+        ? 'Saving review…'
+        : canUndo
+          ? 'Undo last review'
+          : 'Nothing to undo yet';
     const previousTooltip = canGoPrev
         ? 'Previous card'
         : 'You’re already on the first card';
     const nextTooltip = canGoNext
         ? 'Next card'
         : 'You’re already on the last card';
-    const redoTooltip = canRedo ? 'Redo review' : 'Nothing to redo right now';
+    const redoTooltip = reviewControlsBusy
+        ? 'Saving review…'
+        : canRedo
+          ? 'Redo review'
+          : 'Nothing to redo right now';
 
     return (
         <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden rounded-sm">
@@ -549,7 +557,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="h-10 w-full md:size-11"
+                                            className="h-10 w-full disabled:opacity-100 md:size-11"
                                             onClick={undoLastReview}
                                             disabled={!canUndo}
                                             aria-label="Undo last review"
@@ -575,7 +583,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="h-10 w-full md:size-11"
+                                            className="h-10 w-full disabled:opacity-100 md:size-11"
                                             onClick={prevCard}
                                             disabled={!canGoPrev}
                                             aria-label="Previous card"
@@ -601,7 +609,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="h-10 w-full"
+                                            className="h-10 w-full disabled:opacity-100"
                                             onClick={nextCard}
                                             disabled={!canGoNext}
                                             aria-label="Next card"
@@ -627,7 +635,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="h-10 w-full"
+                                            className="h-10 w-full disabled:opacity-100"
                                             onClick={redoLastReview}
                                             disabled={!canRedo}
                                             aria-label="Redo review"
@@ -652,55 +660,69 @@ function Review() {
                         <div className="order-2 flex min-w-0 justify-center gap-2.5 md:order-none md:gap-3">
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button
-                                        variant="secondary"
-                                        className="border-border h-12 min-w-0 flex-1 border px-5 md:h-11 md:w-32 md:flex-none md:px-8"
-                                        onClick={() => mutateReview('forgot')}
-                                        disabled={reviewCard.isPending}
-                                    >
-                                        Forgot
-                                    </Button>
+                                    <span className="inline-flex min-w-0 flex-1 md:flex-none">
+                                        <Button
+                                            variant="secondary"
+                                            className="border-border h-12 w-full min-w-0 border px-5 disabled:opacity-100 md:h-11 md:w-32 md:px-8"
+                                            onClick={() =>
+                                                mutateReview('forgot')
+                                            }
+                                            disabled={reviewCard.isPending}
+                                        >
+                                            Forgot
+                                        </Button>
+                                    </span>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <div>
-                                        {
-                                            getShortcut(
-                                                'card-forgot',
-                                                ShortcutScope.Review
-                                            ).description
-                                        }
-                                        <Kbd
-                                            action="card-forgot"
-                                            scope={ShortcutScope.Review}
-                                            className="ml-2"
-                                        />
-                                    </div>
+                                    {reviewCard.isPending ? (
+                                        'Saving review…'
+                                    ) : (
+                                        <div>
+                                            {
+                                                getShortcut(
+                                                    'card-forgot',
+                                                    ShortcutScope.Review
+                                                ).description
+                                            }
+                                            <Kbd
+                                                action="card-forgot"
+                                                scope={ShortcutScope.Review}
+                                                className="ml-2"
+                                            />
+                                        </div>
+                                    )}
                                 </TooltipContent>
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button
-                                        className="h-12 min-w-0 flex-1 px-5 md:h-11 md:w-32 md:flex-none md:px-8"
-                                        onClick={() => mutateReview('ok')}
-                                        disabled={reviewCard.isPending}
-                                    >
-                                        Remembered
-                                    </Button>
+                                    <span className="inline-flex min-w-0 flex-1 md:flex-none">
+                                        <Button
+                                            className="h-12 w-full min-w-0 px-5 disabled:opacity-100 md:h-11 md:w-32 md:px-8"
+                                            onClick={() => mutateReview('ok')}
+                                            disabled={reviewCard.isPending}
+                                        >
+                                            Remembered
+                                        </Button>
+                                    </span>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <div>
-                                        {
-                                            getShortcut(
-                                                'card-ok',
-                                                ShortcutScope.Review
-                                            ).description
-                                        }
-                                        <Kbd
-                                            action="card-ok"
-                                            scope={ShortcutScope.Review}
-                                            className="ml-2"
-                                        />
-                                    </div>
+                                    {reviewCard.isPending ? (
+                                        'Saving review…'
+                                    ) : (
+                                        <div>
+                                            {
+                                                getShortcut(
+                                                    'card-ok',
+                                                    ShortcutScope.Review
+                                                ).description
+                                            }
+                                            <Kbd
+                                                action="card-ok"
+                                                scope={ShortcutScope.Review}
+                                                className="ml-2"
+                                            />
+                                        </div>
+                                    )}
                                 </TooltipContent>
                             </Tooltip>
                         </div>
@@ -712,7 +734,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="size-11"
+                                            className="size-11 disabled:opacity-100"
                                             onClick={nextCard}
                                             disabled={!canGoNext}
                                             aria-label="Next card"
@@ -738,7 +760,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="size-11"
+                                            className="size-11 disabled:opacity-100"
                                             onClick={redoLastReview}
                                             disabled={!canRedo}
                                             aria-label="Redo review"
