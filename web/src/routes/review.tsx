@@ -186,10 +186,16 @@ function Review() {
         // TODO: implement error handling
     });
 
-    const invalidateReviewData = useCallback(() => {
-        queryClient.invalidateQueries({ queryKey: ['reviews'] });
-        queryClient.invalidateQueries({ queryKey: ['stats'] });
-    }, [queryClient]);
+    const updateReviewSession = useCallback(
+        (response: ReviewSessionQueryData) => {
+            queryClient.setQueryData(['review-session'], response);
+            setActiveCardIndex(0);
+            setSidesVisible(1);
+            queryClient.invalidateQueries({ queryKey: ['reviews'] });
+            queryClient.invalidateQueries({ queryKey: ['stats'] });
+        },
+        [queryClient]
+    );
 
     const undoReview = useMutation({
         mutationFn: () =>
@@ -199,12 +205,7 @@ function Review() {
                     exclude_archived: true,
                 },
             }),
-        onSuccess: (response) => {
-            queryClient.setQueryData(['review-session'], response);
-            setActiveCardIndex(0);
-            setSidesVisible(1);
-            invalidateReviewData();
-        },
+        onSuccess: updateReviewSession,
     });
 
     const redoReview = useMutation({
@@ -215,12 +216,7 @@ function Review() {
                     exclude_archived: true,
                 },
             }),
-        onSuccess: (response) => {
-            queryClient.setQueryData(['review-session'], response);
-            setActiveCardIndex(0);
-            setSidesVisible(1);
-            invalidateReviewData();
-        },
+        onSuccess: updateReviewSession,
     });
 
     const mutateReview = useCallback(
