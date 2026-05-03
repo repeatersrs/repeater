@@ -350,17 +350,27 @@ function Review() {
 
     const undoLastReview = useCallback(() => {
         const entry = undoStack.at(-1);
-        if (entry && !undoReview.isPending && !redoReview.isPending) {
+        if (
+            entry &&
+            !reviewCard.isPending &&
+            !undoReview.isPending &&
+            !redoReview.isPending
+        ) {
             undoReview.mutate(entry);
         }
-    }, [redoReview.isPending, undoReview, undoStack]);
+    }, [redoReview.isPending, reviewCard.isPending, undoReview, undoStack]);
 
     const redoLastReview = useCallback(() => {
         const entry = redoStack.at(-1);
-        if (entry && !undoReview.isPending && !redoReview.isPending) {
+        if (
+            entry &&
+            !reviewCard.isPending &&
+            !undoReview.isPending &&
+            !redoReview.isPending
+        ) {
             redoReview.mutate(entry);
         }
-    }, [redoReview, redoStack, undoReview.isPending]);
+    }, [redoReview, redoStack, reviewCard.isPending, undoReview.isPending]);
 
     const nextCard = useCallback(() => {
         if (activeCardIndex < remainingCards.length - 1) {
@@ -432,8 +442,10 @@ function Review() {
     const hasMoreSides = sidesVisible < activeCardSides.length;
     const canGoPrev = activeCardIndex > 0;
     const canGoNext = activeCardIndex < remainingCards.length - 1;
-    const canUndo = undoStack.length > 0 && !undoReview.isPending;
-    const canRedo = redoStack.length > 0 && !redoReview.isPending;
+    const canUndo =
+        undoStack.length > 0 && !reviewCard.isPending && !undoReview.isPending;
+    const canRedo =
+        redoStack.length > 0 && !reviewCard.isPending && !redoReview.isPending;
     const canRevealShortcut = getShortcut('reveal-next', ShortcutScope.Review);
     const undoTooltip = canUndo ? 'Undo last review' : 'Nothing to undo yet';
     const previousTooltip = canGoPrev

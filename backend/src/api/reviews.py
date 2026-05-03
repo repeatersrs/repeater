@@ -115,6 +115,9 @@ def undo_review(
             status_code=409, detail="Only the latest review can be undone"
         )
 
+    if review.previous_due_date is None:
+        raise HTTPException(status_code=409, detail="Review cannot be undone")
+
     card = Card.get_user_card(review.card_id, user.id, db_session)
     card.due_date = review.previous_due_date
     review.undone_at = datetime.now(timezone.utc)

@@ -331,6 +331,30 @@ async def test_undo_latest_review_restores_card_and_hides_review(
     assert undone_review.undone_at is not None
 
 
+async def test_undo_review_without_previous_due_date_returns_409(
+    db_session, user_client
+):
+    deck = await create_deck(user_client)
+    card = await create_card(user_client, deck.json()["id"])
+    card_id = card.json()["id"]
+
+    review = await create_review(user_client, card_id, ReviewFeedback.OK)
+    review_id = review.json()["id"]
+    reviewed_due_date = Card.get(db_session, card_id).due_date
+
+    review_model = Review.get(db_session, review_id)
+    review_model.previous_due_date = None
+    db_session.commit()
+
+    res = await user_client.post(f"/reviews/{review_id}/undo")
+    assert res.status_code == 409
+
+    card_model = Card.get(db_session, card_id)
+    db_session.refresh(card_model)
+    assert card_model.due_date == reviewed_due_date
+    assert Review.get(db_session, review_id).undone_at is None
+
+
 async def test_undo_non_latest_review_returns_409(user_client):
     deck = await create_deck(user_client)
     card = await create_card(user_client, deck.json()["id"])
