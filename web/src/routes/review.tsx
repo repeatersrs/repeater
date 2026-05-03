@@ -19,6 +19,7 @@ import {
     createReviewReviewsPost,
     getReviewSessionReviewSessionGet,
 } from '@/gen';
+import type { ReviewSessionCard, ReviewSessionOut } from '@/gen';
 import { usePageShortcuts } from '@/hooks/use-shortcuts';
 import { createActions, getShortcut } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
@@ -38,6 +39,9 @@ export const Route = createFileRoute('/review')({
     },
     component: Review,
 });
+
+type ReviewFeedback = 'ok' | 'skipped' | 'forgot';
+type ReviewSessionQueryData = { data?: ReviewSessionOut };
 
 function Review() {
     usePageShortcuts(ShortcutScope.Review);
@@ -84,27 +88,96 @@ function Review() {
         : 0;
 
     const reviewCard = useMutation({
-        mutationFn: (feedback: 'ok' | 'skipped' | 'forgot') =>
+        mutationFn: ({
+            cardId,
+            feedback,
+        }: {
+            cardId: string;
+            feedback: ReviewFeedback;
+        }) =>
             createReviewReviewsPost({
                 body: {
-                    card_id: currentCard.id,
+                    card_id: cardId,
                     feedback: feedback,
                 },
             }),
-        onSuccess: () => {
+        onMutate: async ({ cardId, feedback }) => {
+            await queryClient.cancelQueries({ queryKey: ['review-session'] });
+
+            const previousSession =
+                queryClient.getQueryData<ReviewSessionQueryData>([
+                    'review-session',
+                ]);
+
+            queryClient.setQueryData<ReviewSessionQueryData>(
+                ['review-session'],
+                (old) => {
+                    const session = old?.data;
+                    const reviewedCard = session?.remaining.find(
+                        (card: ReviewSessionCard) => card.id === cardId
+                    );
+
+                    if (!old || !session || !reviewedCard) {
+                        return old;
+                    }
+
+                    return {
+                        ...old,
+                        data: {
+                            ...session,
+                            remaining: session.remaining.filter(
+                                (card) => card.id !== cardId
+                            ),
+                            completed:
+                                feedback === 'ok'
+                                    ? [...session.completed, reviewedCard]
+                                    : session.completed,
+                            failed:
+                                feedback === 'forgot'
+                                    ? [...session.failed, reviewedCard]
+                                    : session.failed,
+                        },
+                    };
+                }
+            );
+
+            setActiveCardIndex((index) =>
+                index >= remainingCards.length - 1
+                    ? Math.max(index - 1, 0)
+                    : index
+            );
+            setSidesVisible(1);
+
+            return { previousSession };
+        },
+        onError: (_error, _variables, context) => {
+            if (context?.previousSession) {
+                queryClient.setQueryData(
+                    ['review-session'],
+                    context.previousSession
+                );
+            }
+        },
+        onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({ queryKey: ['review-session'] });
             queryClient.invalidateQueries({
-                queryKey: ['reviews', currentCard.id],
+                queryKey: ['reviews', variables?.cardId],
             });
             queryClient.invalidateQueries({
                 queryKey: ['stats'],
             });
-            setSidesVisible(1);
         },
         // TODO: implement error handling
     });
 
-    const { mutate: mutateReview } = reviewCard;
+    const mutateReview = useCallback(
+        (feedback: ReviewFeedback) => {
+            if (currentCard) {
+                reviewCard.mutate({ cardId: currentCard.id, feedback });
+            }
+        },
+        [currentCard, reviewCard]
+    );
 
     const nextCard = useCallback(() => {
         if (activeCardIndex < remainingCards.length - 1) {
@@ -362,7 +435,7 @@ function Review() {
                                 <Button
                                     variant="secondary"
                                     className="border-border h-12 flex-1 border md:h-11 md:flex-none md:px-8"
-                                    onClick={() => reviewCard.mutate('forgot')}
+                                    onClick={() => mutateReview('forgot')}
                                 >
                                     Forgot
                                 </Button>
@@ -387,7 +460,7 @@ function Review() {
                             <TooltipTrigger asChild>
                                 <Button
                                     className="h-12 flex-1 md:h-11 md:flex-none md:px-8"
-                                    onClick={() => reviewCard.mutate('ok')}
+                                    onClick={() => mutateReview('ok')}
                                 >
                                     Remembered
                                 </Button>
