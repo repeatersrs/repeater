@@ -221,46 +221,29 @@ function Review() {
         onSuccess: updateReviewSession,
     });
 
+    const reviewControlsBusy =
+        reviewCard.isPending || undoReview.isPending || redoReview.isPending;
+
     const mutateReview = useCallback(
         (feedback: ReviewFeedback) => {
-            if (currentCard && !reviewCard.isPending) {
+            if (currentCard && !reviewControlsBusy) {
                 reviewCard.mutate({ cardId: currentCard.id, feedback });
             }
         },
-        [currentCard, reviewCard]
+        [currentCard, reviewCard, reviewControlsBusy]
     );
 
     const undoLastReview = useCallback(() => {
-        if (
-            canUndoSession &&
-            !reviewCard.isPending &&
-            !undoReview.isPending &&
-            !redoReview.isPending
-        ) {
+        if (canUndoSession && !reviewControlsBusy) {
             undoReview.mutate();
         }
-    }, [
-        canUndoSession,
-        redoReview.isPending,
-        reviewCard.isPending,
-        undoReview,
-    ]);
+    }, [canUndoSession, reviewControlsBusy, undoReview]);
 
     const redoLastReview = useCallback(() => {
-        if (
-            canRedoSession &&
-            !reviewCard.isPending &&
-            !undoReview.isPending &&
-            !redoReview.isPending
-        ) {
+        if (canRedoSession && !reviewControlsBusy) {
             redoReview.mutate();
         }
-    }, [
-        canRedoSession,
-        redoReview,
-        reviewCard.isPending,
-        undoReview.isPending,
-    ]);
+    }, [canRedoSession, redoReview, reviewControlsBusy]);
 
     const nextCard = useCallback(() => {
         if (activeCardIndex < remainingCards.length - 1) {
@@ -340,10 +323,8 @@ function Review() {
     const hasMoreSides = sidesVisible < activeCardSides.length;
     const canGoPrev = activeCardIndex > 0;
     const canGoNext = activeCardIndex < remainingCards.length - 1;
-    const reviewControlsBusy =
-        reviewCard.isPending || undoReview.isPending || redoReview.isPending;
-    const canUndo = canUndoSession && !reviewControlsBusy;
-    const canRedo = canRedoSession && !reviewControlsBusy;
+    const canUndo = canUndoSession;
+    const canRedo = canRedoSession;
     const canRevealShortcut = getShortcut('reveal-next', ShortcutScope.Review);
     const undoTooltip = reviewControlsBusy
         ? 'Saving review…'
@@ -557,7 +538,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="h-10 w-full disabled:opacity-100 md:size-11"
+                                            className="h-10 w-full md:size-11"
                                             onClick={undoLastReview}
                                             disabled={!canUndo}
                                             aria-label="Undo last review"
@@ -568,7 +549,7 @@ function Review() {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     {undoTooltip}
-                                    {canUndo && (
+                                    {canUndo && !reviewControlsBusy && (
                                         <Kbd
                                             action="review-undo"
                                             scope={ShortcutScope.Review}
@@ -583,7 +564,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="h-10 w-full disabled:opacity-100 md:size-11"
+                                            className="h-10 w-full md:size-11"
                                             onClick={prevCard}
                                             disabled={!canGoPrev}
                                             aria-label="Previous card"
@@ -609,7 +590,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="h-10 w-full disabled:opacity-100"
+                                            className="h-10 w-full"
                                             onClick={nextCard}
                                             disabled={!canGoNext}
                                             aria-label="Next card"
@@ -635,7 +616,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="h-10 w-full disabled:opacity-100"
+                                            className="h-10 w-full"
                                             onClick={redoLastReview}
                                             disabled={!canRedo}
                                             aria-label="Redo review"
@@ -646,7 +627,7 @@ function Review() {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     {redoTooltip}
-                                    {canRedo && (
+                                    {canRedo && !reviewControlsBusy && (
                                         <Kbd
                                             action="review-redo"
                                             scope={ShortcutScope.Review}
@@ -663,18 +644,17 @@ function Review() {
                                     <span className="inline-flex min-w-0 flex-1 md:flex-none">
                                         <Button
                                             variant="secondary"
-                                            className="border-border h-12 w-full min-w-0 border px-5 disabled:opacity-100 md:h-11 md:w-32 md:px-8"
+                                            className="border-border h-12 w-full min-w-0 border px-5 md:h-11 md:w-32 md:px-8"
                                             onClick={() =>
                                                 mutateReview('forgot')
                                             }
-                                            disabled={reviewCard.isPending}
                                         >
                                             Forgot
                                         </Button>
                                     </span>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    {reviewCard.isPending ? (
+                                    {reviewControlsBusy ? (
                                         'Saving review…'
                                     ) : (
                                         <div>
@@ -697,16 +677,15 @@ function Review() {
                                 <TooltipTrigger asChild>
                                     <span className="inline-flex min-w-0 flex-1 md:flex-none">
                                         <Button
-                                            className="h-12 w-full min-w-0 px-5 disabled:opacity-100 md:h-11 md:w-32 md:px-8"
+                                            className="h-12 w-full min-w-0 px-5 md:h-11 md:w-32 md:px-8"
                                             onClick={() => mutateReview('ok')}
-                                            disabled={reviewCard.isPending}
                                         >
                                             Remembered
                                         </Button>
                                     </span>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    {reviewCard.isPending ? (
+                                    {reviewControlsBusy ? (
                                         'Saving review…'
                                     ) : (
                                         <div>
@@ -734,7 +713,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="size-11 disabled:opacity-100"
+                                            className="size-11"
                                             onClick={nextCard}
                                             disabled={!canGoNext}
                                             aria-label="Next card"
@@ -760,7 +739,7 @@ function Review() {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            className="size-11 disabled:opacity-100"
+                                            className="size-11"
                                             onClick={redoLastReview}
                                             disabled={!canRedo}
                                             aria-label="Redo review"
@@ -771,7 +750,7 @@ function Review() {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     {redoTooltip}
-                                    {canRedo && (
+                                    {canRedo && !reviewControlsBusy && (
                                         <Kbd
                                             action="review-redo"
                                             scope={ShortcutScope.Review}
