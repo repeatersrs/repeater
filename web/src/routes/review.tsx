@@ -241,7 +241,12 @@ function Review() {
         ) {
             undoReview.mutate();
         }
-    }, [canUndoSession, redoReview.isPending, reviewCard.isPending, undoReview]);
+    }, [
+        canUndoSession,
+        redoReview.isPending,
+        reviewCard.isPending,
+        undoReview,
+    ]);
 
     const redoLastReview = useCallback(() => {
         if (
@@ -252,7 +257,12 @@ function Review() {
         ) {
             redoReview.mutate();
         }
-    }, [canRedoSession, redoReview, reviewCard.isPending, undoReview.isPending]);
+    }, [
+        canRedoSession,
+        redoReview,
+        reviewCard.isPending,
+        undoReview.isPending,
+    ]);
 
     const nextCard = useCallback(() => {
         if (activeCardIndex < remainingCards.length - 1) {

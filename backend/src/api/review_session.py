@@ -207,7 +207,9 @@ def get_review_session(
     user: User = Depends(get_current_user),
     db_session: Session = Depends(get_db),
 ):
-    return build_review_session(user, db_session, deck_id, exclude_paused, exclude_archived)
+    return build_review_session(
+        user, db_session, deck_id, exclude_paused, exclude_archived
+    )
 
 
 @router.post("/undo", response_model=ReviewSessionOut)
@@ -232,7 +234,9 @@ def undo_review_session(
     review.undone_at = datetime.now(timezone.utc)
     db_session.commit()
 
-    return build_review_session(user, db_session, deck_id, exclude_paused, exclude_archived)
+    return build_review_session(
+        user, db_session, deck_id, exclude_paused, exclude_archived
+    )
 
 
 @router.post("/redo", response_model=ReviewSessionOut)
@@ -257,4 +261,6 @@ def redo_review_session(
     review.undone_at = None
     db_session.commit()
 
-    return build_review_session(user, db_session, deck_id, exclude_paused, exclude_archived)
+    return build_review_session(
+        user, db_session, deck_id, exclude_paused, exclude_archived
+    )
