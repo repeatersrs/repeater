@@ -17,6 +17,15 @@ export const usePageShortcuts = (scope: ShortcutScope, enabled = true) => {
         {} as Record<string, string>
     );
 
+    function modifiersMatch(handler: Hotkey, event: KeyboardEvent) {
+        return (
+            !!handler.ctrl === event.ctrlKey &&
+            !!handler.shift === event.shiftKey &&
+            !!handler.alt === event.altKey &&
+            !!handler.meta === event.metaKey
+        );
+    }
+
     function getKeyWithModifiers(handler: Hotkey, eventKey?: string): string {
         const baseKey = handler.keys?.[0] || eventKey || '';
 
@@ -34,24 +43,32 @@ export const usePageShortcuts = (scope: ShortcutScope, enabled = true) => {
         return baseKey;
     }
 
+    function getActionForEvent(event: KeyboardEvent, handler: Hotkey) {
+        if (!modifiersMatch(handler, event)) return undefined;
+
+        const key = getKeyWithModifiers(handler, event.key);
+        return keyToAction[key];
+    }
+
     const allKeys = shortcuts.map((s) => s.key);
 
     useHotkeys(
         allKeys,
         (event, handler) => {
-            const key = getKeyWithModifiers(handler, event.key);
-            const action = keyToAction[key];
+            const action = getActionForEvent(event, handler);
             if (action) {
                 executeAction(action);
             }
         },
         {
             enabled,
-            preventDefault: true,
+            preventDefault: (event, handler) =>
+                getActionForEvent(event, handler) !== undefined,
             enableOnFormTags: false,
             enableOnContentEditable: false,
             keydown: true,
             keyup: false,
+            useKey: true,
         }
     );
 
