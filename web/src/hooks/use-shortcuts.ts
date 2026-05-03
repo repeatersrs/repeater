@@ -1,5 +1,4 @@
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Hotkey } from 'react-hotkeys-hook/packages/react-hotkeys-hook/dist/types';
 
 import { useShortcutActions } from '@/components/shortcut-provider';
 import { ShortcutScope } from '@/config/shortcuts';
@@ -17,53 +16,45 @@ export const usePageShortcuts = (scope: ShortcutScope, enabled = true) => {
         {} as Record<string, string>
     );
 
-    function modifiersMatch(handler: Hotkey, event: KeyboardEvent) {
-        return (
-            !!handler.ctrl === event.ctrlKey &&
-            !!handler.shift === event.shiftKey &&
-            !!handler.alt === event.altKey &&
-            !!handler.meta === event.metaKey
-        );
+    function normalizeEventKey(event: KeyboardEvent) {
+        if (event.key === ' ') return 'space';
+
+        return event.key.toLowerCase();
     }
 
-    function getKeyWithModifiers(handler: Hotkey, eventKey?: string): string {
-        const baseKey = handler.keys?.[0] || eventKey || '';
-
+    function getKeyWithModifiers(event: KeyboardEvent): string {
+        const key = normalizeEventKey(event);
         const modifiers: string[] = [];
 
-        if (handler.ctrl) modifiers.push('ctrl');
-        if (handler.shift) modifiers.push('shift');
-        if (handler.alt) modifiers.push('alt');
-        if (handler.meta) modifiers.push('meta'); // Command key on Mac
+        if (event.ctrlKey) modifiers.push('ctrl');
+        if (event.shiftKey) modifiers.push('shift');
+        if (event.altKey) modifiers.push('alt');
+        if (event.metaKey) modifiers.push('meta'); // Command key on Mac
 
         if (modifiers.length > 0) {
-            return `${modifiers.join('+')}+${baseKey}`;
+            return `${modifiers.join('+')}+${key}`;
         }
 
-        return baseKey;
+        return key;
     }
 
-    function getActionForEvent(event: KeyboardEvent, handler: Hotkey) {
-        if (!modifiersMatch(handler, event)) return undefined;
-
-        const key = getKeyWithModifiers(handler, event.key);
-        return keyToAction[key];
+    function getActionForEvent(event: KeyboardEvent) {
+        return keyToAction[getKeyWithModifiers(event)];
     }
 
     const allKeys = shortcuts.map((s) => s.key);
 
     useHotkeys(
         allKeys,
-        (event, handler) => {
-            const action = getActionForEvent(event, handler);
+        (event) => {
+            const action = getActionForEvent(event);
             if (action) {
                 executeAction(action);
             }
         },
         {
             enabled,
-            preventDefault: (event, handler) =>
-                getActionForEvent(event, handler) !== undefined,
+            preventDefault: (event) => getActionForEvent(event) !== undefined,
             enableOnFormTags: false,
             enableOnContentEditable: false,
             keydown: true,
